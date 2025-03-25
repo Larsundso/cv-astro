@@ -8,7 +8,7 @@ import MeIcon from "~/components/me/icon.astro";
 <Container>
  <section aria-labelledby="about-me" class="tilt-card">
   <Greeter />
-  
+
   <h1 id="about-me" class="sr-only">About Lars Böse</h1>
 
   <div class="text-text text-lg max-w-prose font-500 tilt-card-content">
@@ -22,7 +22,10 @@ import MeIcon from "~/components/me/icon.astro";
    </a> IT specialist for application development and open-source full-stack developer.
   </div>
 
-  <div class="my-6 h-px w-full bg-gradient-to-r from-transparent via-accent/30 to-transparent"></div>
+  <div
+   class="my-6 h-px w-full bg-gradient-to-r from-transparent via-accent/30 to-transparent"
+  >
+  </div>
 
   <nav class="mt-5 tilt-card-content" aria-label="Social links">
    <h3 class="text-accent/80 mb-3 text-sm font-medium">Connect with me</h3>
@@ -41,8 +44,12 @@ import MeIcon from "~/components/me/icon.astro";
       class="w-10 h-10 text-accent"
       aria-hidden="true"
      >
-      <circle cx="37.5" cy="37.5" r="34.5" stroke="currentColor" stroke-width="6"
-      ></circle>
+      <circle
+       cx="37.5"
+       cy="37.5"
+       r="34.5"
+       stroke="currentColor"
+       stroke-width="6"></circle>
       <path
        d="M23.5 32L32.1956 44.3569C32.5901 44.9175 33.4189 44.924 33.8221 44.3696L36.1556 41.1611C36.5651 40.5981 37.4102 40.6153 37.7964 41.1945L40.1984 44.7976C40.586 45.379 41.4353 45.3938 41.8428 44.8261L55 26.5"
        stroke="currentColor"
@@ -88,51 +95,18 @@ import MeIcon from "~/components/me/icon.astro";
  </section>
 </Container>
 
-<script>
-// Add 3D tilt effect for the Me section
-document.addEventListener('DOMContentLoaded', function() {
-  const card = document.querySelector('.tilt-card');
-  if (!card) return;
-  
-  // 3D Tilt Effect
-  card.addEventListener('mousemove', handleTilt);
-  card.addEventListener('mouseleave', resetTilt);
-  
-  function handleTilt(e) {
-    const { left, top, width, height } = card.getBoundingClientRect();
-    const x = e.clientX - left;
-    const y = e.clientY - top;
-    
-    const middleX = width / 2;
-    const middleY = height / 2;
-    
-    const offsetX = ((x - middleX) / middleX) * 10;
-    const offsetY = ((y - middleY) / middleY) * 10;
-    
-    card.style.transform = `perspective(1000px) rotateX(${-offsetY}deg) rotateY(${offsetX}deg) scale3d(1.02, 1.02, 1.02)`;
-    
-    // Add subtle shine effect
-    const shine = `radial-gradient(circle at ${x}px ${y}px, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 60%)`;
-    card.style.backgroundImage = shine;
-  }
-  
-  function resetTilt() {
-    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
-    card.style.backgroundImage = 'none';
-  }
-});
-</script>
-
 <style>
-  .tilt-card {
-    transition: transform 0.1s ease-out, box-shadow 0.3s ease;
-    transform-style: preserve-3d;
-    position: relative;
-  }
-  
-  .tilt-card-content {
-    transform-style: preserve-3d;
-    transition: transform 0.1s ease-out;
-    position: relative;
-  }
+ .tilt-card {
+  transition:
+   transform 0.1s ease-out,
+   box-shadow 0.3s ease;
+  transform-style: preserve-3d;
+  position: relative;
+ }
+
+ .tilt-card-content {
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-out;
+  position: relative;
+ }
 </style>

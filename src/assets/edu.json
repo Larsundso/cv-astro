@@ -1,0 +1,26 @@
+[
+ {
+  "name": "Electronics School Tettnang",
+  "start": "09.2022",
+  "end": "07.2025",
+  "logo": "EST.webp"
+ },
+ {
+  "name": "1-Year Vocational School for Electrical Engineering",
+  "end": "02.2020",
+  "start": "08.2019",
+  "logo": "GSR.webp"
+ },
+ {
+  "name": "Ravensburg Technical High School",
+  "end": "10.2018",
+  "start": "08.2018",
+  "logo": "GSR.webp"
+ },
+ {
+  "name": "BZ St. Konrad Ravensburg",
+  "start": "04.2010",
+  "end": "07.2018",
+  "logo": "Konrad.webp"
+ }
+]

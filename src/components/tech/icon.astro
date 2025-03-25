@@ -1,0 +1,34 @@
+---
+export interface Props {
+  href: string;
+  title: string;
+}
+
+const { href, title } = Astro.props;
+---
+
+<a
+  href={href}
+  class="tech-icon group relative flex items-center justify-center w-14 h-14 rounded-lg bg-background/40 border border-accent/10 hover:border-accent/40 transition-all duration-300 overflow-hidden"
+  title={title}
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  <div class="transform group-hover:scale-110 transition-transform duration-300">
+    <slot />
+  </div>
+  
+  <div class="absolute bottom-0 left-0 w-full bg-accent text-background text-xs py-1 text-center translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+    {title}
+  </div>
+</a>
+
+<style>
+  .tech-icon {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  .tech-icon:hover {
+    box-shadow: 0 10px 15px -3px rgba(230, 144, 101, 0.1), 0 4px 6px -2px rgba(230, 144, 101, 0.05);
+  }
+</style>

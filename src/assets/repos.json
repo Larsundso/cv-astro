@@ -1,0 +1,501 @@
+[
+ {
+  "name": "Ayako",
+  "orgs": ["ayakobot", "larsundso"],
+  "start": 1575208440,
+  "end": null,
+  "logo": "Ayako.webp",
+  "shortDesc": "This is my long-term passion project. Ayako is a Discord bot that I've been working on since 2019. It's a multipurpose bot with a lot of features.",
+  "desc": "My long term project has guided me through my development career from the start. Starting with a single spaghetti-coded JavaScript file, recoded into a TypeScript monolith that now features 1.800+ files with 99.000+ lines of code. Ayako is a multipurpose Discord bot that features a lot of different commands and features with heavy throughput, utiliting ffmpeg and third-party APIs while relying heavily on libraries like Prisma and software like Redis and PostgreSQL. It's a project that I'm very proud of and that I'm still working on.",
+  "repos": [
+   {
+    "name": "website-frontend",
+    "urls": [],
+    "tech": [
+     "TypeScript",
+     "Git",
+     "GitHub",
+     "Cloudflare",
+     "VueJS",
+     "Vite",
+     "TailwindCSS",
+     "CSS3",
+     "HTML5"
+    ],
+    "end": 1700661240,
+    "start": 1680785640,
+    "tasks": ["Development", "Maintenance"]
+   },
+   {
+    "name": "website-backend",
+    "urls": [],
+    "tech": [
+     "TypeScript",
+     "Git",
+     "GitHub",
+     "ExpressJS",
+     "DiscordAPI",
+     "Prisma",
+     "PostgreSQL",
+     "Cloudflare",
+     "NodeJS",
+     "Ubuntu",
+     "SocketIO"
+    ],
+    "start": 1680785640,
+    "end": 1703858040,
+    "tasks": ["Development", "Maintenance", "Optimization"]
+   },
+   {
+    "name": "animekos",
+    "urls": [{ "url": "animekos.org", "title": "Animekos" }],
+    "tech": [
+     "Docker",
+     "TypeScript",
+     "Astro",
+     "Git",
+     "GitHub",
+     "Cloudflare",
+     "UnoCSS",
+     "HTML5",
+     "CSS3",
+     "Vite"
+    ],
+    "start": 1721652840,
+    "end": null,
+    "tasks": ["Development", "Maintenance"]
+   },
+   {
+    "name": "website",
+    "urls": [],
+    "tech": [
+     "Docker",
+     "TypeScript",
+     "Svelte",
+     "Git",
+     "GitHub",
+     "Cloudflare",
+     "UnoCSS",
+     "HTML5",
+     "CSS3",
+     "Vite"
+    ],
+    "start": 1708869240,
+    "end": null,
+    "tasks": ["Development", "Maintenance", "Optimization"]
+   },
+   {
+    "name": "dashboard",
+    "urls": [],
+    "tech": [
+     "Docker",
+     "TypeScript",
+     "Svelte",
+     "Git",
+     "GitHub",
+     "Cloudflare",
+     "UnoCSS",
+     "HTML5",
+     "CSS3",
+     "Vite"
+    ],
+    "start": 1729083240,
+    "end": null,
+    "tasks": ["Development", "Maintenance", "Optimization"]
+   },
+   {
+    "name": "server",
+    "urls": [
+     { "url": "docs.ayakobot.com", "title": "Ayako API Docs" }
+    ],
+    "tech": [
+     "Docker",
+     "TypeScript",
+     "SvelteKit",
+     "Git",
+     "GitHub",
+     "NodeJS",
+     "Prisma",
+     "Ubuntu",
+     "PostgreSQL",
+     "DiscordAPI",
+     "Vite"
+    ],
+    "start": 1708869240,
+    "end": null,
+    "tasks": ["Development", "Maintenance", "Optimization"]
+   },
+   {
+    "name": "ayako-v2",
+    "urls": [{ "url": "ayakobot.com", "title": "Ayako" }],
+    "tech": [
+     "TypeScript",
+     "NodeJS",
+     "DiscordAPI",
+     "PostgreSQL",
+     "Redis",
+     "Git",
+     "GitHub",
+     "Ubuntu",
+     "Docker",
+     "Prisma"
+    ],
+    "start": 1665871200,
+    "end": null,
+    "tasks": ["Development", "Maintenance", "Optimization"]
+   },
+   {
+    "name": "ayako-v1.5",
+    "urls": [],
+    "tech": [
+     "JavaScript",
+     "NodeJS",
+     "DiscordAPI",
+     "PostgreSQL",
+     "Git",
+     "GitHub"
+    ],
+    "start": 1652220000,
+    "end": 1703718000,
+    "tasks": ["Development", "Maintenance", "Optimization"]
+   },
+   {
+    "name": "ayako-v1.4",
+    "urls": [],
+    "tech": [
+     "JavaScript",
+     "NodeJS",
+     "DiscordAPI",
+     "PostgreSQL",
+     "Git",
+     "GitHub"
+    ],
+    "start": 1575207390,
+    "end": 1652220000,
+    "tasks": ["Development", "Maintenance", "Optimization"]
+   },
+   {
+    "name": "purrbot-api",
+    "urls": [{ "url": "npmjs.com/package/purrbot-api", "title": "NPM" }],
+    "tech": ["TypeScript", "NodeJS", "Git", "GitHub"],
+    "start": 1683982440,
+    "end": null,
+    "tasks": ["Development", "Maintenance"]
+   },
+   {
+    "name": "waifu.pics",
+    "urls": [{ "url": "www.npmjs.com/package/waifu-pics-api", "title": "NPM" }],
+    "tech": ["TypeScript", "NodeJS", "Git", "GitHub"],
+    "start": 1683896040,
+    "end": 1683982440,
+    "tasks": ["Development", "Maintenance"]
+   }
+  ]
+ },
+ {
+  "name": "Electronics School Tettnang",
+  "orgs": ["larsundso"],
+  "logo": "EST.webp",
+  "shortDesc": "I'm currently studying at this vocational college. While the stuff learned here isn't really new to me I'm still enjoying the time here.",
+  "desc": "This vocational college taught me network engineering using Cisco devices and programming in Java, Svelte, and Python. Part of this education were several projects you'll find listed when clicking this card. It also taught me how to do project management and economics.",
+  "repos": [
+   {
+    "name": "optiker",
+    "urls": [],
+    "tech": [
+     "VueJS",
+     "Vite",
+     "CSS3",
+     "HTML5",
+     "TailwindCSS",
+     "PostgreSQL",
+     "NodeJS",
+     "SocketIO",
+     "TypeScript",
+     "ExpressJS",
+     "Ubuntu",
+     "Cisco",
+     "Networking",
+     "Git",
+     "GitHub"
+    ],
+    "start": 1679835240,
+    "end": 1680008040,
+    "tasks": ["Development"]
+   },
+   {
+    "name": "ticket-dash",
+    "urls": [],
+    "tech": [
+     "Prisma",
+     "Vite",
+     "SvelteKit",
+     "HTML5",
+     "UnoCSS",
+     "Ubuntu",
+     "NodeJS",
+     "TypeScript",
+     "Vite",
+     "Git",
+     "GitHub"
+    ],
+    "start": 1737381240,
+    "end": 1737554040,
+    "tasks": ["Development"]
+   },
+   {
+    "name": "othello",
+    "urls": [],
+    "tech": [
+     "Vite",
+     "SvelteKit",
+     "HTML5",
+     "UnoCSS",
+     "Ubuntu",
+     "NodeJS",
+     "TypeScript",
+     "Vite",
+     "Git",
+     "GitHub"
+    ],
+    "start": 1733752440,
+    "end": 1733752440,
+    "tasks": ["Development"]
+   },
+   {
+    "name": "height-map",
+    "urls": [],
+    "tech": [
+     "Vite",
+     "SvelteKit",
+     "HTML5",
+     "UnoCSS",
+     "Ubuntu",
+     "NodeJS",
+     "TypeScript",
+     "Vite",
+     "Python",
+     "MQTT",
+     "ESP",
+     "Git",
+     "GitHub"
+    ],
+    "start": 1715172840,
+    "end": 1715172840,
+    "tasks": ["Development"]
+   },
+   {
+    "name": "shifting-game",
+    "urls": [],
+    "tech": ["Java", "Git", "GitHub"],
+    "start": 1703084640,
+    "end": 1703084640,
+    "tasks": ["Development"]
+   }
+  ],
+  "start": 1662036840,
+  "end": null
+ },
+ {
+  "name": "Columbus-Interactive",
+  "orgs": ["columbusinteractive"],
+  "start": 1662036840,
+  "end": null,
+  "logo": "CI.webp",
+  "shortDesc": "Columbus-Interactive is my vocation college workplace. I'm mainly working on Typo3 projects but also on some Craft CMS projects.",
+  "desc": "Columbus-Interactive is a web development and online marketing agency that mainly works with Typo3 and Craft CMS. The majority of day-to-day tasks here are maintenance, and content updates. I'm also working on some new projects and features for the websites we're maintaining.",
+  "repos": [
+   {
+    "name": "eis-typo3-base",
+    "urls": [{ "url": "eisele.de", "title": "Eisele" }],
+    "tech": ["Typo3", "Git", "GitHub"],
+    "tasks": ["Maintenance"]
+   },
+   {
+    "name": "mp-family-office",
+    "urls": [{ "url": "mp-familyoffice.de", "title": "MP Family Office" }],
+    "tech": [
+     "Bootstrap",
+     "Handlebars",
+     "TypeScript",
+     "Docker",
+     "SCSS",
+     "CSS3",
+     "Git",
+     "GitHub"
+    ],
+    "tasks": ["Development"]
+   },
+   {
+    "name": "lw-typo3-base",
+    "urls": [{ "url": "lightweight.info", "title": "Lightweight" }],
+    "tech": ["SCSS", "CSS3", "Git", "GitHub"],
+    "tasks": ["Maintenance"]
+   },
+   {
+    "name": "ci-typo3-base",
+    "urls": [
+     { "url": "columbus-interactive.de", "title": "Columbus-Interactive" }
+    ],
+    "tech": ["CSS3", "PHP", "SCSS", "Git", "GitHub"],
+    "tasks": ["Development", "Maintenance"]
+   },
+   {
+    "name": "mcb-typo3-base",
+    "urls": [
+     { "url": "medizin-campus-bodensee.de", "title": "Medizin Campus Bodensee" }
+    ],
+    "tech": ["CSS3", "PHP", "SCSS", "Git", "GitHub"],
+    "tasks": ["Maintenance"]
+   },
+   {
+    "name": "par-typo3-base",
+    "urls": [{ "url": "paravan.de", "title": "Paravan" }],
+    "tech": ["Typo3", "Git", "GitHub"],
+    "tasks": ["Maintenance"]
+   },
+   {
+    "name": "mfn-flexfair",
+    "urls": [
+     { "url": "messe-friedrichshafen.de", "title": "Messe Friedrichshafen" },
+     { "url": "aero-expo.de", "title": "Aero Expo" },
+     { "url": "americana.de", "title": "Americana" },
+     { "url": "aqua-fisch.de", "title": "Aqua Fisch" },
+     { "url": "fairnamic.de", "title": "Fairnamic" },
+     { "url": "hamradio-friedrichshafen.de", "title": "HAM-Radio" },
+     { "url": "ibo-messe.de", "title": "IBO Messe" },
+     { "url": "interboot.de", "title": "Interboot" },
+     { "url": "klassikwelt-bodensee.de", "title": "Klassikwelt Bodensee" },
+     { "url": "motorradwelt-bodensee.de", "title": "Motorradwelt Bodensee" },
+     { "url": "pferdbodensee.de", "title": "Pferd Bodensee" },
+     { "url": "tuningworldbodensee.com", "title": "Tuningworld Bodensee" },
+     { "url": "vertical-pro.de", "title": "Vertical Pro" }
+    ],
+    "tech": [
+     "CraftCMS",
+     "PHP",
+     "SCSS",
+     "CSS3",
+     "Twig",
+     "Bootstrap",
+     "Git",
+     "GitHub"
+    ],
+    "tasks": ["Development", "Maintenance"]
+   },
+   {
+    "name": "ids-typo3-base",
+    "urls": [{ "url": "id-s.de", "title": "ID-S" }],
+    "tech": ["Handlebars", "PHP", "Typo3", "Git", "GitHub"],
+    "tasks": ["Maintenance"]
+   },
+   {
+    "name": "sv-website",
+    "urls": [{ "url": "simply-v.de", "title": "Simply-V" }],
+    "tech": [
+     "Craft CMS",
+     "TypeScript",
+     "PHP",
+     "CSS3",
+     "Twig",
+     "SCSS",
+     "Git",
+     "GitHub"
+    ],
+    "tasks": ["Development", "Maintenance"]
+   },
+   {
+    "name": "ebz-typo3-base",
+    "urls": [{ "url": "ebz-group.com", "title": "EBZ Group" }],
+    "tech": ["Typo3", "Git", "GitHub"],
+    "tasks": ["Maintenance"]
+   },
+   {
+    "name": "ch-website",
+    "urls": [{ "url": "columbus.ag", "title": "Columbus AG" }],
+    "tech": ["VueJS", "Git", "GitHub"],
+    "tasks": ["Maintenance"]
+   },
+   {
+    "name": "hob-typo3-base",
+    "urls": [{ "url": "hobart.de", "title": "Hobart" }],
+    "tech": ["PHP", "Git", "GitHub"],
+    "tasks": ["Maintenance"]
+   },
+   {
+    "name": "par-arnold-next-g",
+    "urls": [{ "url": "arnoldnextg.de", "title": "Arnold Next-G" }],
+    "tech": ["Handlebars", "Git", "GitHub"],
+    "tasks": ["Maintenance"]
+   }
+  ]
+ },
+ {
+  "name": "Freelancing",
+  "orgs": ["larsundso"],
+  "start": 1652196780,
+  "end": null,
+  "logo": "Freelance.webp",
+  "shortDesc": "I'm doing some freelancing on the side. I'm mainly working on Discord bots and websites.",
+  "desc": "Some of the work I've done and am still doing on the side can be found by clicking this card. Its main focus is Discord bots with a variety of third-party API features. My work here allowed me to learn a lot about different technologies and APIs while also helping me better estimate my time.",
+  "repos": [
+   {
+    "name": "jae",
+    "urls": [],
+    "tech": [
+     "Docker",
+     "Git",
+     "GitHub",
+     "DiscordAPI",
+     "PostgreSQL",
+     "TypeScript",
+     "Prisma"
+    ],
+    "tasks": ["Development", "Maintenance", "Optimization"]
+   },
+   {
+    "name": "kiyu",
+    "urls": [],
+    "tech": [
+     "Docker",
+     "Git",
+     "GitHub",
+     "DiscordAPI",
+     "PostgreSQL",
+     "TypeScript",
+     "Prisma"
+    ],
+    "tasks": ["Development", "Maintenance", "Optimization"]
+   },
+   {
+    "name": "kitten-paypal",
+    "urls": [],
+    "tech": [
+     "Docker",
+     "Git",
+     "GitHub",
+     "DiscordAPI",
+     "PostgreSQL",
+     "TypeScript",
+     "Prisma"
+    ],
+    "tasks": ["Development", "Maintenance"]
+   },
+   {
+    "name": "marvel-overlay",
+    "urls": [{ "url": "marvel.wzxy.org", "title": "Marvel Twitch Overlay" }],
+    "tech": [
+     "Docker",
+     "Git",
+     "GitHub",
+     "TypeScript",
+     "UnoCSS",
+     "SvelteKit",
+     "Vite",
+     "Svelte"
+    ],
+    "tasks": ["Development", "Maintenance"]
+   }
+  ]
+ }
+]

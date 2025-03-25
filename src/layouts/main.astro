@@ -1,0 +1,216 @@
+---
+// Add Astro imports
+import { ViewTransitions } from 'astro:transitions';
+import AnimatedBackground from '~/components/generic/AnimatedBackground.astro';
+const siteUrl = Astro.url.toString();
+---
+
+<html lang="en">
+ <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <meta name="generator" content={Astro.generator} />
+  <ViewTransitions />
+
+  <!-- Primary Meta Tags -->
+  <title>Lars B. | Expert Full-Stack Developer & JavaScript Specialist</title>
+  <meta name="title" content="Lars B. | Expert Full-Stack Developer & JavaScript Specialist" />
+  <meta
+   name="description"
+   content="Chamber of Industry and Commerce certified IT specialist with expertise in JavaScript, TypeScript, Svelte, and Astro. Passionate about building scalable, high-performance web applications and delivering exceptional user experiences."
+  />
+  <meta
+   name="keywords"
+   content="full-stack developer, frontend developer, JavaScript expert, TypeScript developer, Svelte specialist, Astro framework, web application development, software engineering, UI/UX, Node.js, Express.js, React, Vue.js, portfolio, Lars B., freelance developer, certified IT specialist"
+  />
+  <meta name="author" content="Lars B." />
+  <meta name="robots" content="index, follow" />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={siteUrl} />
+  <meta property="og:title" content="Lars B. | Expert Full-Stack Developer & JavaScript Specialist" />
+  <meta property="og:description" content="Chamber of Industry and Commerce certified IT specialist with expertise in JavaScript, TypeScript, Svelte, and Astro. View my portfolio, technical skills, and project history." />
+  <meta property="og:image" content={new URL('/favicon.png', siteUrl).toString()} />
+  <meta property="og:site_name" content="Lars B. Developer Portfolio" />
+  
+  <!-- Twitter/X -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content={siteUrl} />
+  <meta property="twitter:title" content="Lars B. | Expert Full-Stack Developer & JavaScript Specialist" />
+  <meta property="twitter:description" content="Chamber of Industry and Commerce certified IT specialist with expertise in JavaScript, TypeScript, Svelte, and Astro. View my portfolio, technical skills, and project history." />
+  <meta property="twitter:image" content={new URL('/favicon.png', siteUrl).toString()} />
+
+  <!-- Favicon and App Icons -->
+  <link rel="apple-touch-icon" type="image/png" href="/favicon.png" sizes="128x128" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="mask-icon" href="/favicon.png" color="#6e3c21" />
+  <meta name="msapplication-TileColor" content="#6e3c21" />
+  <meta name="theme-color" content="#f7f1ee" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0e0a12" media="(prefers-color-scheme: dark)" />
+  
+  <!-- Canonical URL -->
+  <link rel="canonical" href={siteUrl} />
+  
+  <!-- Additional SEO meta tags -->
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="language" content="English" />
+  <meta name="revisit-after" content="7 days" />
+  
+  <!-- Structured Data (JSON-LD) for Person -->
+  <script is:inline define:vars={{siteUrl}} type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Lars B.",
+      "url": siteUrl,
+      "image": new URL('/favicon.png', siteUrl).toString(),
+      "jobTitle": "Full-Stack Developer",
+      "description": "Chamber of Industry and Commerce certified IT specialist for application development and open-source full-stack developer.",
+      "worksFor": {
+        "@type": "Organization",
+        "name": "Freelance"
+      },
+      "alumniOf": {
+        "@type": "EducationalOrganization",
+        "name": "Chamber of Industry and Commerce",
+        "sameAs": "https://www.ihk.de/schwaben/produktmarken/aus-und-weiterbildung/ausbildung/ausbildungsberufe-a-z/fachinformatiker-anwendungsentwicklung-5058194"
+      },
+      "sameAs": [
+        "https://github.com/Larsundso",
+        "https://www.linkedin.com/in/lars-Böse-217272351",
+        "https://www.xing.com/profile/Lars_Boese"
+      ],
+      "knowsAbout": [
+        "JavaScript",
+        "TypeScript",
+        "Svelte",
+        "Astro",
+        "Full-Stack Development",
+        "Web Development",
+        "Node.js",
+        "Express.js",
+        "UI/UX Design",
+        "Software Architecture"
+      ],
+      "skills": [
+        "Frontend Development",
+        "Backend Development",
+        "Database Design",
+        "API Development",
+        "Performance Optimization",
+        "Responsive Design"
+      ]
+    }
+  </script>
+  
+  <!-- Structured Data (JSON-LD) for WebSite -->
+  <script is:inline define:vars={{siteUrl}} type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Lars B. Developer Portfolio",
+      "url": siteUrl,
+      "description": "Professional portfolio of Lars B., a certified full-stack developer and JavaScript specialist.",
+      "author": {
+        "@type": "Person",
+        "name": "Lars B."
+      },
+      "keywords": "full-stack developer, JavaScript, TypeScript, Svelte, Astro, web development"
+    }
+  </script>
+ </head>
+ <body
+  class="dark min-w-100lvw min-h-100lvh bg-background relative flex flex-row justify-evenly items-start flex-wrap overflow-x-hidden"
+ >
+  <AnimatedBackground />
+  
+  <div class="w-full h-1 bg-gradient-to-r from-transparent via-accent to-transparent"></div>
+  
+  <main class="relative w-full flex flex-row justify-evenly items-start flex-wrap z-10 backdrop-blur-sm">
+    <slot />
+  </main>
+  
+  <!-- Scroll to top button -->
+  <button
+    id="scrollToTopBtn"
+    aria-label="Scroll to top"
+    class="fixed bottom-5 right-5 bg-accent/80 hover:bg-accent text-background w-12 h-12 rounded-full flex items-center justify-center shadow-lg transform scale-0 transition-all duration-300 z-30"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+    </svg>
+  </button>
+  
+  <footer class="w-full text-center p-4 text-text/70 text-sm mt-8">
+    <div class="w-full h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent mb-4"></div>
+    <p>© {new Date().getFullYear()} Lars B. | Crafted with ❤️ using Astro & Svelte</p>
+  </footer>
+
+  <style is:global>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    section {
+      animation: fadeIn 0.6s ease-out forwards;
+    }
+    
+    section:nth-child(2) {
+      animation-delay: 0.1s;
+    }
+    
+    section:nth-child(3) {
+      animation-delay: 0.2s;
+    }
+    
+    a:not(.no-hover-effect) {
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    
+    a:not(.no-hover-effect)::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -2px;
+      left: 0;
+      background-color: var(--color-accent, #e69065);
+      transition: width 0.3s ease;
+    }
+    
+    a:not(.no-hover-effect):hover::after {
+      width: 100%;
+    }
+  </style>
+  
+  <script>
+    // Scroll to top button functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+      
+      if (scrollToTopBtn) {
+        // Show/hide button based on scroll position
+        window.addEventListener('scroll', function() {
+          if (window.scrollY > 300) {
+            scrollToTopBtn.classList.replace('scale-0', 'scale-100');
+          } else {
+            scrollToTopBtn.classList.replace('scale-100', 'scale-0');
+          }
+        });
+        
+        // Smooth scroll to top when clicked
+        scrollToTopBtn.addEventListener('click', function() {
+          window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+        });
+      }
+    });
+  </script>
+ </body>
+</html>

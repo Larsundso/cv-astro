@@ -1,0 +1,33 @@
+{
+  "name": "cv-astro",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "devDependencies": {
+    "@iconify-json/logos": "^1.2.4",
+    "@iconify-json/tabler": "^1.2.16",
+    "@unocss/preset-rem-to-px": "^66.0.0",
+    "astro": "^5.4.2",
+    "unocss-preset-animations": "^1.1.1",
+    "unocss-preset-theme": "^0.14.1"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^12.2.3",
+    "@astrojs/sitemap": "^3.2.1",
+    "@astrojs/svelte": "^7.0.5",
+    "@octokit/rest": "^21.1.1",
+    "@unocss/reset": "^66.0.0",
+    "astro-icon": "^1.1.5",
+    "astro-integration-lottie": "^0.3.2",
+    "echarts": "^5.6.0",
+    "lottie-web": "^5.12.2",
+    "svelte": "^5.20.2",
+    "typescript": "^5.7.3",
+    "unocss": "^66.0.0"
+  }
+}

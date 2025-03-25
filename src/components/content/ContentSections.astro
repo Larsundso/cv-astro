@@ -1,0 +1,25 @@
+---
+import Me from "../../layouts/me.astro";
+import Tech from "../../layouts/tech.astro";
+import Activity from "../../layouts/activity.svelte";
+import History from "../../layouts/history.svelte";
+import Education from "../../layouts/education.svelte";
+---
+
+<div>
+  <!-- Work Content Area -->
+  <div
+    id="work"
+    class="w-100lvw lg:w-50lvw of-x-hidden"
+    transition:animate="slide"
+  >
+    <Me />
+    <Tech />
+    <Activity />
+  </div>
+
+  <div class="w-100lvw lg:w-50lvw of-x-hidden" transition:animate="slide">
+    <History />
+    <Education />
+  </div>
+</div>

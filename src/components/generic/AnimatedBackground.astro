@@ -1,51 +1,111 @@
-<div class="animated-background z-">
-  <div class="stars"></div>
-  <div class="gradient-overlay"></div>
+---
+// Accept props for customization
+interface Props {
+  primaryColor?: string;
+  secondaryColor?: string;
+  speed?: 'slow' | 'medium' | 'fast';
+  respectReducedMotion?: boolean;
+}
+
+const {
+  primaryColor = 'rgba(230, 144, 101, 0.25)',
+  secondaryColor = 'rgba(230, 144, 101, 0.15)',
+  speed = 'medium',
+  respectReducedMotion = true,
+} = Astro.props;
+
+// Define animation durations based on speed
+const animationSpeeds = {
+  slow: { orbs: '25s', stars1: '80s', stars2: '100s' },
+  medium: { orbs: '15s', stars1: '60s', stars2: '80s' },
+  fast: { orbs: '10s', stars1: '40s', stars2: '60s' },
+};
+
+const animationTiming = animationSpeeds[speed];
+---
+
+<div
+  class:list={[
+    "fixed top-0 left-0 w-full h-full pointer-events-none -z-1",
+    { "motion-reduce:animation-none": respectReducedMotion }
+  ]}
+  aria-hidden="true"
+>
+  <!-- Primary floating orb -->
+  <div
+    class="absolute w-300px h-300px rounded-50%"
+    style={`
+      background: radial-gradient(circle, ${primaryColor} 0%, rgba(230,144,101,0) 70%);
+      animation: float ${animationTiming.orbs} infinite ease-in-out alternate;
+      top: 15%;
+      left: 20%;
+    `}
+  ></div>
+  
+  <!-- Secondary floating orb -->
+  <div
+    class="absolute w-250px h-250px rounded-50%"
+    style={`
+      background: radial-gradient(circle, ${primaryColor} 0%, rgba(230,144,101,0) 70%);
+      animation: float ${animationTiming.orbs} infinite ease-in-out alternate;
+      bottom: 25%;
+      right: 15%;
+      animation-delay: -7s;
+    `}
+  ></div>
+  
+  <!-- Tertiary smaller orbs -->
+  <div
+    class="absolute w-150px h-150px rounded-50%"
+    style={`
+      background: radial-gradient(circle, ${secondaryColor} 0%, rgba(230,144,101,0) 70%);
+      animation: floatSmall ${animationTiming.orbs} infinite ease-in-out alternate;
+      top: 60%;
+      left: 30%; 
+      animation-delay: -3s;
+    `}
+  ></div>
+  
+  <!-- Star fields with parallax effect -->
+  <div
+    class="absolute top-0 left-0 w-full h-full starfield-base"
+    style={`animation: animateStars ${animationTiming.stars1} linear infinite;`}
+  ></div>
+  
+  <div
+    class="absolute top-0 left-0 w-full h-full starfield-mid"
+    style={`animation: animateStars ${animationTiming.stars2} linear infinite;`}
+  ></div>
+  
+  <div 
+    class="absolute top-0 left-0 w-full h-full starfield-twinkle"
+  ></div>
+  
+  <!-- Vignette gradient overlay -->
+  <div
+    class="absolute top-0 left-0 right-0 bottom-0 bg-[radial-gradient(ellipse_at_top,rgba(14,10,18,0.1)_0%,rgba(14,10,18,0.6)_100%)]"
+  ></div>
 </div>
 
-<style>
-  .animated-background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: -1;
-  }
-  
-  .gradient-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(ellipse at top, rgba(14, 10, 18, 0.2) 0%, rgba(14, 10, 18, 0.8) 100%);
+<style define:vars={{ primaryColor, secondaryColor }}>
+  /* Base starfield - background stars */
+  .starfield-base {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2000 2000'%3E%3Cg fill='rgba(230, 144, 101, 0.3)'%3E%3Ccircle cx='500' cy='500' r='1.5'/%3E%3Ccircle cx='700' cy='200' r='1'/%3E%3Ccircle cx='900' cy='400' r='2'/%3E%3Ccircle cx='1200' cy='300' r='1'/%3E%3Ccircle cx='1400' cy='600' r='1.5'/%3E%3Ccircle cx='1600' cy='200' r='1'/%3E%3Ccircle cx='200' cy='800' r='1'/%3E%3Ccircle cx='400' cy='1000' r='1.5'/%3E%3Ccircle cx='600' cy='1200' r='1'/%3E%3Ccircle cx='800' cy='800' r='2'/%3E%3Ccircle cx='1000' cy='1000' r='1'/%3E%3Ccircle cx='1200' cy='1200' r='1.5'/%3E%3Ccircle cx='1400' cy='800' r='1'/%3E%3Ccircle cx='1600' cy='1000' r='2'/%3E%3Ccircle cx='1800' cy='1200' r='1'/%3E%3Ccircle cx='200' cy='1400' r='1.5'/%3E%3Ccircle cx='400' cy='1600' r='2'/%3E%3Ccircle cx='600' cy='1800' r='1'/%3E%3Ccircle cx='800' cy='1400' r='1.5'/%3E%3Ccircle cx='1000' cy='1600' r='1'/%3E%3Ccircle cx='1200' cy='1800' r='2'/%3E%3Ccircle cx='1400' cy='1400' r='1'/%3E%3Ccircle cx='1600' cy='1600' r='1.5'/%3E%3Ccircle cx='1800' cy='1800' r='1'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 1000px 1000px;
   }
 
-  .stars {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2000 2000'%3E%3Cg fill='rgba(230, 144, 101, 0.3)'%3E%3Ccircle cx='500' cy='500' r='1'/%3E%3Ccircle cx='700' cy='200' r='1'/%3E%3Ccircle cx='900' cy='400' r='1'/%3E%3Ccircle cx='1200' cy='300' r='1'/%3E%3Ccircle cx='1400' cy='600' r='1'/%3E%3Ccircle cx='1600' cy='200' r='1'/%3E%3Ccircle cx='200' cy='800' r='1'/%3E%3Ccircle cx='400' cy='1000' r='1'/%3E%3Ccircle cx='600' cy='1200' r='1'/%3E%3Ccircle cx='800' cy='800' r='1'/%3E%3Ccircle cx='1000' cy='1000' r='1'/%3E%3Ccircle cx='1200' cy='1200' r='1'/%3E%3Ccircle cx='1400' cy='800' r='1'/%3E%3Ccircle cx='1600' cy='1000' r='1'/%3E%3Ccircle cx='1800' cy='1200' r='1'/%3E%3Ccircle cx='200' cy='1400' r='1'/%3E%3Ccircle cx='400' cy='1600' r='1.5'/%3E%3Ccircle cx='600' cy='1800' r='1'/%3E%3Ccircle cx='800' cy='1400' r='1'/%3E%3Ccircle cx='1000' cy='1600' r='1'/%3E%3Ccircle cx='1200' cy='1800' r='1'/%3E%3Ccircle cx='1400' cy='1400' r='1'/%3E%3Ccircle cx='1600' cy='1600' r='1'/%3E%3Ccircle cx='1800' cy='1800' r='1'/%3E%3C/g%3E%3C/svg%3E");
+  /* Mid-layer starfield - smaller stars with different pattern */
+  .starfield-mid {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2000 2000'%3E%3Cg fill='rgba(230, 144, 101, 0.2)'%3E%3Ccircle cx='100' cy='100' r='1'/%3E%3Ccircle cx='300' cy='300' r='0.7'/%3E%3Ccircle cx='500' cy='100' r='1'/%3E%3Ccircle cx='700' cy='300' r='1.2'/%3E%3Ccircle cx='900' cy='100' r='0.8'/%3E%3Ccircle cx='1100' cy='300' r='1'/%3E%3Ccircle cx='1300' cy='100' r='0.7'/%3E%3Ccircle cx='1500' cy='300' r='1'/%3E%3Ccircle cx='1700' cy='100' r='1.2'/%3E%3Ccircle cx='1900' cy='300' r='0.8'/%3E%3Ccircle cx='100' cy='500' r='1'/%3E%3Ccircle cx='300' cy='700' r='0.7'/%3E%3Ccircle cx='500' cy='500' r='1'/%3E%3Ccircle cx='700' cy='700' r='1.2'/%3E%3Ccircle cx='900' cy='500' r='0.8'/%3E%3Ccircle cx='1100' cy='700' r='1'/%3E%3Ccircle cx='1300' cy='500' r='0.7'/%3E%3Ccircle cx='1500' cy='700' r='1'/%3E%3Ccircle cx='1700' cy='500' r='1.2'/%3E%3Ccircle cx='1900' cy='700' r='0.8'/%3E%3Ccircle cx='100' cy='900' r='1'/%3E%3Ccircle cx='300' cy='1100' r='0.7'/%3E%3Ccircle cx='500' cy='900' r='1'/%3E%3Ccircle cx='700' cy='1100' r='1.2'/%3E%3Ccircle cx='900' cy='900' r='0.8'/%3E%3Ccircle cx='1100' cy='1100' r='1'/%3E%3Ccircle cx='1300' cy='900' r='0.7'/%3E%3Ccircle cx='1500' cy='1100' r='1'/%3E%3Ccircle cx='1700' cy='900' r='1.2'/%3E%3Ccircle cx='1900' cy='1100' r='0.8'/%3E%3Ccircle cx='100' cy='1300' r='1'/%3E%3Ccircle cx='300' cy='1500' r='0.7'/%3E%3Ccircle cx='500' cy='1300' r='1'/%3E%3Ccircle cx='700' cy='1500' r='1.2'/%3E%3Ccircle cx='900' cy='1300' r='0.8'/%3E%3Ccircle cx='1100' cy='1500' r='1'/%3E%3Ccircle cx='1300' cy='1300' r='0.7'/%3E%3Ccircle cx='1500' cy='1500' r='1'/%3E%3Ccircle cx='1700' cy='1300' r='1.2'/%3E%3Ccircle cx='1900' cy='1500' r='0.8'/%3E%3C/g%3E%3C/svg%3E");
     background-size: 1000px 1000px;
-    animation: animateStars 60s linear infinite;
   }
-  
-  .stars:after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2000 2000'%3E%3Cg fill='rgba(230, 144, 101, 0.2)'%3E%3Ccircle cx='100' cy='100' r='1'/%3E%3Ccircle cx='300' cy='300' r='1'/%3E%3Ccircle cx='500' cy='100' r='1'/%3E%3Ccircle cx='700' cy='300' r='1'/%3E%3Ccircle cx='900' cy='100' r='1'/%3E%3Ccircle cx='1100' cy='300' r='1'/%3E%3Ccircle cx='1300' cy='100' r='1'/%3E%3Ccircle cx='1500' cy='300' r='1'/%3E%3Ccircle cx='1700' cy='100' r='1'/%3E%3Ccircle cx='1900' cy='300' r='1'/%3E%3Ccircle cx='100' cy='500' r='1'/%3E%3Ccircle cx='300' cy='700' r='1'/%3E%3Ccircle cx='500' cy='500' r='1'/%3E%3Ccircle cx='700' cy='700' r='1'/%3E%3Ccircle cx='900' cy='500' r='1'/%3E%3Ccircle cx='1100' cy='700' r='1'/%3E%3Ccircle cx='1300' cy='500' r='1'/%3E%3Ccircle cx='1500' cy='700' r='1'/%3E%3Ccircle cx='1700' cy='500' r='1'/%3E%3Ccircle cx='1900' cy='700' r='1'/%3E%3Ccircle cx='100' cy='900' r='1'/%3E%3Ccircle cx='300' cy='1100' r='1'/%3E%3Ccircle cx='500' cy='900' r='1'/%3E%3Ccircle cx='700' cy='1100' r='1'/%3E%3Ccircle cx='900' cy='900' r='1'/%3E%3Ccircle cx='1100' cy='1100' r='1'/%3E%3Ccircle cx='1300' cy='900' r='1'/%3E%3Ccircle cx='1500' cy='1100' r='1'/%3E%3Ccircle cx='1700' cy='900' r='1'/%3E%3Ccircle cx='1900' cy='1100' r='1'/%3E%3Ccircle cx='100' cy='1300' r='1'/%3E%3Ccircle cx='300' cy='1500' r='1'/%3E%3Ccircle cx='500' cy='1300' r='1'/%3E%3Ccircle cx='700' cy='1500' r='1'/%3E%3Ccircle cx='900' cy='1300' r='1'/%3E%3Ccircle cx='1100' cy='1500' r='1'/%3E%3Ccircle cx='1300' cy='1300' r='1'/%3E%3Ccircle cx='1500' cy='1500' r='1'/%3E%3Ccircle cx='1700' cy='1300' r='1'/%3E%3Ccircle cx='1900' cy='1500' r='1'/%3E%3Ccircle cx='100' cy='1700' r='1'/%3E%3Ccircle cx='300' cy='1900' r='1'/%3E%3Ccircle cx='500' cy='1700' r='1'/%3E%3Ccircle cx='700' cy='1900' r='1'/%3E%3Ccircle cx='900' cy='1700' r='1'/%3E%3Ccircle cx='1100' cy='1900' r='1'/%3E%3Ccircle cx='1300' cy='1700' r='1'/%3E%3Ccircle cx='1500' cy='1900' r='1'/%3E%3Ccircle cx='1700' cy='1700' r='1'/%3E%3Ccircle cx='1900' cy='1900' r='1'/%3E%3C/g%3E%3C/svg%3E");
-    background-size: 1000px 1000px;
-    animation: animateStars 80s linear infinite;
+
+  /* Twinkling stars layer */
+  .starfield-twinkle {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2000 2000'%3E%3Cg%3E%3Ccircle cx='500' cy='300' r='2' fill='rgba(230, 144, 101, 0.4)' class='twinkle1'/%3E%3Ccircle cx='1200' cy='500' r='2.5' fill='rgba(230, 144, 101, 0.5)' class='twinkle2'/%3E%3Ccircle cx='800' cy='1200' r='3' fill='rgba(230, 144, 101, 0.4)' class='twinkle3'/%3E%3Ccircle cx='1500' cy='1500' r='2' fill='rgba(230, 144, 101, 0.5)' class='twinkle1'/%3E%3Ccircle cx='300' cy='1800' r='2.5' fill='rgba(230, 144, 101, 0.4)' class='twinkle2'/%3E%3C/g%3E%3Cstyle%3E@keyframes twinkle1{0%,100%{opacity:1}50%{opacity:0.3}}@keyframes twinkle2{0%,100%{opacity:0.3}50%{opacity:1}}@keyframes twinkle3{0%,100%{opacity:0.7}33%{opacity:0.2}66%{opacity:1}}.twinkle1{animation:twinkle1 4s infinite}.twinkle2{animation:twinkle2 5s infinite 1s}.twinkle3{animation:twinkle3 7s infinite 2s}%3C/style%3E%3C/svg%3E");
+    background-size: 2000px 2000px;
   }
-  
+
   @keyframes animateStars {
     from {
       background-position: 0 0;
@@ -54,41 +114,46 @@
       background-position: 1000px 1000px;
     }
   }
-  
-  /* Create subtle animated glow spots */
-  .animated-background:before,
-  .animated-background:after {
-    content: "";
-    position: absolute;
-    width: 300px;
-    height: 300px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(230, 144, 101, 0.15) 0%, rgba(230, 144, 101, 0) 70%);
-    animation: float 15s infinite ease-in-out alternate;
-  }
-  
-  .animated-background:before {
-    top: 15%;
-    left: 20%;
-  }
-  
-  .animated-background:after {
-    bottom: 25%;
-    right: 15%;
-    animation-delay: -7s;
-    width: 250px;
-    height: 250px;
-  }
-  
+
   @keyframes float {
     0% {
-      transform: translate(0, 0);
+      transform: translate(0, 0) scale(1);
     }
     50% {
-      transform: translate(30px, 30px);
+      transform: translate(30px, 30px) scale(1.05);
     }
     100% {
-      transform: translate(-30px, 20px);
+      transform: translate(-30px, 20px) scale(1);
+    }
+  }
+  
+  @keyframes floatSmall {
+    0% {
+      transform: translate(0, 0) scale(1);
+    }
+    50% {
+      transform: translate(-20px, 15px) scale(1.1);
+    }
+    100% {
+      transform: translate(20px, -15px) scale(1);
+    }
+  }
+
+  /* Support for reduced motion preference */
+  @media (prefers-reduced-motion) {
+    .motion-reduce\:animation-none * {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+
+  /* Media queries for responsive adjustments */
+  @media (max-width: 768px) {
+    .starfield-base, .starfield-mid {
+      background-size: 800px 800px;
+    }
+    .starfield-twinkle {
+      background-size: 1600px 1600px;
     }
   }
 </style>

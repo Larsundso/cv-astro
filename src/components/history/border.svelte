@@ -2,17 +2,19 @@
  export const ssr = true;
  import type history from "~/assets/repos.json";
  const { org }: { org: (typeof history)[number] } = $props();
+
+ const makeDate = (timestamp: number) => {
+  const date = new Date(timestamp * 1000);
+  const iso = date.toISOString();
+  const datePart = iso.split("T")[0];
+  const [year, month] = datePart.split("-");
+  return [month, year].join(".");
+ };
 </script>
 
 <div class="pr-2 -ml-2 flex flex-col justify-between items-center">
  <span class="color-secondary text-xs"
-  >{org.end
-   ? new Date(org.end * 1000)
-      .toLocaleDateString()
-      .split("/")
-      .slice(1, 3)
-      .join(".")
-   : "Today"}</span
+  >{org.end ? makeDate(org.end) : "Today"}</span
  >
 
  <div class="h-full min-h-30px w-0 relative mx-2.5">
@@ -30,11 +32,5 @@
   ></div>
  </div>
 
- <span class="color-secondary text-xs"
-  >{new Date(org.start * 1000)
-   .toLocaleDateString()
-   .split("/")
-   .slice(1, 3)
-   .join(".")}</span
- >
+ <span class="color-secondary text-xs">{makeDate(org.start)}</span>
 </div>

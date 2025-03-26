@@ -6,7 +6,7 @@
   "end": null,
   "logo": "Ayako.webp",
   "shortDesc": "This is my long-term passion project. Ayako is a Discord bot that I've been working on since 2019. It's a multipurpose bot with a lot of features.",
-  "desc": "My long term project has guided me through my development career from the start. Starting with a single spaghetti-coded JavaScript file, recoded into a TypeScript monolith that now features 1.800+ files with 99.000+ lines of code. Ayako is a multipurpose Discord bot that features a lot of different commands and features with heavy throughput, utiliting ffmpeg and third-party APIs while relying heavily on libraries like Prisma and software like Redis and PostgreSQL. It's a project that I'm very proud of and that I'm still working on.",
+  "desc": "My long term project has guided me through my development career from the start. Starting with a single spaghetti-coded JavaScript file, recoded into a TypeScript monolith that now features 1.800+ files with 99.000+ lines of code. Ayako is a multipurpose Discord bot that features a lot of different commands and features with heavy throughput, utilizing ffmpeg and third-party APIs while relying heavily on libraries like Prisma and software like Redis and PostgreSQL. It's a project that I'm very proud of and that I'm still working on.",
   "repos": [
    {
     "name": "website-frontend",

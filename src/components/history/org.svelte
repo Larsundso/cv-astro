@@ -10,7 +10,5 @@
 <div class="flex flex-row justify-start items-stretch w-full">
  <Border {org} />
 
- <div class="relative w-full">
-  <Preview {org} {i} />
- </div>
+ <Preview {org} {i} />
 </div>

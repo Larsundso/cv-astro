@@ -5,7 +5,9 @@ export default async () => {
 
  res = await fetch(
   `https://wakatime.com/api/v1/users/current/insights/stats/last_year`,
-  { headers: { Authorization: import.meta.env.WAKA_KEY } }
+  {
+   headers: { Authorization: `Basic ${btoa(`${import.meta.env.WAKA_KEY}:`)}` },
+  }
  ).then((r) => (r.ok ? (r.json() as Promise<BaseInsights>) : null));
  if (!res) throw new Error("Failed to fetch WakaTime stats");
 

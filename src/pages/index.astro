@@ -3,7 +3,6 @@ import Layout from "../layouts/main.astro";
 import Hero from "../components/hero/Hero.astro";
 import ContentSections from "../components/content/ContentSections.astro";
 import Contact from "../components/contact/Contact.astro";
-import Testimonials from "../components/generic/Testimonials.svelte";
 ---
 
 <Layout>
@@ -12,11 +11,6 @@ import Testimonials from "../components/generic/Testimonials.svelte";
 
   <!-- Content Sections -->
   <ContentSections />
-
-  <!-- Testimonials Section -->
-  <div class="w-full max-w-5xl mx-auto px-4">
-    <Testimonials client:visible />
-  </div>
 
   <!-- Contact Section -->
   <Contact />

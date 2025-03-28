@@ -1,8 +1,10 @@
 import * as echarts from "echarts";
-import getInsights from "~/components/scripts/getInsights.js";
-import getSummaries from "~/components/scripts/getSummaries.js";
+import getSummaries from "./getSummaries.js";
+import getTotalTime from "./getTotalTime.js";
+import getInsights from "./getInsights.js";
 
-const totalStats = await getInsights();
+const totalStats = await getTotalTime();
+const lastYearStats = await getInsights();
 const recentStats = await getSummaries();
 
 // Enhanced color palette with gradient capability
@@ -137,7 +139,7 @@ export default () => ({
 
 const topProj = () => {
  const chart: echarts.ECharts | null = echarts.init(null, null, chartOpts);
- const topProjects = totalStats.data.projects.slice(0, 5);
+ const topProjects = totalStats.projects.slice(0, 5);
 
  // Calculate average for reference line
  const avgValue =
@@ -150,7 +152,6 @@ const topProj = () => {
   title: {
    ...commonOptions.title,
    text: "Top 5 Projects",
-   subtext: "(last year)",
    subtextStyle: {
     color: "rgba(247, 241, 238, 0.65)",
     fontSize: 12,
@@ -237,20 +238,22 @@ const topProj = () => {
 
 const topLang = () => {
  const chart: echarts.ECharts | null = echarts.init(null, null, chartOpts);
- const topLanguages = totalStats.data.languages.slice(0, 5);
+ const topLanguages = lastYearStats.data.languages.slice(0, 5);
 
  // Calculate average for reference line
  const avgValue =
   topLanguages.reduce((sum, p) => sum + Number(p.decimal), 0) /
   topLanguages.length;
  const chartColors = getShuffledColors(topLanguages.length);
+ const lastYear = new Date();
+ lastYear.setFullYear(new Date().getFullYear() - 1);
 
  chart.setOption({
   ...commonOptions,
   title: {
    ...commonOptions.title,
    text: "Top 5 Languages",
-   subtext: "(last year)",
+   subtext: `from ${lastYear.getMonth()}/${lastYear.getFullYear()} to ${new Date().getMonth()}/${new Date().getFullYear()}`,
    subtextStyle: {
     color: "rgba(247, 241, 238, 0.65)",
     fontSize: 12,

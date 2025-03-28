@@ -1,50 +1,52 @@
 ---
 import LottieAnimation from "astro-integration-lottie/Lottie.astro";
-import Hi from '~/assets/Hi.json?url'
+import Hi from "~/assets/Hi.json?url";
 ---
 
-<div class="w-fit pt-5 translate-x-25% sm:translate-x-100% lg:translate-x-150% relative mb-8 h-15">
+<div
+ class="w-fit pt-5 translate-x-125% sm:translate-x-150% relative mb-8 h-15"
+>
  <LottieAnimation
   src={Hi}
   autoplay="visible"
-  class="scale-150 sm:scale-300 lg:scale-400 light:drop-shadow-[0_0_3px_#994419] dark:drop-shadow-[0_0_3px_#e69065]"
+  class="scale-350 sm:scale-400 light:drop-shadow-[0_0_3px_#994419] dark:drop-shadow-[0_0_3px_#e69065]"
   loop={false}
  />
  <span class="op-0 h-0">Hi, I'm Lars B.</span>
+</div>
 
- <div
-  class="hover:op-100 op-0 backdrop-blur-5 absolute -top-5 left-15 text-text w-120 h-23 -translate-x-50% transition-all duration-150
-  after:relative after:w-full after:h-full after:content-empty"
+<div
+ class="text-text w-fit h-23 transition-all duration-150
+after:relative after:w-full after:h-full after:content-empty -mt-10"
+>
+ <a
+  href="https://www.google.com?q=misanthropic%20freelance%20developer"
+  class="absolute left-50% top-50% -translate-50% text-text rounded-full p-1 flex flex-row items-center gap-2
+ light:drop-shadow-[0_0_1px_#994419] dark:drop-shadow-[0_0_1px_#e69065] group"
  >
-  <a
-   href="https://www.google.com?q=freelance%20developer"
-   class="absolute left-50% top-50% -translate-50% text-text rounded-full p-1 flex flex-row items-center gap-2
-   light:drop-shadow-[0_0_1px_#994419] dark:drop-shadow-[0_0_1px_#e69065] group"
+  <div
+   class="bg-secondary rounded-full w-6 h-3.6 border-accent border-1px flex flex-row-reverse items-center"
   >
    <div
-    class="bg-secondary rounded-full w-6 h-3.6 border-accent border-1px flex flex-row-reverse items-center"
+    class="bg-accent rounded-full aspect-square w-3 h-3 mx-0.1
+   group-hover:-translate-x-.5 group-hover:scale-x-120 ease-[cubic-bezier(0.65,_-1,_0.35,_2)] transition-all"
    >
-    <div
-     class="bg-accent rounded-full aspect-square w-3 h-3 mx-0.1
-     group-hover:-translate-x-.5 group-hover:scale-x-120 ease-[cubic-bezier(0.65,_-1,_0.35,_2)] transition-all"
-    >
-    </div>
    </div>
-   Pride Colors
-  </a>
- </div>
+  </div>
+  Pride Colors
+ </a>
 </div>
 
 <style>
-  @keyframes move-bg {
-    0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
-    }
+ @keyframes move-bg {
+  0% {
+   background-position: 0% 50%;
   }
+  50% {
+   background-position: 100% 50%;
+  }
+  100% {
+   background-position: 0% 50%;
+  }
+ }
 </style>

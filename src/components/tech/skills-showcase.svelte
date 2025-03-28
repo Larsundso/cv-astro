@@ -18,7 +18,10 @@
   "Node.js": "#339933",
   SCSS: "#c6538c",
   Markdown: "#083fa1",
-  Python: "#3572A5"
+  Python: "#3572A5",
+  "Vue.js": "#4fc08d",
+  PHP: "#4F5D95",
+  Twig: "#e34c26"
  };
 
  const topLanguages = total.languages

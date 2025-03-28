@@ -1,9 +1,12 @@
 ---
 import { Icon } from "astro-icon/components";
 import Container from "~/components/container.svelte";
+import getTotalTime from "~/components/scripts/getTotalTime";
 import IconContainer from "~/components/tech/container.astro";
 import TechIcon from "~/components/tech/icon.astro";
 import SkillsShowcase from "~/components/tech/skills-showcase.svelte";
+
+const total = await getTotalTime();
 ---
 
 <Container>
@@ -11,7 +14,7 @@ import SkillsShowcase from "~/components/tech/skills-showcase.svelte";
   <h2 id="technologies" class="sr-only">Technical Skills</h2>
   
   <div class="backdrop-blur-md bg-secondary/10 rounded-xl p-5 mb-6 border border-accent/20 hover:border-accent/40 transition-all duration-300">
-    <SkillsShowcase client:visible />
+    <SkillsShowcase client:visible {total} />
   </div>
   
   <div class="flex flex-col gap-5">

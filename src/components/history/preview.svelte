@@ -10,7 +10,7 @@
  class="flex flex-col justify-evenly items-start w-full border-2px border-primary rounded-lg p-1 px-2 m-1 group"
 >
  <div class="flex flex-row justify-between items-center w-full">
-  <h2 class="color-text text-lg mb-1">{org.name}<span class="ml-1 text-xs color-accent">{org.repos.length} Projects</span></h2>
+  <h2 class="color-text text-lg mb-1">{org.name}<span class="ml-1 text-xs color-accent">{org.repos.length} Projects - Hover me</span></h2>
   <img
    src={`/${org.logo}`}
    alt=""

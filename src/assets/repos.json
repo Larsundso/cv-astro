@@ -393,7 +393,7 @@
     "name": "sv-website",
     "urls": [{ "url": "simply-v.de", "title": "Simply-V" }],
     "tech": [
-     "Craft CMS",
+     "CraftCMS",
      "TypeScript",
      "PHP",
      "CSS3",

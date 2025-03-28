@@ -47,8 +47,9 @@
 </script>
 
 <div class="py-4">
- <h3 class="text-accent text-lg font-semibold mb-5">
+ <h3 class="text-xl font-semibold mb-5 text-accent relative">
   Programming Language Proficiency
+  <span class="block h-0.5 w-1/4 bg-accent/70 mt-2"></span>
  </h3>
  <p class="text-sm mb-4 text-secondary">
   Based on {total.human_readable_total_including_other_language} of coding time tracked

@@ -8,7 +8,7 @@
 
 <Container>
  <div class="relative">
-  <h1 class="text-accent font-bold text-2xl mb-6 relative">
+  <h1 class="text-2xl font-bold mb-6 text-accent relative">
    Professional Experience
    <span class="block h-0.5 w-1/3 bg-accent/70 mt-2"></span>
   </h1>

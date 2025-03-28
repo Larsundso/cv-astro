@@ -6,10 +6,10 @@
 </script>
 
 <div
- class="flex flex-col justify-evenly items-start w-full border-2px border-primary rounded-lg p-1 px-2 m-1 group"
+ class="flex flex-col justify-evenly items-start w-full border-2px border-accent/20 rounded-lg p-3 m-1 group hover:border-accent/40 transition-all duration-300 bg-secondary/10 backdrop-blur-sm"
 >
  <div class="flex flex-row justify-between items-center w-full">
-  <h2 class="color-text text-lg mb-1">
+  <h2 class="text-accent text-lg mb-1 font-semibold">
    {school.name}
   </h2>
   <img

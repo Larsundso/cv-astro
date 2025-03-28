@@ -6,20 +6,19 @@ import History from "../../layouts/history.svelte";
 import Education from "../../layouts/education.svelte";
 ---
 
-<div>
-  <!-- Work Content Area -->
-  <div
-    id="work"
-    class="w-100lvw lg:w-50lvw of-x-hidden"
-    transition:animate="slide"
-  >
-    <Me />
-    <Tech />
-    <Activity />
-  </div>
+<div class="w-full flex flex-col lg:flex-row">
+ <div
+  id="work"
+  class="w-100lvw lg:w-50lvw of-x-hidden"
+  transition:animate="slide"
+ >
+  <Me />
+  <Activity />
+ </div>
 
-  <div class="w-100lvw lg:w-50lvw of-x-hidden" transition:animate="slide">
-    <History />
-    <Education />
-  </div>
+ <div class="w-100lvw lg:w-50lvw of-x-hidden" transition:animate="slide">
+  <Tech />
+  <History />
+  <Education />
+ </div>
 </div>

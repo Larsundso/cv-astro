@@ -6,11 +6,20 @@ import Header from "./Header.astro";
 ---
 
 <div class="w-full relative overflow-hidden py-4 px-6 mb-8">
- <!-- Code Snippet Animation -->
- <div class="absolute top-0 left-0 w-full h-full pointer-events-none of-hidden z-1">
+ <div
+  class="absolute top-0 left-0 w-full h-full pointer-events-none of-hidden z-1 hidden md:block"
+ >
   <CreateExperiences />
   <Skills />
   <BuildYourVision />
+ </div>
+
+ <div
+  class="absolute top-0 left-0 w-full h-full pointer-events-none of-hidden z-1 md:hidden"
+ >
+  <div class="absolute top-50% left-50% translate-[-50%_-50%] op-20 scale-80">
+   <BuildYourVision />
+  </div>
  </div>
 
  <Header />

@@ -1,0 +1,109 @@
+---
+import IconContainer from "~/components/tech/container.astro";
+import TechIcon from "~/components/tech/icon.astro";
+import { Icon } from "astro-icon/components";
+---
+
+<IconContainer title="Back-End">
+ <TechIcon href="https://kit.svelte.dev/" title="SvelteKit">
+  <Icon name="tabler:brand-svelte" class="w-10 h-10 color-accent" />
+ </TechIcon>
+
+ <TechIcon href="https://nodejs.org/en" title="NodeJS">
+  <Icon name="tabler:brand-nodejs" class="w-10 h-10 color-accent" />
+ </TechIcon>
+
+ <TechIcon href="https://www.typescriptlang.org/" title="TypeScript">
+  <Icon name="tabler:brand-typescript" class="w-10 h-10 color-accent" />
+ </TechIcon>
+
+ <TechIcon href="https://www.postgresql.org/" title="PostgreSQL">
+  <svg
+   xmlns="http://www.w3.org/2000/svg"
+   width="91"
+   height="88"
+   viewBox="0 0 91 88"
+   fill="none"
+   class="w-10 h-10 color-accent"
+  >
+   <path
+    d="M35.5 10C29 15.5 28 25.5 28 28.5M35.5 10C30 7.66667 17.5 4.6 11.5 11C5.5 17.4 7 24.5 8 30.5C8.83333 36.1667 11.6 49.2 16 56C20.3481 62.7198 23.7522 60.8785 24.9578 59.0649C24.9866 59.0215 25.0173 58.9804 25.0518 58.9413L32.5 50.5M35.5 10C37.6667 8.33334 44.1 5.60001 52.5 8.00001M32.5 50.5C30.8333 49.6667 27.6 46.6 28 41C28.5 34 28 31.5 28 28.5M32.5 50.5L38.5 52.5M28 28.5C31.1667 26.6667 38.2 23.9 41 27.5C42.2 29.1 42.5 34.1667 42.5 36.5C42.5 38.3333 42.3 42.5 41.5 44.5C40.5 47 39 49.5 38.5 52.5M52.5 8.00001C60.9 10.4 66.3333 18.6667 68 22.5C68.2275 23.1067 68.5171 24.1758 68.6899 25.5M52.5 8.00001C58.1667 5.66667 71 3.30001 79 14.5C81.5 19 80.5 31.9 68.5 51.5M66.5 49C68.5 46.6 68.6667 42 68.5 40C68.1667 38.5 67.7 34.6 68.5 31C68.936 29.0381 68.8968 27.086 68.6899 25.5M66.5 49L60 36.5C58.3333 32.8333 56.7 25.5 63.5 25.5C65.9 25.5 67.9599 25.5 68.6899 25.5M66.5 49L68.5 51.5M38.5 52.5C40.1667 52.3333 43.6 52.9 44 56.5M38.5 52.5C38.5 54.1586 37.5097 58.4581 30.6013 58.4997C30.5354 58.5001 30.4651 58.5067 30.4008 58.5209C28.0314 59.0447 29.1779 60.6712 30 61C37.6 64.2 42.5 59.3333 44 56.5M68.5 51.5V52.5M44 56.5V73.5C43.8333 76 46 82 51.5 82C54.5 82 60.8 80.8 62 76C63.1019 71.5924 64.0071 62.9126 64.4058 58.1678M68.5 52.5C64.9727 52.5 64.3574 55.3801 64.4908 56.9074C64.4963 56.9696 64.4976 57.0314 64.4928 57.0937C64.4672 57.4228 64.4382 57.7823 64.4058 58.1678M68.5 52.5C69.2847 53.2847 72.4044 54.4537 78.7776 53.2514C79.4063 53.1329 80.0059 53.6213 79.7888 54.2231C78.3962 58.082 70.4053 59.3799 64.4058 58.1678"
+    stroke="currentColor"
+    stroke-width="6"
+    stroke-linecap="round"
+    stroke-linejoin="round"></path>
+   <path
+    d="M36.1733 31.5011H36.268"
+    stroke="currentColor"
+    stroke-width="6"
+    stroke-linecap="round"></path>
+   <path
+    d="M63.3138 30.2896H63.3844"
+    stroke="currentColor"
+    stroke-width="6"
+    stroke-linecap="round"></path>
+  </svg>
+ </TechIcon>
+
+ <TechIcon href="https://prisma.io" title="Prisma">
+  <Icon name="tabler:brand-prisma" class="w-10 h-10 color-accent" />
+ </TechIcon>
+
+ <TechIcon href="https://socket.io" title="SocketIO">
+  <Icon name="tabler:brand-socket-io" class="w-10 h-10 color-accent" />
+ </TechIcon>
+
+ <TechIcon href="https://redis.io/" title="Redis">
+  <svg
+   xmlns="http://www.w3.org/2000/svg"
+   width="74"
+   height="63"
+   class="w-10 h-10 color-accent"
+   viewBox="0 0 74 63"
+   fill="none"
+  >
+   <path
+    d="M5 34V45.307C5 45.7238 5.25857 46.097 5.64888 46.2433L36.6489 57.8683C36.8753 57.9532 37.1247 57.9532 37.3511 57.8683L68.3511 46.2433C68.7414 46.097 69 45.7238 69 45.307V34M5 34L36.6489 45.8683C36.8753 45.9532 37.1247 45.9532 37.3511 45.8683L69 34M5 34V22M69 34V22M69 22V18.6635C69 18.2614 68.7592 17.8984 68.3887 17.7421L37.3887 4.66398C37.1402 4.55914 36.8598 4.55914 36.6113 4.66398L5.6113 17.7421C5.24083 17.8984 5 18.2614 5 18.6635V22M69 22L37.3511 33.8683C37.1247 33.9532 36.8753 33.9532 36.6489 33.8683L5 22"
+    stroke="currentColor"
+    stroke-width="6"></path>
+  </svg>
+ </TechIcon>
+
+ <TechIcon href="https://wikipedia.org/wiki/JavaScript" title="JavaScript">
+  <Icon name="tabler:brand-javascript" class="w-10 h-10 color-accent" />
+ </TechIcon>
+
+ <TechIcon href="https://deno.com/" title="Deno">
+  <Icon name="tabler:brand-deno" class="w-10 h-10 color-accent" />
+ </TechIcon>
+
+ <TechIcon href="https://expressjs.com/" title="ExpressJS">
+  <svg
+   xmlns="http://www.w3.org/2000/svg"
+   width="78"
+   height="47"
+   viewBox="0 0 78 47"
+   fill="none"
+   class="w-10 h-10 color-accent"
+  >
+   <path
+    d="M73.5 5.5L59.25 23.75M45 42L59.25 23.75M59.25 23.75L45 5.5L73.5 42M4.5 23.75H35C35.5523 23.75 36.0012 23.3021 35.9899 22.7499C35.7961 13.3607 32.7481 4.5 20 4.5C8 4.5 4.5 14.8252 4.5 23.75ZM4.5 23.75C4.5 38.5 15 41.5 20 41.5C22 41.5 28.5 42 35 34.5"
+    stroke="currentColor"
+    stroke-width="6"
+    stroke-linecap="round"
+    stroke-linejoin="round"></path>
+  </svg>
+ </TechIcon>
+
+ <TechIcon href="https://discord.sex/" title="DiscordAPI">
+  <Icon name="tabler:brand-discord" class="w-10 h-10 color-accent" />
+ </TechIcon>
+
+ <TechIcon href="https://www.php.net/" title="PHP">
+  <Icon name="tabler:brand-php" class="w-10 h-10 color-accent" />
+ </TechIcon>
+
+ <TechIcon href="https://www.java.com/" title="Java">
+  <Icon name="tabler:coffee" class="w-10 h-10 color-accent" />
+ </TechIcon>
+</IconContainer>

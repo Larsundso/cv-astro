@@ -59,13 +59,12 @@ const siteUrl = Astro.url.toString();
   <meta name="revisit-after" content="7 days" />
   
   <!-- Structured Data (JSON-LD) for Person -->
-  <script is:inline define:vars={{siteUrl}} type="application/ld+json">
+  <script is:inline type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "Person",
       "name": "Lars B.",
-      "url": siteUrl,
-      "image": new URL('/favicon.png', siteUrl).toString(),
+      "url": "https://lars-dev.org",
       "jobTitle": "Full-Stack Developer",
       "description": "Chamber of Industry and Commerce certified IT specialist for application development and open-source full-stack developer.",
       "worksFor": {
@@ -106,12 +105,12 @@ const siteUrl = Astro.url.toString();
   </script>
   
   <!-- Structured Data (JSON-LD) for WebSite -->
-  <script is:inline define:vars={{siteUrl}} type="application/ld+json">
+  <script is:inline type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
       "name": "Lars B. Developer Portfolio",
-      "url": siteUrl,
+      "url": "https://lars-dev.org",
       "description": "Professional portfolio of Lars B., a certified full-stack developer and JavaScript specialist.",
       "author": {
         "@type": "Person",

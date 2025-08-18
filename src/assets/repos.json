@@ -105,9 +105,7 @@
    },
    {
     "name": "server",
-    "urls": [
-     { "url": "docs.ayakobot.com", "title": "Ayako API Docs" }
-    ],
+    "urls": [{ "url": "docs.ayakobot.com", "title": "Ayako API Docs" }],
     "tech": [
      "Docker",
      "TypeScript",
@@ -300,7 +298,7 @@
   "name": "Columbus-Interactive",
   "orgs": ["columbusinteractive"],
   "start": 1662036840,
-  "end": null,
+  "end": 1752012000,
   "logo": "CI.webp",
   "shortDesc": "Columbus-Interactive is my vocation college workplace. I'm mainly working on Typo3 projects but also on some Craft CMS projects.",
   "desc": "Columbus-Interactive is a web development and online marketing agency that mainly works with Typo3 and Craft CMS. The majority of day-to-day tasks here are maintenance, and content updates. I'm also working on some new projects and features for the websites we're maintaining.",
@@ -497,5 +495,15 @@
     "tasks": ["Development", "Maintenance"]
    }
   ]
+ },
+ {
+  "name": "Raleo Digital GmbH",
+  "orgs": ["raleo"],
+  "start": 1752098400,
+  "end": null,
+  "logo": "Raleo.webp",
+  "shortDesc": "Raleo is my first full-time job after graduation. Its a german start-up with an automated warehouse selling heating solutions",
+  "desc": "Raleo has multiple major projects. Apart from 2 front-ends written in Vue2 (which I will migrate to Vue3) there are also 2 back-ends written in JS with Express.js (I am currently migrating to TypeScript)",
+  "repos": []
  }
 ]

@@ -8,6 +8,24 @@
  * order. Rows never name a hue — the stroke shows it, the words say what
  * it MEANS.
  *
+ * Two text channels, not one. `job` names the category from inside the
+ * system ("the provenance"); `q` states the reader's own question that the
+ * ink answers ("how do you know?"). The question is the channel that
+ * teaches, and it is also the channel that has to survive colour-vision
+ * deficiency: in flag order the two weakest adjacent pairs sit together
+ * (teal/green ΔE 9.3 normal but 3.1 tritan; green/amber 4.0 protan), and
+ * flag order is the flag. So the hue channel here is constrained for
+ * non-data reasons and the words carry the load — deliberately redundant
+ * coding, not decoration.
+ *
+ * REUSABLE — stateless and unpositioned. It reads `inkKey` from the locale
+ * module and holds no state; every instance renders identically. Nothing
+ * inside sets a margin, so the caller owns placement entirely (`class` for
+ * position, `rotate` for the tilt step). Heading ids are unique per
+ * instance, so it is safe to pin the same key in two places on one page —
+ * which is the intent: declare the code near the top of the wall, confirm
+ * it beside the artifact that has just used four of its six inks.
+ *
  * Material: a note slip, the same paper a freestanding HandNote rides on
  * (paper ground, one pin shadow, a brass pin, a ±1.2° tilt step) — not a
  * PinCard variant, because the whole slip is hand material and no variant
@@ -25,10 +43,15 @@ import { getWall, type Locale } from "~/data/i18n";
 interface Props {
 	/** rotation step: -1 | 0 | 1 → ±1.2deg; never share a neighbour's */
 	rotate?: -1 | 0 | 1;
+	/**
+	 * Heading id. Omit and one is generated — every instance must carry a
+	 * different id or a second key on the page would duplicate the first.
+	 */
+	id?: string;
 	class?: string;
 }
 
-const { rotate = 1, class: className } = Astro.props;
+const { rotate = 1, id, class: className } = Astro.props;
 
 const locale = (Astro.currentLocale ?? "en") as Locale;
 const { inkKey } = getWall(locale);
@@ -43,7 +66,8 @@ const STROKES = [
 	"M 1.6 6.1 C 8.6 2.7 14.2 7.9 26.4 4.7"
 ];
 
-const headingId = `ink-key-${locale}`;
+/* unique per instance, so two keys on one page never collide */
+const headingId = id ?? `ink-key-${locale}-${Math.random().toString(36).slice(2, 8)}`;
 ---
 
 <aside
@@ -71,9 +95,12 @@ const headingId = `ink-key-${locale}`;
 							stroke-linecap="round"
 						/>
 					</svg>
-					<HandNote ink={row.ink} as="span" class="ink-key__job">
-						{row.job}
-					</HandNote>
+					<span class="ink-key__pair">
+						<HandNote ink={row.ink} as="span" class="ink-key__job">
+							{row.job}
+						</HandNote>
+						<span class="ink-key__q">{row.q}</span>
+					</span>
 				</li>
 			))
 		}
@@ -83,7 +110,9 @@ const headingId = `ink-key-${locale}`;
 <style>
 	.ink-key {
 		position: relative;
-		inline-size: 15rem;
+		/* two text channels per row need the width the one-word labels did
+		   not: at 15rem the questions wrapped to three lines each */
+		inline-size: 19rem;
 		max-inline-size: 100%;
 		/* one material per artifact: the whole slip is the pen, so nothing
 		   inside it can fall back to the body face */
@@ -105,8 +134,8 @@ const headingId = `ink-key-${locale}`;
 		margin: 0 0 var(--baseline);
 		font-family: var(--font-hand);
 		font-weight: 500;
-		font-size: 0.8125rem;
-		line-height: 1.35;
+		font-size: var(--step--1);
+		line-height: var(--lh--1);
 		color: var(--ink);
 		rotate: -0.7deg;
 		/* German runs two lines here; a hand writes them evenly, not with
@@ -119,12 +148,12 @@ const headingId = `ink-key-${locale}`;
 		margin: 0;
 		padding: 0;
 		display: grid;
-		row-gap: calc(var(--baseline) * 0.5);
+		row-gap: var(--baseline);
 	}
 
 	.ink-key__row {
 		display: flex;
-		align-items: center;
+		align-items: start;
 		column-gap: var(--baseline);
 	}
 
@@ -133,11 +162,30 @@ const headingId = `ink-key-${locale}`;
 		inline-size: 28px;
 		block-size: 11px;
 		overflow: visible;
+		/* the stroke sits on the job line's own centre, not the row's */
+		margin-block-start: calc(var(--baseline) * 1.25);
+	}
+
+	.ink-key__pair {
+		display: block;
+		min-inline-size: 0;
 	}
 
 	.ink-key :global(.ink-key__job) {
-		font-size: 0.875rem;
-		line-height: 1.25;
+		display: block;
+		font-size: var(--step-0);
+		line-height: var(--lh--1);
+	}
+
+	/* the question is the channel that teaches; it is quieter than the job
+	   it belongs to, and it never wears the ink — a reader must be able to
+	   tell the code from the caption */
+	.ink-key__q {
+		display: block;
+		font-size: var(--step--1);
+		line-height: var(--lh--1);
+		color: var(--ink-soft);
+		text-wrap: pretty;
 	}
 
 	/* every row a hair off the last, the way a hand writes a list */

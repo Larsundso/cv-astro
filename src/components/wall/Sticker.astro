@@ -49,15 +49,31 @@ const { name, size = 4, rotate = -6, class: className } = Astro.props;
 		width: var(--sticker-size);
 		height: auto;
 		rotate: var(--sticker-rot);
-		/* stuck to the cork: contact shadow, no paper, no pin */
-		filter: drop-shadow(0 2px 3px oklch(25% 0.015 60 / 0.28));
-		pointer-events: none;
+		/* Stuck to the cork: a tight contact shadow, no paper, no pin.
+		   Vinyl is the flattest thing on the wall, so it gets the shortest
+		   throw of anything here — but it still falls down-and-right with
+		   the same lamp as every sheet. */
+		filter: drop-shadow(1px 1.5px 2px oklch(var(--shade) / 0.3));
 		user-select: none;
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
 		.sticker {
-			transition: rotate 150ms ease-out;
+			transition:
+				rotate 200ms cubic-bezier(0.215, 0.61, 0.355, 1),
+				scale 200ms cubic-bezier(0.215, 0.61, 0.355, 1);
+		}
+
+		/* The one place on the wall permitted to be purely charming. A
+		   sticker has no shadow to grow, so a slight peel toward level is
+		   the only lift the "nothing lifts" law allows — and these live in
+		   the cork margins where they cannot compete with evidence.
+		   (This transition was declared before but could never fire:
+		   pointer-events was none and the element rotates via
+		   --sticker-rot, which .pinned:hover never touches.) */
+		.sticker:hover {
+			rotate: calc(var(--sticker-rot) * 0.35);
+			scale: 1.04;
 		}
 	}
 </style>

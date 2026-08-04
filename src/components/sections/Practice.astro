@@ -1,16 +1,38 @@
 ---
 /**
- * Practice — the AI-workflow record and the house rules, side by side.
+ * Practice — Act IV: how the work is actually run, and the house rules.
  *
- * Subordinate scale by owner decision ("not what I want to be hired for
- * exclusively"): the agent-workflow story is a quiet typed index card;
- * the values statement is the louder artifact — a League Gothic flyer
- * with the six pride inks working, not decorating.
+ * The act opens with a marquee like every other act. Its flyer carries the
+ * nav's own words (`ui.nav.practice`), so the directory and the destination
+ * say the same thing and arrival is confirmable; the typed line "How I work
+ * with agents" is demoted to what it always was, a card title.
  *
- * The flyer's magenta rule claims the inks are load-bearing; the InkKey
- * slip pinned below it is the proof of that claim — the wall's colour
- * code, stated. The pair is deliberate: four of the flyer's six job names
- * are already demonstrated in their own inks one artifact above the key.
+ * Proportion, restored. DESIGN.md: "Don't let the AI-workflow story
+ * outscale the human record: it stays a subordinate typed index card." It
+ * had become one 1,452px sheet — the largest artifact on the wall, 4.7x the
+ * values flyer, and 17.6 % of the page's words. It is now a small filing
+ * run: the governance argument (the only block a hiring manager is actually
+ * asking about) on a printed sheet, the orchestration and tooling records
+ * on typed cards, and the two telemetry blocks folded shut behind their own
+ * headings. Nothing is deleted — VOLUME and the adoption curve are one
+ * click away, available rather than unavoidable.
+ *
+ * Material law. Continuous narrative prose is set on `variant="print"`
+ * (Atkinson); records and figure lists stay `variant="typed"` (Courier). A
+ * typewriter produced the record; a printer produced the essay.
+ *
+ * The values flyer. Each rule is a display headline over its supporting
+ * sentence, and the sentence is set in body type in the rule's OWN ink. The
+ * ink code survives intact — one colour per rule, not per paragraph — but
+ * the coloured mass drops by roughly two thirds, because 361 characters of
+ * running prose in uppercase condensed display type is the single artifact
+ * behind "four marker colours visible at once". A poster shouts its
+ * headline and prints its reasoning; it does not shout both.
+ *
+ * The ink key is pinned under the flyer that has just written in four of
+ * its six inks — confirmation, in Calori's sense. It is safe to pin a
+ * second, earlier instance elsewhere on the wall; this one is the
+ * confirmation, not the declaration.
  *
  * All copy comes verbatim from ~/data/wall (voice-law final).
  */
@@ -27,19 +49,25 @@ interface Props {
 const { class: className } = Astro.props;
 
 const locale = (Astro.currentLocale ?? "en") as Locale;
-const { aiPractice, contact, houseRules } = getWall(locale);
+const { aiPractice, contact, houseRules, ui } = getWall(locale);
 
-const entries = aiPractice.entries.map((entry) => ({
-	title: entry.title,
-	lines: entry.lines,
-	annotation: "annotation" in entry ? entry.annotation : undefined
-}));
+/* The record, filed by block. Governance is the argument; orchestration and
+   memory/tooling are the record; volume and the adoption curve are the
+   telemetry, and telemetry folds. */
+const entry = (id: string) => aiPractice.entries.find((e) => e.id === id);
+
+const governance = entry("governance");
+const orchestration = entry("orchestration");
+const folded = [entry("volume"), entry("adoption"), entry("memory-tooling")].filter(
+	(e) => e !== undefined
+);
 
 /* The one permitted email becomes a working mailto where a rule carries it. */
 const rules = houseRules.rules.map((rule) => {
 	const at = rule.text.indexOf(contact.email);
 	return {
 		ink: rule.ink,
+		headline: rule.headline,
 		before: at === -1 ? rule.text : rule.text.slice(0, at),
 		email: at === -1 ? null : contact.email,
 		after: at === -1 ? "" : rule.text.slice(at + contact.email.length)
@@ -47,56 +75,104 @@ const rules = houseRules.rules.map((rule) => {
 });
 ---
 
-<section class:list={["practice", "wall-max", className]} id="practice">
+<section
+	class:list={["practice", "wall-max", className]}
+	id="practice"
+	aria-labelledby="practice-title"
+>
 	<div class="wall-grid practice__grid">
-		<div class="practice__typed-slot">
-			<PinCard as="article" variant="typed" rotate={1}>
-				<h2 class="practice__typed-title">{aiPractice.title}</h2>
-				<p>{aiPractice.intro}</p>
-				{
-					entries.map((entry) => (
-						<Fragment>
-							<h3>{entry.title}</h3>
-							{entry.lines.map((line) => (
-								<p>{line}</p>
-							))}
-							{entry.annotation && (
-								<div class="practice__margin">
-									<HandNote ink={entry.annotation.ink} as="p">
-										{entry.annotation.text}
-									</HandNote>
-								</div>
-							)}
-						</Fragment>
-					))
-				}
+		<div class="practice__marquee">
+			<PinCard as="div" variant="flyer" rotate={-1}>
+				<h2 id="practice-title">{ui.nav.practice}</h2>
 			</PinCard>
-			<!-- cork marginalia: only shown where the two-column split
-			     leaves a genuinely empty right-hand gutter (see <style>) -->
-			<div class="practice__sticker">
-				<Sticker name="sip" size={4.5} rotate={-8} />
-			</div>
 		</div>
 
-		<div class="practice__flyer-slot">
-			<PinCard as="article" variant="flyer" rotate={-1}>
-				<h2 class="practice__flyer-title">{houseRules.title}</h2>
+		<div class="practice__records">
+			{
+				/* the argument, printed: continuous prose, so it is not set on
+				   a typewriter — and the block a hiring manager came for */
+				governance && (
+					<PinCard as="article" variant="print" rotate={-1} class="practice__card">
+						<h3 class="practice__card-title">{aiPractice.title}</h3>
+						<p class="practice__intro">{aiPractice.intro}</p>
+						<h4 class="practice__block-title">{governance.title}</h4>
+						{governance.lines.map((line) => (
+							<p>{line}</p>
+						))}
+						{"annotation" in governance && governance.annotation && (
+							<div class="practice__margin">
+								<HandNote ink={governance.annotation.ink} as="p">
+									{governance.annotation.text}
+								</HandNote>
+							</div>
+						)}
+					</PinCard>
+				)
+			}
+
+			{
+				/* the record, typed: figures and written conventions, not an
+				   essay — the block that says how the work is actually run */
+				orchestration && (
+					<PinCard as="article" variant="typed" rotate={1} class="practice__card">
+						<h3 class="practice__block-title practice__block-title--typed">
+							{orchestration.title}
+						</h3>
+						{orchestration.lines.map((line) => (
+							<p>{line}</p>
+						))}
+					</PinCard>
+				)
+			}
+
+			{
+				/* the telemetry, folded: every figure kept, none of it in the
+				   way. The headings stay legible shut, so the card still says
+				   what it is holding — available rather than unavoidable. */
+				folded.length > 0 && (
+					<PinCard
+						as="article"
+						variant="typed"
+						rotate={-1}
+						class="practice__card practice__fold-card"
+					>
+						{folded.map((rec) => (
+							<details class="practice__fold">
+								<summary>
+									<h4 class="practice__block-title practice__block-title--typed">{rec.title}</h4>
+								</summary>
+								{rec.lines.map((line) => (
+									<p>{line}</p>
+								))}
+							</details>
+						))}
+					</PinCard>
+				)
+			}
+		</div>
+
+		<div class="practice__values">
+			<PinCard as="article" variant="flyer" rotate={-1} class="practice__flyer">
+				<h3 class="practice__flyer-title">{houseRules.title}</h3>
 				<div class="practice__rule-line" aria-hidden="true"></div>
 				<ul class="practice__rules">
 					{
 						rules.map((rule) => (
 							<li style={`color: var(--ink-${rule.ink});`}>
-								{rule.before}{rule.email && <a href={`mailto:${rule.email}`}>{rule.email}</a>}{rule.after}
+								<p class="practice__rule-head">{rule.headline}</p>
+								<p class="practice__rule-text">{rule.before}{rule.email && <a class="practice__mail" href={`mailto:${rule.email}`}>{rule.email}</a>}{rule.after}</p>
 							</li>
 						))
 					}
 				</ul>
 			</PinCard>
-			<div class="practice__note">
-				<HandNote ink="amber" as="p">{houseRules.note}</HandNote>
-			</div>
+
 			<!-- the code the flyer above has just been written in -->
-			<InkKey class="practice__key" rotate={1} />
+			<InkKey class="practice__key" rotate={1} id="practice-ink-key" />
+
+			<div class="practice__sticker">
+				<Sticker name="sip" size={4.5} rotate={-8} />
+			</div>
 		</div>
 	</div>
 </section>
@@ -109,65 +185,134 @@ const rules = houseRules.rules.map((rule) => {
 
 	.practice__grid {
 		align-items: start;
+		row-gap: calc(var(--baseline) * 5);
 	}
 
-	/* ---- the typed record: quiet on purpose --------------------- */
-	/* Styling anchors on the scoped slot wrapper — classes passed into
-	   PinCard do not carry this component's scope attribute. The card
-	   inherits font-size from the slot; line-height stays the variant's
-	   24px ruling. */
+	/* ---- the marquee: this act's curtain ------------------------ */
+	/* Same face and same step as every other act's flyer — the h2 takes
+	   --step-5 from PinCard, so nothing is re-declared here. */
 
-	.practice__typed-slot {
-		position: relative; /* containing block for the cork sticker only */
+	.practice__marquee {
 		grid-column: 1 / -1;
-		max-width: 42rem; /* keeps the Courier measure inside 75ch when stacked */
-		font-size: 0.875rem;
+		width: fit-content;
+		max-width: 100%;
 	}
 
-	/* one line tall, lifted into the header band so the title sits
-	   directly on the card's red rule; net flow height is zero */
-	.practice__typed-slot h2 {
-		margin: calc(var(--baseline) * -4) 0 var(--baseline);
-		font-size: 1rem;
+	/* ---- the record: a filing run, not a manifesto -------------- */
+	/* Each block is its own pinned card. Styling anchors on the scoped
+	   wrappers — classes passed into PinCard do not carry this component's
+	   scope attribute, and the card's own :global rules already set the
+	   24px ruling that typed copy sits on. */
+
+	.practice__records,
+	.practice__values {
+		grid-column: 1 / -1;
+		display: grid;
+		row-gap: calc(var(--baseline) * 5);
+		align-content: start;
+		/* stacked, one column edge for both stacks — and it keeps the
+		   Courier measure inside 75ch */
+		max-width: 42rem;
+	}
+
+	/* the demoted title: a card title now, not the act's heading */
+	.practice__card-title {
+		margin: 0 0 var(--baseline);
+		font-size: var(--step-1);
+		line-height: var(--lh-1);
 		font-weight: 700;
-		white-space: nowrap;
 	}
 
-	.practice__typed-slot h3 {
-		margin: calc(var(--baseline) * 3) 0 0;
-		font-size: 0.875rem;
+	.practice__intro {
+		margin: 0 0 calc(var(--baseline) * 2);
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
+	}
+
+	.practice__block-title {
+		margin: 0 0 var(--baseline);
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
 		font-weight: 700;
 		text-transform: uppercase;
-		letter-spacing: 0.08em;
+		letter-spacing: var(--track-display);
 	}
 
-	.practice__typed-slot p {
-		margin: 0;
+	/* on a ruled card the heading has to keep the sheet's own period: an
+	   8px gap under it would push every line below off the ruling */
+	.practice__records :global(.pin-card--typed) .practice__block-title--typed {
+		margin-block-end: 0;
+	}
+
+	.practice__records :global(.pin-card--print) p {
+		margin: 0 0 var(--baseline);
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
+	}
+
+	.practice__records :global(.pin-card--print) p:last-child {
+		margin-block-end: 0;
 	}
 
 	.practice__margin {
+		margin-block-start: var(--baseline);
 		padding-inline-start: calc(var(--baseline) * 2);
 	}
 
-	/* one ruled row per handwritten line keeps the 24px card rhythm;
-	   rotate paints the slant without disturbing layout */
 	.practice__margin :global(.hand-note) {
-		font-size: 0.9375rem;
-		line-height: calc(var(--baseline) * 3);
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
 		rotate: -1deg;
 	}
 
-	/* ---- the house-rules flyer: the louder artifact ------------- */
+	/* ---- the folded telemetry ----------------------------------- */
+	/* Shut, the card is three headings; open, it is the whole record —
+	   every figure kept, none deleted. Same progressive-disclosure
+	   affordance the telemetry sheets already use. */
 
-	.practice__flyer-slot {
-		grid-column: 1 / -1;
+	/* whole ruled rows only: a 1px separator would push every line below it
+	   off the card's own 24px ruling, which is the one thing a ruled card
+	   may not do. The card's rules are already the separator. */
+	.practice__fold + .practice__fold {
+		margin-block-start: calc(var(--baseline) * 3);
+	}
+
+	.practice__fold summary {
+		cursor: pointer;
+		color: var(--ink-soft);
+	}
+
+	.practice__fold summary:hover,
+	.practice__fold[open] summary {
+		color: var(--ink);
+	}
+
+	.practice__fold[open] summary {
+		margin-block-end: calc(var(--baseline) * 3);
+	}
+
+	.practice__fold summary .practice__block-title {
+		display: inline;
+	}
+
+	/* ---- the house-rules flyer: the louder artifact ------------- */
+	/* One step under the act marquee: the values statement is the loudest
+	   ARTIFACT in the room, and the room still gets to say its own name
+	   first. */
+
+	/* the flyer fills its column; the key and the sticker are small
+	   artifacts that keep their own size and hang at the column's left */
+	.practice__values {
+		justify-items: start;
+	}
+
+	.practice__values :global(.practice__flyer) {
 		width: 100%;
-		max-width: 36rem;
-		margin-inline-start: auto;
 	}
 
 	.practice__flyer-title {
-		font-size: clamp(2.5rem, 1.9rem + 2.6vw, 3.75rem);
+		font-size: var(--step-4);
+		line-height: var(--lh-4);
 	}
 
 	.practice__rule-line {
@@ -184,12 +329,31 @@ const rules = houseRules.rules.map((rule) => {
 		margin: calc(var(--baseline) * 3) 0 0;
 		padding: 0;
 		display: grid;
-		row-gap: calc(var(--baseline) * 2);
+		/* a headline and its sentence are one unit and sit line on line;
+		   the gap between RULES has to be visibly larger than the gap
+		   inside one, or four rules read as eight lines */
+		row-gap: calc(var(--baseline) * 4);
 	}
 
-	.practice__rules li {
-		font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.625rem);
-		line-height: 1.08;
+	/* the shout: short, condensed, tracked the way caps under 32px need */
+	.practice__rule-head {
+		margin: 0;
+		font-size: var(--step-2);
+		line-height: var(--lh-2);
+		letter-spacing: var(--track-display);
+		text-wrap: balance;
+	}
+
+	/* the reasoning: printed, in the rule's own ink. Colour still codes the
+	   rule; it no longer sets 361 characters of prose in poster caps. */
+	.practice__rule-text {
+		margin: 0;
+		font-family: var(--font-body);
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
+		text-transform: none;
+		letter-spacing: normal;
+		text-wrap: pretty;
 	}
 
 	.practice__rules a {
@@ -199,35 +363,22 @@ const rules = houseRules.rules.map((rule) => {
 		text-underline-offset: 0.16em;
 	}
 
-	.practice__note {
-		max-width: 24rem;
-		margin-block-start: calc(var(--baseline) * 2);
-		margin-inline-start: auto;
-		padding-inline: calc(var(--baseline) * 2);
-	}
-
-	.practice__note :global(.hand-note) {
-		font-size: 1rem;
-		rotate: -1.4deg;
+	/* an address is one token: it may not be hyphenated at the domain */
+	.practice__mail {
+		white-space: nowrap;
 	}
 
 	/* ---- the ink key -------------------------------------------- */
-	/* Pinned under the flyer's own note and flush to the column's left
-	   edge, so it staggers against the right-aligned note instead of
-	   extending it: a separate small artifact, read after the four rules
-	   that have just used four of its six inks. Tilt +1 against the
-	   flyer's -1. */
-
-	.practice :global(.practice__key) {
-		margin-block-start: calc(var(--baseline) * 4);
-	}
+	/* Pinned under the flyer, flush to the column's left edge, and read
+	   after the four rules that have just used four of its six inks —
+	   confirmation, not declaration. Tilt +1 against the flyer's -1. The
+	   slip brings no margins of its own, so the column's row-gap is the
+	   only thing placing it; a second instance elsewhere is positioned the
+	   same way, by its caller. */
 
 	/* ---- a sticker in the cork gutter --------------------------- */
-	/* Stuck in the bare cork right of the typed record's lower half:
-	   past the flyer column's end, clear of the thread that runs down
-	   the grid's center gap, and far enough below the house-rules note
-	   that it annotates nothing. Only exists in the two-column state —
-	   stacked, that gutter is not cork, it is the next artifact. */
+	/* Marginalia only where the two-column split leaves genuine bare
+	   cork — stacked, that space is not cork, it is the next artifact. */
 
 	.practice__sticker {
 		display: none;
@@ -236,28 +387,33 @@ const rules = houseRules.rules.map((rule) => {
 	/* ---- two artifacts side by side once the wall is wide ------- */
 
 	@media (min-width: 64rem) {
+		.practice__grid {
+			row-gap: calc(var(--baseline) * 6);
+		}
+
+		.practice__marquee {
+			grid-column: 1 / -1;
+			grid-row: 1;
+		}
+
+		/* both columns hang from the same line under the marquee: the
+		   record and the values are peers, read side by side */
+		.practice__records {
+			grid-column: 1 / span 6;
+			grid-row: 2;
+			max-width: none;
+		}
+
+		.practice__values {
+			grid-column: 8 / span 5;
+			grid-row: 2;
+			max-width: none;
+		}
+
 		.practice__sticker {
 			display: block;
-			position: absolute;
-			/* dropped from 62 % once the ink key took the cork above it —
-			   marginalia keeps out of an artifact's way, always */
-			top: 72%;
-			left: calc(100% + 4.5rem);
-			/* the offset puts the box past its containing block's right
-			   edge, so shrink-to-fit would resolve to 0 and collapse the
-			   image through the global img{max-width:100%} */
-			width: max-content;
-		}
-
-		.practice__typed-slot {
-			grid-column: 1 / span 6;
-		}
-
-		.practice__flyer-slot {
-			grid-column: 8 / span 5;
-			max-width: none;
-			margin-inline-start: 0;
-			margin-block-start: calc(var(--baseline) * 10);
+			justify-self: end;
+			margin-inline-end: calc(var(--baseline) * 4);
 		}
 	}
 </style>

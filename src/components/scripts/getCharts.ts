@@ -25,7 +25,7 @@
 import * as echarts from "echarts";
 import { getWall, type Locale, type WallModule } from "~/data/i18n";
 import { telemetry } from "~/data/snapshot";
-import { formatH, formatHM, type StatSlice, type TelemetrySource } from "~/data/telemetry";
+import { figure, formatH, formatHM, type StatSlice, type TelemetrySource } from "~/data/telemetry";
 import type { PrideInk } from "~/data/wall";
 import getInsights from "./getInsights";
 import getSummaries, { type DaySummary } from "./getSummaries";
@@ -47,7 +47,13 @@ const INK_SOFT = "#49413b"; // --ink-soft
 const PAPER = "#f9f7f1"; // --paper
 const GRID_LINE = "#d8d5cf"; // ink 14 % over paper
 const AXIS_LINE = "#99948e"; // ink 42 % over paper
-const NEUTRAL = "#aba6a0"; // ink 34 % over paper — the "everything else" bucket
+/* The "everything else" bucket is the wall's own unremarkable material,
+ * not an ECharts default grey: --paper-aged (oklch(94% 0.02 85)) with a
+ * 1px ink hairline so a paper-on-paper bar still has an edge. */
+const PAPER_AGED = "#f1eadc"; // --paper-aged
+const HAIRLINE = "rgba(39, 32, 26, 0.18)"; // --ink at 18 %
+/* Defensive fallback only: every charted name gets a pride ink. */
+const NEUTRAL = "#aba6a0"; // ink 34 % over paper
 
 const INK_HEX: Record<PrideInk, string> = {
 	magenta: "#9a0064", // --ink-magenta
@@ -61,19 +67,88 @@ const INK_HEX: Record<PrideInk, string> = {
 /** Fixed assignment order — CVD-safe adjacency (see module doc). */
 const SERIES_ORDER: readonly PrideInk[] = ["magenta", "blue", "amber", "teal", "violet", "green"];
 
-/** Reverse lookup so a margin note can write in its subject's series ink. */
-const INK_NAME = new Map<string, PrideInk>(
-	(Object.entries(INK_HEX) as [PrideInk, string][]).map(([name, hex]) => [hex, name])
-);
-
-const inkNameOf = (hex: string | undefined, fallback: PrideInk): PrideInk =>
-	(hex && INK_NAME.get(hex)) || fallback;
+/* ------------------------------------------------------------------ */
+/* The annotation ink rule                                             */
+/* ------------------------------------------------------------------ */
+/* On the wall an ink names a KIND OF CLAIM (magenta = mine alone,
+ * violet = the method, teal = the provenance, green = the run,
+ * amber = the limit, blue = the way in). Inside a chart an ink names a
+ * SERIES. Both were being written in the same medium — a Shantell Sans
+ * margin note — so the languages note came out magenta purely because
+ * TypeScript is SERIES_ORDER[0], and under the wall's only stated code
+ * magenta means "mine alone".
+ *
+ * So: series inks stay on the MARKS (they are legended by the chart's own
+ * direct labels and by its data table); every margin NOTE is set from its
+ * claim, exactly like every other note on the wall. */
+const CLAIM_INK = {
+	/** Ranked own projects, and the Ayako family split: sole ownership. */
+	projects: "magenta",
+	/** Where the measured hours actually went: how you know. */
+	languages: "teal",
+	/** Still running, this week and since 2021. */
+	run: "green"
+} as const satisfies Record<string, PrideInk>;
 
 const FONT_BODY = '"Atkinson Hyperlegible", "Segoe UI", sans-serif';
 /** Ranked bars stay legible when scaled down to a phone-wide card. */
 const RANKED_W = 460;
 /** Seven stacked days + legend need the full sheet; consumers pan on narrow screens. */
 const STACKED_W = 620;
+
+/* ------------------------------------------------------------------ */
+/* Finding copy — titles that state a result, notes that add a claim   */
+/* ------------------------------------------------------------------ */
+/* Every chart on this wall used to be titled by its axis ("Top 4
+ * languages") and annotated with a number already printed beside the
+ * mark ("TypeScript: 3,019.9 h" is the y-axis label concatenated with the
+ * bar's own end label). Titles now carry the finding and margin notes
+ * carry what the chart cannot show.
+ *
+ * No figure is invented here: every value is derived at build time from
+ * the same published rows the chart draws, and the derivation is stated
+ * in the note itself ("of the top 4", "out of 10"). */
+interface FindingCopy {
+	/** Snapshot projects sheet: the Ayako family outweighs everything else. */
+	ayakoTitle: string;
+	ayakoNote: string;
+	/** Languages sheet: how concentrated the charted hours are. */
+	languagesTitle: (name: string) => string;
+	languagesNote: (share: string, of: number) => string;
+	/** Habit sheet. */
+	habitTitle: (daysInTen: number, sinceYear: string) => string;
+	habitNote: (idle: string, startYear: string, endYear: string) => string;
+	habitUnit: (asOf: string) => string;
+	/** In-place label on the hollow block of the habit field. */
+	idleBlockLabel: (idle: string) => string;
+}
+
+const FINDINGS: Record<Locale, FindingCopy> = {
+	en: {
+		ayakoTitle: "One project family outweighs all the rest",
+		ayakoNote: "mine end to end — and bigger than every other project put together",
+		languagesTitle: (name) => `${name} is where the hours went`,
+		languagesNote: (share, of) => `one language, ${share} of the top ${of}`,
+		habitTitle: (daysInTen, sinceYear) =>
+			`Coded on ${daysInTen} days out of 10 since ${sinceYear}`,
+		habitNote: (idle, startYear, endYear) =>
+			`the ${idle} empty days are spread across ${startYear}–${endYear} — not the last ${idle}`,
+		habitUnit: (asOf) => `One cell per day · lifetime tally · as of ${asOf}`,
+		idleBlockLabel: (idle) => `${idle} days without tracked coding`
+	},
+	de: {
+		ayakoTitle: "Eine Projektfamilie wiegt schwerer als alle anderen",
+		ayakoNote: "von vorn bis hinten meins — und größer als alle anderen Projekte zusammen",
+		languagesTitle: (name) => `In ${name} stecken die Stunden`,
+		languagesNote: (share, of) => `eine Sprache, ${share} der Top ${of}`,
+		habitTitle: (daysInTen, sinceYear) =>
+			`An ${daysInTen} von 10 Tagen programmiert, seit ${sinceYear}`,
+		habitNote: (idle, startYear, endYear) =>
+			`die ${idle} leeren Tage verteilen sich über ${startYear}–${endYear} — es sind nicht die letzten ${idle}`,
+		habitUnit: (asOf) => `Eine Zelle pro Tag · Gesamtzählung · Stand ${asOf}`,
+		idleBlockLabel: (idle) => `${idle} Tage ohne erfasste Programmierzeit`
+	}
+};
 
 /* ------------------------------------------------------------------ */
 /* Public shapes                                                       */
@@ -109,7 +184,11 @@ export interface PrintChart {
 export interface HabitField {
 	title: string;
 	unit: string;
+	/** The filled block: days with tracked coding. */
 	svg: string;
+	/** The empty days, printed apart from the run they are not part of —
+	 *  null when there are none. */
+	idle: { svg: string; label: string } | null;
 	alt: string;
 	/** Printed figures line — the accessible record of the grid. */
 	line: string;
@@ -198,7 +277,14 @@ const renderSvg = (width: number, height: number, option: echarts.EChartsOption)
 
 const round2 = (n: number): number => Math.round(n * 100) / 100;
 
-const pct = (p: number | null): string | null => (p == null ? null : `${round2(p)} %`);
+/* Every printed figure is formatted for the locale of the page it is
+ * printed on, from the numeric source — a German reader parses the en-US
+ * "3,019.9 h" as three-point-oh-one-nine. Two deliberate exceptions, both
+ * required: the chart ALT TEXT and the derived-figure FOOTNOTES stay in
+ * en-US, because they are the screen-reader reader's only provenance and
+ * are quoted verbatim elsewhere. Hence every ranked row carries both. */
+const pctIn = (p: number | null, locale: Locale): string | null =>
+	p == null ? null : `${figure(round2(p), locale)} %`;
 
 /* ------------------------------------------------------------------ */
 /* Ranked horizontal bars (top projects / top languages)               */
@@ -206,12 +292,19 @@ const pct = (p: number | null): string | null => (p == null ? null : `${round2(p
 
 interface RankedRow {
 	name: string;
-	/** Printed time, e.g. "3,019 h 54 m" — may carry a trailing "*". */
+	/** Printed time in the page's locale, e.g. "3,019.9 h" / "3.019,9 h" —
+	 *  may carry a trailing "*". */
 	time: string;
+	/** The same figure in en-US, for the alt text (which never localises). */
+	timeEn: string;
 	hours: number;
 	/** Share display, e.g. "55.68 %"; null when not recorded. */
 	share: string | null;
+	/** The same share in en-US, for the alt text. */
+	shareEn: string | null;
 	color: string;
+	/** The "everything else" bucket: paper-on-paper, so it needs an edge. */
+	hairline?: boolean;
 }
 
 const rankedBarSvg = (rows: RankedRow[]): string =>
@@ -238,7 +331,11 @@ const rankedBarSvg = (rows: RankedRow[]): string =>
 				barWidth: 18,
 				data: rows.map((r) => ({
 					value: round2(r.hours),
-					itemStyle: { color: r.color, borderRadius: [0, 4, 4, 0] }
+					itemStyle: {
+						color: r.color,
+						borderRadius: [0, 4, 4, 0],
+						...(r.hairline ? { borderColor: HAIRLINE, borderWidth: 1 } : {})
+					}
 				})),
 				label: {
 					show: true,
@@ -254,9 +351,25 @@ const rankedBarSvg = (rows: RankedRow[]): string =>
 		]
 	});
 
+/**
+ * How much of the charted total the leading bar carries.
+ *
+ * The chart shows four bars; what it cannot show is how lopsided they
+ * are, because judging that means summing three of them by eye. This is a
+ * derived ratio over exactly the hours printed on the sheet — nothing is
+ * invented, and the note that quotes it states its own denominator
+ * ("of the top 4"), never the lifetime total.
+ */
+const leadShareOfChart = (rows: RankedRow[], locale: Locale): string | null => {
+	const total = rows.reduce((sum, r) => sum + r.hours, 0);
+	if (rows.length < 2 || total <= 0) return null;
+	return `${figure(Math.round((rows[0].hours / total) * 1000) / 10, locale)} %`;
+};
+
+/** Alt text is en-US in every locale — see the note on `pctIn`. */
 const rankedAlt = (intro: string, rows: RankedRow[]): string =>
 	`${intro}: ${rows
-		.map((r) => `${r.name} ${r.time}${r.share ? ` (${r.share})` : ""}`)
+		.map((r) => `${r.name} ${r.timeEn}${r.shareEn ? ` (${r.shareEn})` : ""}`)
 		.join("; ")}.`;
 
 const rankedTable = (
@@ -283,15 +396,14 @@ interface StackResult {
 	other: number[];
 	/** Summed seconds of the leading series across the window. */
 	leadSeconds: number;
-	/** The leading series' assigned ink (hex). */
-	leadColor: string;
 }
 
 const stackedDays = (
 	days: DaySummary[],
 	pick: (d: DaySummary) => StatSlice[],
 	inkFor: InkFor,
-	cs: ChartStrings
+	cs: ChartStrings,
+	locale: Locale
 ): StackResult => {
 	const totals = new Map<string, number>();
 	for (const day of days) {
@@ -314,28 +426,33 @@ const stackedDays = (
 	});
 	const hasOther = other.some((s) => s >= 60);
 
-	const barSeries = (name: string, color: string, seconds: number[]) => ({
+	const barSeries = (name: string, color: string, seconds: number[], edge = PAPER) => ({
 		name,
 		type: "bar" as const,
 		stack: "day",
 		barWidth: 26,
 		// 1px paper border on every segment = a 2px paper gap between fills
-		itemStyle: { color, borderColor: PAPER, borderWidth: 1 },
+		itemStyle: { color, borderColor: edge, borderWidth: 1 },
 		data: seconds.map((s) => round2(s / 3600))
 	});
 
-	const svg = renderSvg(STACKED_W, 344, {
-		grid: { left: 8, right: 8, top: 12, bottom: 48, containLabel: true },
+	const svg = renderSvg(STACKED_W, 368, {
+		/* The key sits directly above the marks it names, not parked below
+		 * the axis, and it prints the whole name: 620 px across five or six
+		 * entries has the room, and a legend that abbreviates the one thing
+		 * it exists to identify is worse than no legend. */
+		grid: { left: 8, right: 8, top: 72, bottom: 8, containLabel: true },
 		legend: {
-			bottom: 0,
-			left: "center",
+			top: 0,
+			left: 0,
 			icon: "rect",
 			itemWidth: 10,
 			itemHeight: 10,
 			itemGap: 14,
+			width: STACKED_W - 16,
 			textStyle: { color: INK_SOFT, fontFamily: FONT_BODY, fontSize: 12 },
-			// full names live in the data table
-			formatter: (name: string) => (name.length > 16 ? `${name.slice(0, 15)}…` : name)
+			// only a pathological name is ever cut; full names live in the table
+			formatter: (name: string) => (name.length > 32 ? `${name.slice(0, 31)}…` : name)
 		},
 		xAxis: {
 			type: "category",
@@ -351,13 +468,14 @@ const stackedDays = (
 				color: INK_SOFT,
 				fontFamily: FONT_BODY,
 				fontSize: 12,
-				formatter: cs.axisHours
+				// keep the locale's own "{value} h" wording, localise the figure
+				formatter: (value: number) => cs.axisHours.replace("{value}", figure(value, locale))
 			},
 			splitLine: { lineStyle: { color: GRID_LINE } }
 		},
 		series: [
 			...names.map((name, i) => barSeries(name, colors.get(name) ?? NEUTRAL, matrix[i])),
-			...(hasOther ? [barSeries(cs.other, NEUTRAL, other)] : [])
+			...(hasOther ? [barSeries(cs.other, PAPER_AGED, other, HAIRLINE)] : [])
 		]
 	});
 
@@ -366,72 +484,79 @@ const stackedDays = (
 		names,
 		matrix,
 		other,
-		leadSeconds: names.length ? (totals.get(names[0]) ?? 0) : 0,
-		leadColor: names.length ? (colors.get(names[0]) ?? NEUTRAL) : NEUTRAL
+		leadSeconds: names.length ? (totals.get(names[0]) ?? 0) : 0
 	};
 };
 
-const stackedTable = (days: DaySummary[], stack: StackResult, cs: ChartStrings): ChartTable => ({
+const stackedTable = (
+	days: DaySummary[],
+	stack: StackResult,
+	cs: ChartStrings,
+	locale: Locale
+): ChartTable => ({
 	head: [cs.tableHeads.day, ...stack.names, cs.other, cs.tableHeads.total],
 	rows: days.map((day, i) => [
 		day.date,
-		...stack.matrix.map((row) => (row[i] >= 60 ? formatHM(row[i]) : "—")),
-		stack.other[i] >= 60 ? formatHM(stack.other[i]) : "—",
+		...stack.matrix.map((row) => (row[i] >= 60 ? formatHM(row[i], locale) : "—")),
+		stack.other[i] >= 60 ? formatHM(stack.other[i], locale) : "—",
 		day.total.text
 	])
 });
 
 /* ------------------------------------------------------------------ */
-/* The habit field — one cell per elapsed day, tallied not dated       */
+/* The habit field — two tallies, not one calendar                     */
 /* ------------------------------------------------------------------ */
-/* Rendered as four pattern-filled rects (single-digit DOM nodes for
- * 1,700+ cells). Only the counts are published, so filled cells run in
- * sequence — a tally, deliberately not a calendar. */
+/* Rendered as pattern-filled rects (single-digit DOM nodes for 1,700+
+ * cells). Only the COUNTS are published — the snapshot holds no per-day
+ * dates at all — so cells run in sequence: a tally, deliberately not a
+ * calendar.
+ *
+ * That is exactly where the old version lied. Filling 1,575 of 1,739
+ * cells in sequence stacked the 164 unfilled ones as a solid block at the
+ * bottom-right of a grid, and every convention says the tail of a dated
+ * left-to-right grid is the recent past. The graphic therefore asserted a
+ * four-month gap that does not exist, and the only correction was a line
+ * of grey small print underneath it — the weaker label.
+ *
+ * So the empty days are now their own block, on their own fresh row,
+ * behind a rule, under a label of their own. The label is HTML rather
+ * than SVG text on purpose: inside the SVG it would scale with the
+ * viewBox and shrink to seven pixels on a phone, which is how the sheet
+ * got into this trouble in the first place. It rides the type ramp
+ * instead, and it is the stronger label on the card. */
 
-const habitFieldSvg = (active: number, elapsed: number): string => {
-	const COLS = 47; // 1,739 elapsed days = 47 × 37, a full rectangle
-	const CELL = 10;
-	const GAP = 3;
-	const PITCH = CELL + GAP;
-	const rows = Math.ceil(elapsed / COLS);
-	const w = COLS * PITCH - GAP;
-	const h = rows * PITCH - GAP;
+const HABIT_COLS = 47; // 1,739 elapsed days = 47 × 37, a full rectangle
+const HABIT_CELL = 10;
+const HABIT_GAP = 3;
+const HABIT_PITCH = HABIT_CELL + HABIT_GAP;
 
-	/** Cover the sequential cell range [from, to) with at most 3 rects. */
-	const rectsFor = (from: number, to: number): string => {
-		if (to <= from) return "";
-		const parts: string[] = [];
-		const rect = (row: number, colA: number, colB: number, rowSpan = 1) =>
-			parts.push(
-				`<rect x="${colA * PITCH}" y="${row * PITCH}" width="${(colB - colA) * PITCH - GAP}" height="${rowSpan * PITCH - GAP}"/>`
-			);
-		const r0 = Math.floor(from / COLS);
-		const c0 = from % COLS;
-		const r1 = Math.floor((to - 1) / COLS);
-		const c1 = (to - 1) % COLS;
-		if (r0 === r1) {
-			rect(r0, c0, c1 + 1);
-		} else {
-			rect(r0, c0, COLS);
-			if (r1 - r0 > 1) rect(r0 + 1, 0, COLS, r1 - r0 - 1);
-			rect(r1, 0, c1 + 1);
-		}
-		return parts.join("");
-	};
+/** One block of `count` cells, filled ("on") or hollow ("off"). */
+const dayBlockSvg = (count: number, kind: "on" | "off"): string => {
+	if (count <= 0) return "";
+	const w = HABIT_COLS * HABIT_PITCH - HABIT_GAP;
+	const h = Math.ceil(count / HABIT_COLS) * HABIT_PITCH - HABIT_GAP;
 
-	const filled = Math.min(active, elapsed);
+	/** Cover a sequential run of `count` cells with at most 2 rects. */
+	const parts: string[] = [];
+	const rect = (row: number, cols: number, rowSpan = 1) =>
+		parts.push(
+			`<rect x="0" y="${row * HABIT_PITCH}" width="${cols * HABIT_PITCH - HABIT_GAP}" height="${rowSpan * HABIT_PITCH - HABIT_GAP}"/>`
+		);
+	const full = Math.floor(count / HABIT_COLS);
+	const rest = count % HABIT_COLS;
+	if (full > 0) rect(0, HABIT_COLS, full);
+	if (rest > 0) rect(full, rest);
+
+	const id = `rf-day-${kind}`;
+	const cell =
+		kind === "on"
+			? `<rect width="${HABIT_CELL}" height="${HABIT_CELL}" rx="2" fill="${INK_HEX.green}"/>`
+			: `<rect x="0.5" y="0.5" width="${HABIT_CELL - 1}" height="${HABIT_CELL - 1}" rx="2" fill="none" stroke="${AXIS_LINE}"/>`;
+
 	return (
 		`<svg viewBox="-1 -1 ${w + 2} ${h + 2}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">` +
-		`<defs>` +
-		`<pattern id="rf-day-on" width="${PITCH}" height="${PITCH}" patternUnits="userSpaceOnUse">` +
-		`<rect width="${CELL}" height="${CELL}" rx="2" fill="${INK_HEX.green}"/>` +
-		`</pattern>` +
-		`<pattern id="rf-day-off" width="${PITCH}" height="${PITCH}" patternUnits="userSpaceOnUse">` +
-		`<rect x="0.5" y="0.5" width="${CELL - 1}" height="${CELL - 1}" rx="2" fill="none" stroke="${AXIS_LINE}"/>` +
-		`</pattern>` +
-		`</defs>` +
-		`<g fill="url(#rf-day-on)">${rectsFor(0, filled)}</g>` +
-		`<g fill="url(#rf-day-off)">${rectsFor(filled, elapsed)}</g>` +
+		`<defs><pattern id="${id}" width="${HABIT_PITCH}" height="${HABIT_PITCH}" patternUnits="userSpaceOnUse">${cell}</pattern></defs>` +
+		`<g fill="url(#${id})">${parts.join("")}</g>` +
 		`</svg>`
 	);
 };
@@ -440,12 +565,17 @@ const habitFieldSvg = (active: number, elapsed: number): string => {
 /* Bundle assembly                                                     */
 /* ------------------------------------------------------------------ */
 
-/* Figures keep en-US grouping in every locale — the wall's figure style
- * is uniform (wall.de.ts copies figure strings verbatim, same rule). */
-const fmt = (n: number): string => n.toLocaleString("en-US");
+/** Data-layer display strings are en-US; reprint them from the numeric
+ *  source when the page is not. Never a separator swap on the string. */
+const localTime = (text: string | null | undefined, seconds: number, locale: Locale): string => {
+	if (locale === "en") return text ?? formatHM(seconds);
+	// the data layer prints either "5,432 h 47 m" or "2,800.7 h"
+	return text && !text.endsWith(" m") ? formatH(seconds / 3600, locale) : formatHM(seconds, locale);
+};
 
 const build = async (locale: Locale): Promise<ChartsBundle> => {
 	const cs: ChartStrings = getWall(locale).chartStrings;
+	const found = FINDINGS[locale];
 	const [career, year, week] = await Promise.all([getTotalTime(), getInsights(), getSummaries()]);
 	const projectInk = inkRegistry();
 	const languageInk = inkRegistry();
@@ -461,9 +591,11 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 		);
 		const rows: RankedRow[] = top.map((p) => ({
 			name: p.name,
-			time: formatHM(p.seconds ?? 0),
+			time: formatHM(p.seconds ?? 0, locale),
+			timeEn: formatHM(p.seconds ?? 0),
 			hours: (p.seconds ?? 0) / 3600,
-			share: pct(p.percent),
+			share: pctIn(p.percent, locale),
+			shareEn: pctIn(p.percent, "en"),
 			color: colors.get(p.name) ?? NEUTRAL
 		}));
 		charts.push({
@@ -475,7 +607,7 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 			table: rankedTable(cs.tableHeads.project, cs.tableHeads, rows),
 			annotation: {
 				text: cs.annotations.projectLeads(rows[0].name, rows[0].time),
-				ink: inkNameOf(rows[0].color, "magenta")
+				ink: CLAIM_INK.projects
 			}
 		});
 	} else {
@@ -487,29 +619,40 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 		const rows: RankedRow[] = [
 			{
 				name: cs.ayakoFamilyRow,
-				time: fam.text ?? formatHM(famSeconds),
+				time: localTime(fam.text, famSeconds, locale),
+				timeEn: localTime(fam.text, famSeconds, "en"),
 				hours: famSeconds / 3600,
-				share: `${famShare} %`,
+				share: `${figure(famShare, locale)} %`,
+				shareEn: `${figure(famShare)} %`,
 				color: projectInk(cs.ayakoFamilyRow)
 			},
 			{
 				name: cs.other,
-				time: `${formatHM(restSeconds)}*`,
+				time: `${formatHM(restSeconds, locale)}*`,
+				timeEn: `${formatHM(restSeconds)}*`,
 				hours: restSeconds / 3600,
-				share: `${round2(100 - famShare)} %*`,
-				color: NEUTRAL
+				share: `${figure(round2(100 - famShare), locale)} %*`,
+				shareEn: `${figure(round2(100 - famShare))} %*`,
+				color: PAPER_AGED,
+				hairline: true
 			}
 		];
+		/* The two bars are near-equal, which badly undersells the fact: one
+		 * side project is bigger than every other project put together. The
+		 * title states that finding; the note adds the thing the bars cannot
+		 * show, which is who built it. Guarded, so a future pull that drops
+		 * the family below half falls back to the plain split. */
+		const outweighs = famShare > 50;
 		charts.push({
 			id: "projects",
-			title: cs.titles.ayakoFamily,
+			title: outweighs ? found.ayakoTitle : cs.titles.ayakoFamily,
 			unit: cs.units.lifetimeShare(lifetimeWindow, career.asOf),
 			svg: rankedBarSvg(rows),
 			alt: rankedAlt(cs.alt.ayakoFamilyIntro(career.asOf), rows),
 			table: rankedTable(cs.tableHeads.project, cs.tableHeads, rows, cs.notes.projectsDerived(career.asOf)),
 			annotation: {
-				text: cs.annotations.ayakoShare(famShare),
-				ink: inkNameOf(rows[0].color, "magenta")
+				text: outweighs ? found.ayakoNote : cs.annotations.ayakoShare(famShare),
+				ink: CLAIM_INK.projects
 			}
 		});
 	}
@@ -523,21 +666,26 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 		);
 		const rows: RankedRow[] = top.map((l) => ({
 			name: l.name,
-			time: formatHM(l.seconds ?? 0),
+			time: formatHM(l.seconds ?? 0, locale),
+			timeEn: formatHM(l.seconds ?? 0),
 			hours: (l.seconds ?? 0) / 3600,
-			share: pct(l.percent),
+			share: pctIn(l.percent, locale),
+			shareEn: pctIn(l.percent, "en"),
 			color: colors.get(l.name) ?? NEUTRAL
 		}));
+		const lead = leadShareOfChart(rows, locale);
 		charts.push({
 			id: "languages",
-			title: cs.titles.topLanguages(rows.length),
+			title: lead ? found.languagesTitle(rows[0].name) : cs.titles.topLanguages(rows.length),
 			unit: cs.units.last12MonthsHours(`${year.range.start} → ${year.range.end}`, year.asOf),
 			svg: rankedBarSvg(rows),
 			alt: rankedAlt(cs.alt.topLanguagesYearIntro(rows.length, year.asOf), rows),
 			table: rankedTable(cs.tableHeads.language, cs.tableHeads, rows),
 			annotation: {
-				text: cs.annotations.languageTop(rows[0].name, rows[0].time),
-				ink: inkNameOf(rows[0].color, "blue")
+				text: lead
+					? found.languagesNote(lead, rows.length)
+					: cs.annotations.languageTop(rows[0].name, rows[0].time),
+				ink: CLAIM_INK.languages
 			}
 		});
 	} else {
@@ -549,14 +697,17 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 		);
 		const rows: RankedRow[] = langs.map((l) => ({
 			name: l.name,
-			time: formatH(l.hours),
+			time: formatH(l.hours, locale),
+			timeEn: formatH(l.hours),
 			hours: l.hours,
-			share: `${l.percent} %${l.derived ? "*" : ""}`,
+			share: `${figure(l.percent, locale)} %${l.derived ? "*" : ""}`,
+			shareEn: `${figure(l.percent)} %${l.derived ? "*" : ""}`,
 			color: colors.get(l.name) ?? NEUTRAL
 		}));
+		const lead = leadShareOfChart(rows, locale);
 		charts.push({
 			id: "languages",
-			title: cs.titles.topLanguages(rows.length),
+			title: lead ? found.languagesTitle(rows[0].name) : cs.titles.topLanguages(rows.length),
 			unit: cs.units.lifetimeHours(lifetimeWindow, career.asOf),
 			svg: rankedBarSvg(rows),
 			alt: rankedAlt(cs.alt.topLanguagesLifetimeIntro(rows.length, career.asOf), rows),
@@ -567,8 +718,10 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 				cs.notes.languagesDerived(career.asOf)
 			),
 			annotation: {
-				text: cs.annotations.languageTop(rows[0].name, rows[0].time),
-				ink: inkNameOf(rows[0].color, "blue")
+				text: lead
+					? found.languagesNote(lead, rows.length)
+					: cs.annotations.languageTop(rows[0].name, rows[0].time),
+				ink: CLAIM_INK.languages
 			}
 		});
 	}
@@ -579,10 +732,13 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 			`${week.range.start} → ${week.range.end}`,
 			week.asOf
 		);
-		const cumulative = week.cumulative?.text ?? formatHM(0);
-		const average = week.dailyAverage?.text ?? formatHM(0);
+		/* Alt text stays en-US; the visible copy follows the page. */
+		const cumulativeEn = week.cumulative?.text ?? formatHM(0);
+		const averageEn = week.dailyAverage?.text ?? formatHM(0);
+		const cumulative = localTime(week.cumulative?.text, week.cumulative?.seconds ?? 0, locale);
+		const average = localTime(week.dailyAverage?.text, week.dailyAverage?.seconds ?? 0, locale);
 
-		const byProject = stackedDays(week.days, (d) => d.projects, projectInk, cs);
+		const byProject = stackedDays(week.days, (d) => d.projects, projectInk, cs, locale);
 		charts.push({
 			id: "recent-projects",
 			title: cs.titles.weekByProject,
@@ -592,19 +748,19 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 				start: week.range.start,
 				end: week.range.end,
 				topCount: byProject.names.length,
-				weekTotal: cumulative,
-				dailyAverage: average,
+				weekTotal: cumulativeEn,
+				dailyAverage: averageEn,
 				leadName: byProject.names[0],
 				leadTime: formatHM(byProject.leadSeconds)
 			}),
-			table: stackedTable(week.days, byProject, cs),
+			table: stackedTable(week.days, byProject, cs, locale),
 			annotation: {
 				text: cs.annotations.weekTotal(cumulative, byProject.names[0]),
-				ink: inkNameOf(byProject.leadColor, "teal")
+				ink: CLAIM_INK.run
 			}
 		});
 
-		const byLanguage = stackedDays(week.days, (d) => d.languages, languageInk, cs);
+		const byLanguage = stackedDays(week.days, (d) => d.languages, languageInk, cs, locale);
 		charts.push({
 			id: "recent-languages",
 			title: cs.titles.weekByLanguage,
@@ -614,52 +770,81 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 				start: week.range.start,
 				end: week.range.end,
 				topCount: byLanguage.names.length,
-				weekTotal: cumulative,
-				dailyAverage: average,
+				weekTotal: cumulativeEn,
+				dailyAverage: averageEn,
 				leadName: byLanguage.names[0],
 				leadTime: formatHM(byLanguage.leadSeconds)
 			}),
-			table: stackedTable(week.days, byLanguage, cs),
+			table: stackedTable(week.days, byLanguage, cs, locale),
 			annotation: {
 				text: cs.annotations.weekDaily(average, byLanguage.names[0]),
-				ink: inkNameOf(byLanguage.leadColor, "violet")
+				ink: CLAIM_INK.run
 			}
 		});
 	}
 
 	/* -- the habit field ---------------------------------------------- */
 	const { active, elapsed, ratePercent } = career.days;
+	const idleCount = Math.max(0, elapsed - Math.min(active, elapsed));
+	const idleDays = figure(idleCount, locale);
+	const startYear = career.range.start.slice(0, 4);
+	const endYear = career.range.end.slice(0, 4);
+	/* "Active days" names the axis. The finding is the rate, floored to a
+	 * whole tenth so the headline can only ever understate the record. */
+	const daysInTen = Math.floor(ratePercent / 10);
+	const rateSlot = figure(ratePercent, locale);
 	const habit: HabitField = {
-		title: cs.titles.activeDays,
-		unit: cs.units.habitCells(lifetimeWindow, career.asOf),
-		svg: habitFieldSvg(active, elapsed),
+		title: daysInTen >= 5 ? found.habitTitle(daysInTen, startYear) : cs.titles.activeDays,
+		/* The date range is deliberately NOT printed on this card. The grid
+		 * is a tally, and a window printed over a left-to-right grid is an
+		 * invitation to read it as a calendar — the one reading it must not
+		 * have. The window is still stated, in full, in the alt text, in the
+		 * printed figure line, and on the provenance card beside it; the
+		 * as-of date stays here, so no figure loses its provenance. */
+		unit: found.habitUnit(career.asOf),
+		svg: dayBlockSvg(Math.min(active, elapsed), "on"),
+		idle: idleCount
+			? { svg: dayBlockSvg(idleCount, "off"), label: found.idleBlockLabel(idleDays) }
+			: null,
+		/* en-US, in every locale: for a screen-reader user this sentence is
+		   the only provenance the graphic has, and it is quoted verbatim
+		   elsewhere. See the note on `pctIn`. */
 		alt: cs.alt.habit({
-			elapsed: fmt(elapsed),
+			elapsed: figure(elapsed),
 			start: career.range.start,
 			end: career.range.end,
-			active: fmt(active),
+			active: figure(active),
 			ratePercent,
 			asOf: career.asOf
 		}),
-		line: cs.habit.line(fmt(active), fmt(elapsed), ratePercent),
+		/* Every figure in this sentence arrives pre-formatted for the page's
+		   locale — a raw number would interpolate with a "." decimal mark on
+		   the German wall. The value is untouched; this is a format, never a
+		   separator swap. */
+		line: cs.habit.line(figure(active, locale), figure(elapsed, locale), rateSlot),
 		smallPrint: cs.habit.smallPrint,
 		asOf: career.asOf,
 		annotation: {
-			/* green = the run (started, not stopped) — and it is also the ink
-			   of the filled cells this note quotes, so legend and code agree. */
-			text: cs.annotations.habitRate(ratePercent, career.range.start.slice(0, 4)),
-			ink: "green"
+			/* green = the run (started, not stopped). The note no longer
+			   repeats the rate printed on the line directly above it; it says
+			   the one thing the graphic cannot: where the empty days are. */
+			text: found.habitNote(idleDays, startYear, endYear),
+			ink: CLAIM_INK.run
 		}
 	};
 
 	/* -- provenance ---------------------------------------------------- */
-	const provenance =
+	/* The as-of convention is stated once, at the head of the source card,
+	 * so no individual figure has to repeat it — which is what lets the
+	 * habit sheet drop its window without losing any provenance. */
+	const provenance = [cs.provenance.convention(career.asOf)].concat(
 		career.source === "live"
 			? [cs.provenance.live(career.asOf)]
 			: [
 					cs.provenance.snapshot(career.asOf),
 					cs.provenance.currentlyJuly2026(telemetry.windowJuly2026.dailyAverage.display)
-				];
+				]
+	);
 
 	return {
 		source: career.source,

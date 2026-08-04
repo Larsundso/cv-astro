@@ -22,7 +22,13 @@ const { label, sub, rotate = 0, class: className } = Astro.props;
 
 <style>
 	.stamp {
-		--stamp-ink: color-mix(in oklab, var(--thread) 85%, var(--ink));
+		/* Darkening the cork this cycle cost the stamps their footing: at the
+		   old 85/15 mix the legend measured 3.82:1 on bare board, under the
+		   4.5:1 floor for type this small. Pulling the mix toward --ink keeps
+		   it unmistakably the stamp red while putting it back over the line
+		   on cork AND on paper — a stamp overhangs its card, so it has to
+		   pass on both. */
+		--stamp-ink: color-mix(in oklab, var(--thread) 62%, var(--ink));
 		position: relative;
 		display: inline-flex;
 		flex-direction: column;
@@ -50,16 +56,18 @@ const { label, sub, rotate = 0, class: className } = Astro.props;
 		border-radius: 50%;
 	}
 
+	/* Generous tracking at this size is characterisation, not error: it is
+	   what type struck into rubber actually looks like. */
 	.stamp__label {
-		font-size: 0.6875rem;
+		font-size: var(--step--2);
 		letter-spacing: 0.06em;
-		line-height: 1.2;
+		line-height: calc(var(--baseline) * 1.5);
 		white-space: nowrap;
 	}
 
 	.stamp__sub {
-		font-size: 0.625rem;
+		font-size: var(--step--2);
 		letter-spacing: 0.14em;
-		line-height: 1;
+		line-height: calc(var(--baseline) * 1.25);
 	}
 </style>

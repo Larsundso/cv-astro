@@ -6,24 +6,39 @@
  *
  * Hero → Werdegang → Projects → Telemetry → Practice → Contact in one
  * column, stitched by the crimson thread: it starts at the hero's 12/2019
- * pin, hands over to the timeline spine, runs BEHIND the project,
- * telemetry, and practice artifacts, and ends in a loose knot on open
- * cork before the contact cluster. The HEUTE stamp lives on the
- * timeline's last row — the thread's chronological end.
+ * pin, hands over to the timeline spine, and — from the timeline's last
+ * pin to the contact address — runs PIN TO PIN through every artifact on
+ * the lower half of the wall, behind the paper, surfacing only on bare
+ * cork. It is cut in a knot on the mailto pin.
+ *
+ * THE LOWER RUN IS MEASURED, NOT DRAWN BY HAND. Until 2026-08-04 this
+ * half of the page was `.wall-run__line`: a 2.5px <span> at left: 50%,
+ * 6,282px long — 55 % of the document — passing through exactly one of
+ * the nineteen brass pins in its range, and that one by 8px of accident.
+ * A rule is not a route. The run is now built at runtime from the pins
+ * themselves: the script below reads every waypoint pin's centre with
+ * getBoundingClientRect, feeds the centres to taut.ts, and emits ONE 1:1
+ * SVG per leg. Every direction change lands on a pin head, which is the
+ * convention the hero and the timeline already taught.
  *
  * Thread handoffs (fixed by the section contracts):
  * — the hero exits its board's bottom edge at x = 802/1200 of the 78rem
  *   shell (≥64rem) resp. at 50 % of it (stacked column);
  * — the timeline spine sits at the shell center (≥48rem) resp. 48px from
  *   the viewport's left edge (<48rem); it enters at the section's top
- *   edge and exits at the bottom of its last row.
+ *   edge and exits at the bottom of its last row;
+ * — the lower run picks the timeline's LAST PIN up directly (the
+ *   timeline's own `rf-stitch--exit` stub is retired here), so the one
+ *   junction on the wall that was not covered by a pin head is gone.
  *
  * Draw machinery: stretched connector SVGs disable stroke-dasharray and
  * reveal via a scroll-driven clip wipe instead of the dash draw —
  * Chromium does not pathLength-normalize dasharray under
  * vector-effect: non-scaling-stroke, so dash-drawn threads are only safe
- * at 1:1 scale (see Timeline.astro). Fixed-size pieces (the mid-state
- * connector, the end knot) keep the native dash draw. Reduced motion and
+ * at 1:1 scale (see Timeline.astro). The lower run's legs are sized in
+ * PIXELS from the measurement that produced them, so they are 1:1 by
+ * construction and keep the native dash draw; they are re-measured on
+ * resize so they never enter the stretched state. Reduced motion and
  * engines without animation-timeline get the fully drawn resolved state.
  */
 import Contact from "~/components/sections/Contact.astro";
@@ -40,6 +55,18 @@ import Layout from "~/layouts/main.astro";
 
 const locale = (Astro.currentLocale ?? "en") as Locale;
 const { meta, ui } = getWall(locale);
+
+/* one index, two appearances: the title card's list and the progress
+   rail's ticks. Same order, same labels, same destinations — a directory
+   that renames itself between the top of the page and the margin is the
+   fastest way to lose a reader. */
+const NAV = [
+	{ href: "#werdegang", label: ui.nav.werdegang, lang: "de" },
+	{ href: "#projects", label: ui.nav.projects },
+	{ href: "#telemetry", label: ui.nav.telemetry },
+	{ href: "#practice", label: ui.nav.practice },
+	{ href: "#contact", label: ui.nav.contact }
+];
 
 /* hero → timeline connectors, one per breakpoint state (see <style>).
    wide/narrow stretch between two responsive anchors: the box's corners
@@ -63,17 +90,6 @@ const JOIN_NARROW = {
 	height: 224,
 	path: "M 200 0 L 0 224"
 };
-
-/* the loose end: a knot and a flicked-out tail, fixed size (1:1 scale →
-   native dash draw). Entry runs dead straight so it overlaps the
-   wall-run spine seamlessly; the node dot marks the cut end. */
-const STITCH_END = {
-	width: 160,
-	height: 128,
-	path:
-		"M 80 0 L 80 34 C 80 44 76 50 79 58 C 99 64 104 86 84 90 C 66 93.5 58 76 76 66 C 94 76 110 94 123 111",
-	nodes: [{ x: 124, y: 112 }]
-};
 ---
 
 <Layout title={meta.title} description={meta.description} locale={locale}>
@@ -93,11 +109,15 @@ const STITCH_END = {
 				</svg>
 				<nav aria-label={ui.navAria}>
 					<ul role="list">
-						<li><a href="#werdegang" lang="de">{ui.nav.werdegang}</a></li>
-						<li><a href="#projects">{ui.nav.projects}</a></li>
-						<li><a href="#telemetry">{ui.nav.telemetry}</a></li>
-						<li><a href="#practice">{ui.nav.practice}</a></li>
-						<li><a href="#contact">{ui.nav.contact}</a></li>
+						{
+							NAV.map((item) => (
+								<li>
+									<a href={item.href} lang={item.lang}>
+										{item.label}
+									</a>
+								</li>
+							))
+						}
 					</ul>
 				</nav>
 			</PinCard>
@@ -112,6 +132,12 @@ const STITCH_END = {
 			currentLang={locale}
 		/>
 	</div>
+
+	<!-- the lower run lives here: one absolutely positioned layer over the
+	     whole wall, filled at runtime with one SVG per pin-to-pin leg.
+	     z-index -1 inside main's stacking context = behind every sheet,
+	     above the cork. -->
+	<div class="wall-stitch" aria-hidden="true"></div>
 
 	<Hero />
 
@@ -140,25 +166,52 @@ const STITCH_END = {
 
 	<Timeline />
 
-	<!-- past HEUTE the thread keeps running behind the paper, surfacing
-	     in the cork gaps, until it is cut before the contact cluster -->
+	<!-- past HEUTE the thread keeps running pin to pin behind the paper.
+	     Each act now opens on a band of bare cork with nothing on it but
+	     the thread crossing — the rest between dense zones, and the only
+	     emptiness on this wall that is allowed to read as emptiness. -->
 	<div class="wall-run">
-		<span class="wall-run__line" aria-hidden="true"></span>
+		<div class="act-break" aria-hidden="true"></div>
 		<Projects />
+		<div class="act-break" aria-hidden="true"></div>
 		<Telemetry />
+		<div class="act-break" aria-hidden="true"></div>
 		<Practice />
 	</div>
 
-	<div class="stitch-end" aria-hidden="true">
-		<Thread
-			path={STITCH_END.path}
-			width={STITCH_END.width}
-			height={STITCH_END.height}
-			nodes={STITCH_END.nodes}
-		/>
-	</div>
+	<div class="act-break act-break--final" aria-hidden="true"></div>
 
 	<Contact />
+
+	<!-- the wall's only persistent chrome: the thread itself, with the
+	     brass pin riding it at scroll progress and the five sections as
+	     ticks. Signage made of the wall's own material. -->
+	<nav class="rail" id="rail" aria-label={ui.navAria} data-visible="false">
+		<span class="rail__line" aria-hidden="true"></span>
+		<ul class="rail__ticks" role="list">
+			{
+				NAV.map((item) => (
+					<li>
+						<a class="rail__tick" href={item.href} data-tick>
+							<span class="rail__label" lang={item.lang}>
+								{item.label}
+							</span>
+						</a>
+					</li>
+				))
+			}
+		</ul>
+		<button class="rail__pin" type="button" id="to-top-pin" aria-label={ui.backToTop}>
+			<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+				<path
+					d="M4 12.5 L10 6.5 L16 12.5"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"></path>
+			</svg>
+		</button>
+	</nav>
 
 	<!-- the contact section signs the wall (© stamp); keep the footer quiet -->
 	<Fragment slot="footer" />
@@ -166,13 +219,97 @@ const STITCH_END = {
 
 <style is:global>
 	/* anchor targets breathe below the viewport edge when navigated to */
+	#werdegang,
 	#projects,
+	#telemetry,
+	#practice,
 	#contact {
 		scroll-margin-top: calc(var(--baseline) * 4);
 	}
 
 	#werdegang {
 		scroll-margin-top: calc(var(--baseline) * 6);
+	}
+
+	/* ---- the lower run: one measured layer ------------------------ */
+	/* main already isolates (wall.css) so that z-index: -1 paints above
+	   the cork and below the paper; it needs to be a containing block
+	   too, so the layer can span exactly the wall and nothing else. */
+
+	main {
+		position: relative;
+	}
+
+	.wall-stitch {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+	}
+
+	/* Each leg is an HTML box sized in the pixels it was measured in,
+	   holding an SVG whose viewBox is in PAGE coordinates — so the
+	   mapping is exactly 1:1 and the native dash draw is safe here
+	   (unlike the stretched section joins, which must clip-wipe). */
+	.wall-stitch .ws-leg,
+	.wall-stitch .ws-knot {
+		position: absolute;
+	}
+
+	.wall-stitch svg {
+		display: block;
+		width: 100%;
+		height: 100%;
+		overflow: visible;
+	}
+
+	/* the loose end hangs along the thread: authored entry-at-top, then
+	   rotated about that entry so the cut node lands on the mailto pin */
+	.wall-stitch .ws-knot {
+		transform-origin: 80px 0;
+	}
+
+	@supports (animation-timeline: view()) {
+		@media (prefers-reduced-motion: no-preference) {
+			/* THE TIMELINE MUST HANG ON THE HTML BOX, NOT ON THE PATH.
+			   Chromium resolves `animation-timeline: view()` for an SVG
+			   child against the element's position in the SVG's own
+			   coordinate system and ignores where the <svg> sits in the
+			   document — measured here: a leg at document y 4,326 reported
+			   its view progress as 122 % while the viewport was at y 400,
+			   because its path box starts 8 units down its own viewBox.
+			   Naming the timeline on the wrapper and referencing it from
+			   the path fixes the subject without giving up the dash draw. */
+			.wall-stitch .ws-leg,
+			.wall-stitch .ws-knot {
+				view-timeline-name: --ws;
+				view-timeline-axis: block;
+			}
+
+			/* one range per leg, computed from the leg's own height so the
+			   stroke finishes just as its destination pin reaches reading
+			   height — the tip stays ahead of the eye for 6,000px instead
+			   of being spent in the first 91px */
+			.wall-stitch .thread-path--draw {
+				animation-timeline: --ws;
+				animation-range: cover var(--rs, 0%) cover var(--re, 100%);
+			}
+		}
+	}
+
+	/* the timeline's exit stub handed the run over in mid-air; the run
+	   now starts on the timeline's last pin, so the stub is retired */
+	.rf-stitch--exit,
+	.rf-stitch--exit-m {
+		display: none;
+	}
+
+	/* the layout's fixed back-to-top pin is re-staged as the rail below.
+	   Addressed by id: the layout's own rule is scoped, so a bare class
+	   selector loses the specificity contest and the pin stays on screen
+	   twice. */
+	#to-top {
+		display: none;
 	}
 </style>
 
@@ -200,13 +337,12 @@ const STITCH_END = {
 	.wall-head :global(.wall-head__tab) {
 		margin-block-start: var(--baseline);
 		/* Typed paper, so it is typed at the TYPED SETTING — the same
-		   0.9375rem / normal tracking the record card below it is struck
-		   at. The tab used to run at 0.875rem / 0.04em: a third Courier
-		   size and a third Courier tracking in one viewport, on a chit
-		   sitting inches from a 44px headline, which made a language
-		   switcher look like its own typeface. Worse, 0.875rem put it at
-		   14px — dead level with every handwritten note on the wall, the
-		   second two-faces-at-one-size collision in the first viewport.
+		   step the record card below it is struck at. The tab used to run
+		   at 0.875rem / 0.04em: a third Courier size and a third Courier
+		   tracking in one viewport, on a chit sitting inches from the
+		   title, which made a language switcher look like its own
+		   typeface. Worse, 0.875rem put it dead level with every
+		   handwritten note on the wall.
 
 		   It costs no room: Courier's advance is 0.6em, so the size step
 		   adds 0.6px per character and the tracking removal gives back
@@ -214,16 +350,23 @@ const STITCH_END = {
 		   signals are untouched (inert language soft and light, the
 		   destination bold in thread red under the house link underline,
 		   the inked exchange arrow between them); only the face's setting
-		   joins the system. Weight still does the talking, and 400/700 is
-		   the same binary the record card uses. */
-		font-size: 0.9375rem;
+		   joins the system. */
+		font-size: var(--step-0);
 		letter-spacing: normal;
 	}
 
+	/* THE NAME-PLATE, NOT THE HEADLINE. This sat at clamp(2rem, 4vw,
+	   2.75rem) — 44px, the largest type in the first viewport, larger
+	   than the signature and larger than the claim. It names the LAYOUT
+	   METAPHOR, not the offer: a wall's title card is a name-plate, and a
+	   name-plate that outranks everything pinned to the wall tells the
+	   reader the filing system is the subject. Demoted to --step-2 it
+	   still opens the sheet and still carries the index under it, and the
+	   top of the ladder is freed for the man's own signature. */
 	.wall-head__title {
 		margin: 0;
-		font-size: clamp(2rem, 4vw, 2.75rem);
-		line-height: 0.92;
+		font-size: var(--step-2);
+		line-height: var(--lh-2);
 	}
 
 	.wall-head__rule {
@@ -243,34 +386,17 @@ const STITCH_END = {
 
 	/* The index, in the flyer's own press at the flyer's own tracking.
 	   THIS RULE SETS NO LETTER-SPACING, and that absence is the fix. The
-	   sheet declares its tracking once — `.pin-card--flyer` at 0.01em,
-	   which resolves against the CARD's 16px and so inherits down to every
-	   line on the sheet as a flat 0.16px gap, the title included. This row
-	   used to override it at 0.045em, and at 1.375rem that opened a 0.99px
-	   gap: 6.2× the headline's own, out of one League Gothic sheet. A
-	   reader has no name for that, so they read it as a second face — the
-	   "small-caps nav" the panel kept counting. Now nothing on the sheet
-	   overrides the sheet.
-
-	   Inheriting the gap in px is also the correct optical answer, for
-	   free: 0.16px is 0.0036em at the title's 44px but 0.008em here, so
-	   the smaller rank automatically carries 2.2× the relative air that
-	   condensed caps need at 20px — the compensation arrives without a
-	   second declaration to keep in sync.
-
-	   The size drop is the other half. At 1.375rem this row was exactly
-	   22px — the same size as the evidence print-out's title in Atkinson.
-	   Two faces at one size in one viewport leaves a reader no way to rank
-	   them, so they read as rivals rather than as different materials (the
-	   One Setting Per Face Rule forbids precisely this). 20px also puts
-	   the index BELOW the wall's central claim, where an index belongs.
-	   Padding grows to hold the tap target at 44px and the row near its
-	   previous height, so the cluster does not move. */
+	   sheet declares its tracking once — `.pin-card--flyer` — and it
+	   inherits down to every line on the sheet, the title included. This
+	   row used to override it at 0.045em, which opened a gap 6.2× the
+	   headline's own out of one League Gothic sheet. A reader has no name
+	   for that, so they read it as a second face. Now nothing on the
+	   sheet overrides the sheet. */
 	.wall-head nav a {
 		display: inline-block;
 		padding-block: calc(var(--baseline) * 1.5);
-		font-size: 1.25rem;
-		line-height: 1;
+		font-size: var(--step-1);
+		line-height: var(--lh-1);
 		color: var(--ink);
 		text-decoration: underline;
 		text-decoration-thickness: 1.5px;
@@ -369,13 +495,29 @@ const STITCH_END = {
 		stroke-dasharray: none;
 	}
 
-	/* handoff pacing: the hero thread (foundation default cover 0–100 %)
-	   would finish long after the join below it has revealed — the tip
-	   would appear to jump the gap. Chain the ranges instead: the hero
-	   completes by cover 50 %, the join starts at 14 % and reveals at
-	   ~2× scroll speed, the timeline spine picks up right behind it. */
-	:global(.hero__thread .thread-path--draw) {
-		animation-range: cover 0% cover 50%;
+	/* PACING — the hero is the establishing shot, not a scroll beat.
+	   Scroll-linking this thread was wrong in both directions. Linked to
+	   cover 0 % it was 88 % drawn before the visitor moved, so it led
+	   nowhere; pushed out to cover 35 % it left the FIRST VIEWPORT — the
+	   one image that decides what this site is — with barely a quarter of
+	   its own concept visible, and every static capture of the fold shows
+	   that quarter. The hero's six pins are all on screen at once, so
+	   there is nothing here to lead anyone toward: the leading is done by
+	   the 25 legs below, which are scroll-drawn and arrive just ahead of
+	   the reader.
+	   So the hero draws itself ONCE, on arrival, in its own time — a
+	   signature being written rather than a diagram being revealed — and
+	   is complete and legible a second later, in the browser and in any
+	   screenshot alike. */
+	/* Gated exactly like every other motion on this wall: the fully-drawn
+	   thread stays the CSS default, and this only rewinds it for a visitor
+	   who welcomes motion. */
+	@media (prefers-reduced-motion: no-preference) {
+		:global(.hero__thread .thread-path--draw) {
+			animation: thread-draw 1100ms cubic-bezier(0.215, 0.61, 0.355, 1) 120ms both;
+			animation-timeline: initial;
+			animation-range: normal;
+		}
 	}
 
 	@supports (animation-timeline: view()) {
@@ -385,7 +527,7 @@ const STITCH_END = {
 				clip-path: inset(0 0 100% 0);
 				animation: stitch-wipe linear both;
 				animation-timeline: view();
-				animation-range: cover 14% cover 24%;
+				animation-range: cover 38% cover 56%;
 			}
 		}
 	}
@@ -398,96 +540,521 @@ const STITCH_END = {
 
 	/* the 1:1 piece keeps the native dash draw, same pacing */
 	.stitch-join__mid :global(.thread-path--draw) {
-		animation-range: cover 14% cover 24%;
+		animation-range: cover 38% cover 56%;
 	}
 
-	/* ---- the long run: thread behind the paper -------------------- */
-	/* Continues the timeline spine at the same x. z-index -1 keeps it
-	   under every artifact and every line of type — it surfaces only
-	   where cork shows. */
+	/* ---- the long run --------------------------------------------- */
+	/* No line of its own any more: the run is the `.wall-stitch` layer,
+	   measured from the pins. `.wall-run` stays as the acts' container
+	   and keeps its own stacking context so nothing inside it can slip
+	   below the thread. */
 
 	.wall-run {
-		--spine-x: 48px;
 		position: relative;
-		/* own stacking context: the z-index -1 line paints above the cork
-		   (body background) but under every artifact and line of type
-		   inside the run — without this it would sink beneath the body's
-		   background, since html carries a background of its own */
 		isolation: isolate;
 	}
 
-	.wall-run__line {
+	/* ---- act breaks ------------------------------------------------ */
+	/* Hero → Timeline always had a designed scene change (`.stitch-join`,
+	   224px). Timeline → Projects, Projects → Telemetry and Telemetry →
+	   Practice had none: seven unbroken screens at 46–54 % ink coverage
+	   with no rest anywhere in them. This is that scene change, three
+	   more times: a band of bare cork with the thread visibly crossing it
+	   and nothing else on it. It is the only place on this wall allowed
+	   to be empty, which is what makes the emptiness read as design. */
+
+	.act-break {
+		height: calc(var(--baseline) * 16);
+		pointer-events: none;
+	}
+
+	@media (min-width: 48rem) {
+		.act-break {
+			height: calc(var(--baseline) * 25);
+		}
+	}
+
+	/* ---- the progress rail ----------------------------------------- */
+	/* Navigation used to exist for 1.6 % of the page: the index at
+	   y 88–177 and then nothing but a 44px back-to-top pin for 11,000px.
+	   The rail is the same pin, in the same corner, hung on the thread:
+	   its offset IS scroll progress, and the five section offsets are
+	   ticks you can click. The page's only permanent UI is now made of
+	   the page's own idea. */
+
+	.rail {
+		--rail-line: 38px;
+		--rail-h: 180px;
+		position: fixed;
+		right: calc(var(--baseline) * 2);
+		bottom: calc(var(--baseline) * 3);
+		z-index: 50;
+		width: 52px;
+		height: var(--rail-h);
+		pointer-events: none;
+		visibility: hidden;
+		opacity: 0;
+		transition: visibility 0s var(--t-settle);
+	}
+
+	.rail[data-visible="true"] {
+		visibility: visible;
+		opacity: 1;
+		transition: none;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.rail {
+			transition:
+				opacity var(--t-settle) var(--e-out),
+				visibility 0s var(--t-settle);
+		}
+
+		.rail[data-visible="true"] {
+			transition: opacity var(--t-settle) var(--e-out);
+		}
+	}
+
+	.rail__line {
 		position: absolute;
 		top: 0;
 		bottom: 0;
-		left: calc(var(--spine-x) - 1.25px);
+		left: calc(var(--rail-line) - 1.25px);
 		width: 2.5px;
 		border-radius: 2px;
 		background: var(--thread);
-		z-index: -1;
-		pointer-events: none;
 	}
 
-	@supports (animation-timeline: view()) {
-		@media (prefers-reduced-motion: no-preference) {
-			.wall-run__line {
-				transform-origin: top;
-				animation: wall-line-grow linear both;
-				animation-timeline: view();
-				/* starts only after the timeline's last row has finished
-				   drawing above it; still outruns the reading edge (~3×) */
-				animation-range: cover 5% cover 30%;
-			}
-		}
+	.rail__ticks {
+		list-style: none;
+		margin: 0;
+		padding: 0;
 	}
 
-	@keyframes wall-line-grow {
-		from {
-			scale: 1 0;
-		}
-
-		to {
-			scale: 1 1;
-		}
+	/* 24×24 target, 10px of visible mark crossing the thread */
+	.rail__tick {
+		position: absolute;
+		top: calc(var(--at, 0) * 100%);
+		left: calc(var(--rail-line) - 24px);
+		width: 24px;
+		height: 24px;
+		margin-top: -12px;
+		pointer-events: auto;
+		display: grid;
+		place-items: center end;
+		padding-right: 3px;
 	}
 
-	/* ---- the cut end ---------------------------------------------- */
-	/* Overlaps the run by baseline × 4: the entry segment is dead
-	   straight at the spine x, so the two strands register invisibly. */
-
-	.stitch-end {
-		--spine-x: 48px;
-		position: relative;
-		height: 128px;
-		pointer-events: none;
+	.rail__tick::after {
+		content: "";
+		display: block;
+		width: 10px;
+		height: 2.5px;
+		border-radius: 2px;
+		background: color-mix(in oklab, var(--thread) 55%, transparent);
 	}
 
-	@media (min-width: 48rem) {
-		.stitch-end {
-			/* nestle into the practice section's bottom padding; the
-			   straight entry overlaps the run line seamlessly. Stacked
-			   layouts skip this — the practice annotation sits low on
-			   the cork there and the knot would cross it. */
-			margin-top: calc(var(--baseline) * -4);
-		}
+	/* scale, not width: the current tick changes on every scroll frame
+	   that crosses a section boundary, and a width change re-lays out */
+	.rail__tick:hover::after,
+	.rail__tick[aria-current="true"]::after {
+		scale: 1.4 1;
+		background: var(--thread);
 	}
 
-	.stitch-end :global(svg) {
+	.rail__label {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+
+	/* the brass pin, riding the thread at scroll progress. Moved with
+	   `translate`, not `top`: a fixed element that re-lays out on every
+	   scroll frame files a layout-shift entry each time, and this page
+	   is holding a 0.03 CLS. */
+	.rail__pin {
 		position: absolute;
 		top: 0;
-		left: calc(var(--spine-x) - 80px);
-		width: 160px;
-		height: 128px;
+		translate: 0 calc(var(--progress, 0) * (var(--rail-h) - 28px));
+		left: calc(var(--rail-line) - 14px);
+		width: 28px;
+		height: 28px;
+		padding: 0;
+		border: none;
+		border-radius: 50%;
+		cursor: pointer;
+		pointer-events: auto;
+		display: grid;
+		place-items: center;
+		color: var(--ink);
+		background: radial-gradient(
+			circle at 35% 30%,
+			color-mix(in oklab, var(--brass) 40%, white),
+			var(--brass) 58%,
+			color-mix(in oklab, var(--brass) 55%, black)
+		);
+		box-shadow:
+			2px 2px 4px oklch(var(--shade) / 0.34),
+			inset 0 0 0 1px oklch(var(--shade) / 0.2);
 	}
 
-	.stitch-end :global(.thread-path--draw) {
-		animation-range: cover 0% cover 45%;
+	.rail__pin svg {
+		width: 15px;
+		height: 15px;
 	}
 
-	@media (min-width: 48rem) {
-		.wall-run,
-		.stitch-end {
-			--spine-x: 50%;
+	/* the press-in law: nothing lifts, nothing glows — the cast shrinks */
+	.rail__pin:hover {
+		box-shadow:
+			1px 1px 3px oklch(var(--shade) / 0.34),
+			inset 0 0 0 1px oklch(var(--shade) / 0.2);
+	}
+
+	.rail__pin:active {
+		box-shadow:
+			0 0 2px oklch(var(--shade) / 0.34),
+			inset 0 0 0 1px oklch(var(--shade) / 0.2);
+	}
+
+	/* narrow walls have no margin to hang a rail in: the pin keeps its
+	   old corner and its old 44px target, the thread and ticks stand down */
+	@media (max-width: 63.9375rem) {
+		.rail {
+			--rail-line: 30px;
+			--rail-h: 44px;
+			width: 44px;
+			right: calc(var(--baseline) * 3);
+		}
+
+		.rail__line,
+		.rail__ticks {
+			display: none;
+		}
+
+		.rail__pin {
+			top: 0;
+			left: 0;
+			translate: none;
+			width: 44px;
+			height: 44px;
+		}
+
+		.rail__pin svg {
+			width: 20px;
+			height: 20px;
 		}
 	}
 </style>
+
+<script>
+	import { solveKnot, tautLegs, type Pt } from "./wall/taut";
+
+	/* ------------------------------------------------------------------
+	   THE LOWER RUN, MEASURED FROM THE PINS
+	   ------------------------------------------------------------------
+	   The route is not a hand-written list of cards — a hand-written list
+	   is how the old rule got away with touching one pin in nineteen, and
+	   it rots the moment a section is re-laid. Every brass pin the wall
+	   actually lays out between the timeline's last pin and the address
+	   IS a waypoint. The order is measured: bands of pins standing at the
+	   same height, bands taken top to bottom, and inside a band the order
+	   the author wrote them in. That survives any regrid.
+	------------------------------------------------------------------- */
+
+	/** the lower run, swept in one pass so a section renaming itself
+	    cannot drop its pins off the thread; the ids are the fallback */
+	const RUN = ".wall-run";
+	const ACTS = ["#projects", "#telemetry", "#practice"];
+
+	/** two pins within this many px of each other stand in the same row */
+	const ROW_BAND = 96;
+
+	/* the loose end, authored entry-at-top: entry (80,0), cut node
+	   (124,112). Placed by solveKnot so the cut lands on the mailto pin
+	   and the entry continues the leg arriving from the ink key. */
+	const KNOT = {
+		w: 160,
+		h: 128,
+		tail: [44, 112] as Pt,
+		d: "M 80 0 L 80 34 C 80 44 76 50 79 58 C 99 64 104 86 84 90 C 66 93.5 58 76 76 66 C 94 76 110 94 123 111"
+	};
+
+	/* a leg may not double back on the reading order, and two pins closer
+	   than one pin head apart are one waypoint */
+	const BACKTRACK = 140;
+	const MIN_STEP = 24;
+	const PAD = 8;
+
+	const layer = document.querySelector<HTMLElement>(".wall-stitch");
+	const wall = document.getElementById("main");
+
+	const centre = (el: Element): Pt => {
+		const r = el.getBoundingClientRect();
+		return [r.left + window.scrollX + r.width / 2, r.top + window.scrollY + r.height / 2];
+	};
+
+	/** a pin that is not laid out is not on the wall — never route to it */
+	const shown = (el: Element) => {
+		const r = el.getBoundingClientRect();
+		return r.width > 0 && r.height > 0;
+	};
+
+	const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
+	const pct = (n: number) => `${Math.round(n * 1000) / 10}%`;
+
+	/** the address pin: the run's terminus, wherever Contact puts it */
+	const terminus = (): Element | null => {
+		const c = document.getElementById("contact");
+		if (!c) return null;
+		const mail = c.querySelector('a[href^="mailto:"]');
+		const holder = mail?.closest(".pinned") ?? mail?.parentElement ?? null;
+		return [
+			c.querySelector(".pin-btn__pin"),
+			holder?.querySelector(".brass-pin") ?? null,
+			c.querySelector(".brass-pin")
+		].find((el): el is Element => el !== null && shown(el)) ?? null;
+	};
+
+	const waypoints = (): Pt[] => {
+		const pts: Pt[] = [];
+		const push = (p: Pt) => {
+			const prev = pts[pts.length - 1];
+			if (prev) {
+				if (p[1] < prev[1] - BACKTRACK) return;
+				if (Math.hypot(p[0] - prev[0], p[1] - prev[1]) < MIN_STEP) return;
+			}
+			pts.push(p);
+		};
+
+		/* hand-over: the timeline's own last pin, so the junction the wall
+		   never covered with a pin head does not exist any more */
+		const spine = [...document.querySelectorAll(".rf-timeline .brass-pin")].filter(shown);
+		const lastSpine = spine[spine.length - 1];
+		if (lastSpine) push(centre(lastSpine));
+
+		/* Down the board first, source order second. Pure source order
+		   zig-zags backwards wherever a grid stacks two artifacts in one
+		   column; pure geometry throws away the order the author wrote.
+		   So: bands of pins standing at the same height, bands ordered top
+		   to bottom, and inside a band the author's own sequence stands. */
+		const sweep = (root: Element) => {
+			const pins = [...root.querySelectorAll(".brass-pin")]
+				.filter(shown)
+				.map((el, i) => ({ p: centre(el), i }))
+				.sort((a, b) => a.p[1] - b.p[1]);
+			for (let i = 0; i < pins.length; ) {
+				let j = i + 1;
+				while (j < pins.length && pins[j]!.p[1] - pins[i]!.p[1] <= ROW_BAND) j++;
+				for (const entry of pins.slice(i, j).sort((a, b) => a.i - b.i)) push(entry.p);
+				i = j;
+			}
+		};
+
+		const run = document.querySelector(RUN);
+		if (run && run.querySelectorAll(".brass-pin").length > 1) sweep(run);
+		else
+			for (const act of ACTS) {
+				const root = document.querySelector(act);
+				if (root) sweep(root);
+			}
+		return pts;
+	};
+
+	let signature = "";
+
+	const build = () => {
+		if (!layer || !wall) return;
+		const base = layer.getBoundingClientRect();
+		const ox = base.left + window.scrollX;
+		const oy = base.top + window.scrollY;
+		const vh = window.innerHeight || 900;
+
+		const pts = waypoints();
+		const end = terminus();
+		if (pts.length < 2 || !end) {
+			layer.replaceChildren();
+			signature = "";
+			return;
+		}
+
+		const pin = centre(end);
+		const knot = solveKnot(pts[pts.length - 1]!, pin, KNOT.tail);
+		pts.push(knot.entry);
+
+		const sig = `${Math.round(vh)}|${pts.map((p) => `${Math.round(p[0])},${Math.round(p[1])}`).join(";")}`;
+		if (sig === signature) return;
+		signature = sig;
+
+		const legs = tautLegs(pts);
+		const svg: string[] = [];
+
+		/* one range per leg: the stroke starts as the source pin passes
+		   80 % of the viewport and finishes as the destination pin reaches
+		   55 % — reading height. Expressed as cover percentages of the
+		   leg's own box, which is what view() measures. */
+		const range = (h: number, lead = 0.45) => {
+			const span = h + vh;
+			const rs = clamp((0.2 * vh) / span, 0, 0.9);
+			const re = clamp((h + lead * vh) / span, rs + 0.05, 1);
+			return `--rs:${pct(rs)};--re:${pct(re)}`;
+		};
+
+		const stroke = (d: string) =>
+			`<path class="thread-path thread-path--draw" d="${d}" pathLength="1" vector-effect="non-scaling-stroke" stroke="var(--thread)" stroke-width="2.5" stroke-linecap="round"/>`;
+
+		for (const leg of legs) {
+			const x = leg.x - PAD;
+			const y = leg.y - PAD;
+			const w = leg.w + PAD * 2;
+			const h = leg.h + PAD * 2;
+			svg.push(
+				`<div class="ws-leg" style="left:${x - ox}px;top:${y - oy}px;width:${w}px;height:${h}px;${range(leg.h)}">` +
+					`<svg viewBox="${x} ${y} ${w} ${h}" preserveAspectRatio="none" fill="none" aria-hidden="true">${stroke(leg.d)}</svg>` +
+					`</div>`
+			);
+		}
+
+		svg.push(
+			`<div class="ws-knot" style="left:${knot.entry[0] - 80 - ox}px;top:${knot.entry[1] - oy}px;width:${KNOT.w}px;height:${KNOT.h}px;rotate:${Math.round(knot.angle * 100) / 100}deg;${range(KNOT.h, 0.35)}">` +
+				`<svg viewBox="0 0 ${KNOT.w} ${KNOT.h}" fill="none" aria-hidden="true">${stroke(KNOT.d)}<circle cx="124" cy="112" r="3.5" fill="var(--thread)"/></svg>` +
+				`</div>`
+		);
+
+		layer.innerHTML = svg.join("");
+	};
+
+	let queued = 0;
+	const schedule = () => {
+		if (queued) return;
+		queued = requestAnimationFrame(() => {
+			queued = 0;
+			build();
+		});
+	};
+
+	if (layer && wall) {
+		build();
+		new ResizeObserver(schedule).observe(wall);
+		window.addEventListener("resize", schedule);
+		window.addEventListener("load", schedule);
+		document.fonts?.ready.then(schedule).catch(() => {});
+	}
+
+	/* ------------------------------------------------------------------
+	   THE RAIL
+	------------------------------------------------------------------- */
+
+	const rail = document.getElementById("rail");
+
+	if (rail) {
+		const ticks = [...rail.querySelectorAll<HTMLAnchorElement>("[data-tick]")];
+
+		const scrollable = () =>
+			Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+
+		const placeTicks = () => {
+			const max = scrollable();
+			for (const tick of ticks) {
+				const id = decodeURIComponent((tick.getAttribute("href") ?? "#").slice(1));
+				const target = id ? document.getElementById(id) : null;
+				if (!target) {
+					tick.hidden = true;
+					continue;
+				}
+				tick.hidden = false;
+				const top = target.getBoundingClientRect().top + window.scrollY;
+				tick.style.setProperty("--at", String(clamp(top / max, 0, 1)));
+			}
+		};
+
+		const placePin = () => {
+			const p = clamp(window.scrollY / scrollable(), 0, 1);
+			rail.style.setProperty("--progress", String(p));
+			rail.dataset.visible = String(window.scrollY > 480);
+
+			let current: HTMLAnchorElement | null = null;
+			for (const tick of ticks) {
+				if (tick.hidden) continue;
+				const at = Number(tick.style.getPropertyValue("--at") || 0);
+				if (at <= p + 0.001) current = tick;
+			}
+			for (const tick of ticks) {
+				if (tick === current) tick.setAttribute("aria-current", "true");
+				else tick.removeAttribute("aria-current");
+			}
+		};
+
+		placeTicks();
+		placePin();
+		window.addEventListener("scroll", placePin, { passive: true });
+		window.addEventListener(
+			"resize",
+			() => {
+				placeTicks();
+				placePin();
+			},
+			{ passive: true }
+		);
+		new ResizeObserver(() => {
+			placeTicks();
+			placePin();
+		}).observe(document.documentElement);
+	}
+
+	/* ------------------------------------------------------------------
+	   JUMP DISTANCE DECIDES THE BEHAVIOUR
+	   ------------------------------------------------------------------
+	   `html { scroll-behavior: smooth }` sent a nav click to #contact
+	   10,554px in 1,491ms — 7,078 px/s, about 7.9 viewport heights per
+	   second. That is past the one-second flow-of-thought limit AND it is
+	   full-field optic flow at exactly the rate the reduced-motion
+	   literature names as a vestibular trigger. Short hops keep their
+	   continuity; anything past two screens becomes an honest cut.
+	------------------------------------------------------------------- */
+
+	const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+	const jump = (top: number) => {
+		const far = Math.abs(top - window.scrollY) > 2 * window.innerHeight;
+		window.scrollTo({ top, behavior: far || reduce.matches ? "instant" : "smooth" });
+	};
+
+	document.addEventListener("click", (event) => {
+		if (event.defaultPrevented || event.button !== 0) return;
+		if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+		const from = event.target;
+		const link =
+			from instanceof Element ? from.closest<HTMLAnchorElement>('a[href^="#"]') : null;
+		if (!link) return;
+		const href = link.getAttribute("href") ?? "";
+		if (href.length < 2) return;
+		const target = document.getElementById(decodeURIComponent(href.slice(1)));
+		if (!target) return;
+
+		event.preventDefault();
+		const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+		jump(target.getBoundingClientRect().top + window.scrollY - margin);
+		history.pushState(null, "", href);
+		if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+		target.focus({ preventScroll: true });
+	});
+
+	window.addEventListener("popstate", () => {
+		const id = decodeURIComponent(location.hash.slice(1));
+		const target = id ? document.getElementById(id) : null;
+		if (!target) {
+			window.scrollTo({ top: 0, behavior: "instant" });
+			return;
+		}
+		const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+		window.scrollTo({
+			top: target.getBoundingClientRect().top + window.scrollY - margin,
+			behavior: "instant"
+		});
+	});
+
+	document.getElementById("to-top-pin")?.addEventListener("click", () => jump(0));
+</script>

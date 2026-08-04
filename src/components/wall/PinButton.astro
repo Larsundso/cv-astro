@@ -45,8 +45,8 @@ const attrs = href ? { href } : { type };
 		cursor: pointer;
 		font-family: var(--font-typed);
 		font-weight: 700;
-		font-size: 1rem;
-		line-height: calc(var(--baseline) * 3);
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
 		color: var(--ink);
 		text-align: center;
 		text-decoration: none;
@@ -59,21 +59,34 @@ const attrs = href ? { href } : { type };
 		translate: -50% 0;
 	}
 
+	/* The press-in law: paper is pushed INTO the cork, never lifted off it.
+	   Elevation drops and the sheet moves down-right along the light.
+	   These end states are deliberately OUTSIDE the reduced-motion gate —
+	   a vestibular visitor is asking for no travel, not for no feedback,
+	   and the primary CTA previously produced a computed-style delta of
+	   exactly zero on hover when the OS flag was set. Only the transition
+	   (the travel between states) is gated. */
+	.pin-btn:hover {
+		--lift: 0.55;
+		translate: 1px 2px;
+	}
+
+	.pin-btn:active {
+		--lift: 0.35;
+		translate: 1px 3px;
+	}
+
 	@media (prefers-reduced-motion: no-preference) {
 		.pin-btn {
 			transition:
-				box-shadow 150ms ease-out,
-				translate 150ms ease-out;
-		}
-
-		.pin-btn:hover {
-			box-shadow: 0 1px 4px oklch(25% 0.015 60 / 0.18);
-			translate: 0 1px;
+				box-shadow var(--t-settle) var(--e-out),
+				translate var(--t-settle) var(--e-out);
 		}
 
 		.pin-btn:active {
-			box-shadow: 0 1px 2px oklch(25% 0.015 60 / 0.2);
-			translate: 0 2px;
+			transition:
+				box-shadow var(--t-press) var(--e-out),
+				translate var(--t-press) var(--e-out);
 		}
 	}
 </style>

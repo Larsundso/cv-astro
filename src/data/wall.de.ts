@@ -143,7 +143,7 @@ export const timeline: TimelineEntry[] = [
 			"Dezember 2019. Ayako beginnt als einzelne JavaScript-Datei. Seitdem ununterbrochen in Produktion.",
 			`GitHub-Account seit ${github.accountCreated}.`
 		],
-		annotation: { text: "hier beginnt der Faden", ink: "magenta" }
+		annotation: { text: "hier beginnt der Faden", ink: "green" }
 	},
 	{
 		id: "angel-bots-era",
@@ -179,7 +179,7 @@ export const timeline: TimelineEntry[] = [
 			`${ihk.finalProject.hours} h, ${ihk.finalProject.window.start} bis ${ihk.finalProject.window.end} — vom Ausbildungsbetrieb als »selbstständig ausgeführt« bestätigt, unterschriebene Bestätigung vom 2025-06-01.`,
 			`Lasttest mit ${ihk.finalProject.loadTestServers.toLocaleString("en-US")} simulierten Discord-Servern.`
 		],
-		annotation: { text: "das geprüfte Stück — der Code ist öffentlich", ink: "green" }
+		annotation: { text: "das geprüfte Stück — der Code ist öffentlich", ink: "teal" }
 	},
 	{
 		id: "raleo-2025",
@@ -199,7 +199,7 @@ export const timeline: TimelineEntry[] = [
 			`Juli 2026: ${telemetry.windowJuly2026.dailyAverage.display} erfasste Programmierzeit pro Tag. Bester Einzeltag: ${telemetry.lifetime.bestDay.display} am ${telemetry.lifetime.bestDay.date}.`,
 			`Der Ayako-v3-Rewrite ist in aktiver Entwicklung: ${ayako.v3.commits} Commits, ${ayako.v3.featurePlugins} Feature-Plugins, ${ayako.v3.testFiles} Testdateien direkt neben dem Code, Stand ${SNAPSHOT_AS_OF}.`
 		],
-		annotation: { text: "der Faden ist nicht abgerissen", ink: "amber" }
+		annotation: { text: "der Faden ist nicht abgerissen", ink: "green" }
 	}
 ];
 
@@ -309,7 +309,7 @@ export const projects: ProjectEntry[] = [
 			"Docker Compose"
 		],
 		links: [{ label: "GitHub: discord-bot-dashboard", href: ihk.finalProject.repoUrl }],
-		annotation: { text: "geprüft, bestätigt und öffentlich — alles drei zugleich", ink: "green" }
+		annotation: { text: "geprüft, bestätigt und öffentlich — alles drei zugleich", ink: "teal" }
 	},
 	{
 		id: "kiyu",

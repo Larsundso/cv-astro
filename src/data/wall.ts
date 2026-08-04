@@ -417,7 +417,7 @@ export const timeline: TimelineEntry[] = [
 			"December 2019. Ayako begins as a single JavaScript file. It has been in production ever since.",
 			`GitHub account since ${github.accountCreated}.`
 		],
-		annotation: { text: "this is where the thread starts", ink: "magenta" }
+		annotation: { text: "this is where the thread starts", ink: "green" }
 	},
 	{
 		id: "angel-bots-era",
@@ -453,7 +453,7 @@ export const timeline: TimelineEntry[] = [
 			`${ihk.finalProject.hours} h, ${ihk.finalProject.window.start} to ${ihk.finalProject.window.end} — ${ihk.finalProject.certification}, signed company confirmation dated 2025-06-01.`,
 			`Load-tested to ${ihk.finalProject.loadTestServers.toLocaleString("en-US")} simulated Discord servers.`
 		],
-		annotation: { text: "the examined piece — the code is public", ink: "green" }
+		annotation: { text: "the examined piece — the code is public", ink: "teal" }
 	},
 	{
 		id: "raleo-2025",
@@ -473,7 +473,7 @@ export const timeline: TimelineEntry[] = [
 			`July 2026: ${telemetry.windowJuly2026.dailyAverage.display} tracked coding per day. Best single day: ${telemetry.lifetime.bestDay.display} on ${telemetry.lifetime.bestDay.date}.`,
 			`The Ayako v3 rewrite is in active development: ${ayako.v3.commits} commits, ${ayako.v3.featurePlugins} feature plugins, ${ayako.v3.testFiles} colocated test files, as of ${SNAPSHOT_AS_OF}.`
 		],
-		annotation: { text: "the thread has not stopped", ink: "amber" }
+		annotation: { text: "the thread has not stopped", ink: "green" }
 	}
 ];
 
@@ -577,7 +577,7 @@ export const projects: ProjectEntry[] = [
 			"Docker Compose"
 		],
 		links: [{ label: "GitHub: discord-bot-dashboard", href: ihk.finalProject.repoUrl }],
-		annotation: { text: "examined, certified, and public — all three at once", ink: "green" }
+		annotation: { text: "examined, certified, and public — all three at once", ink: "teal" }
 	},
 	{
 		id: "kiyu",

@@ -645,8 +645,10 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 		smallPrint: cs.habit.smallPrint,
 		asOf: career.asOf,
 		annotation: {
+			/* green = the run (started, not stopped) — and it is also the ink
+			   of the filled cells this note quotes, so legend and code agree. */
 			text: cs.annotations.habitRate(ratePercent, career.range.start.slice(0, 4)),
-			ink: "amber"
+			ink: "green"
 		}
 	};
 

@@ -24,6 +24,7 @@ import type {
 	EducationEntry,
 	EmploymentEntry,
 	HouseRule,
+	InkKeyRow,
 	ProjectEntry,
 	TimelineEntry,
 	WallLink
@@ -38,6 +39,7 @@ export type {
 	EducationEntry,
 	EmploymentEntry,
 	HouseRule,
+	InkKeyRow,
 	PrideInk,
 	ProjectEntry,
 	ProjectRole,
@@ -509,6 +511,27 @@ export const houseRules = {
 		}
 	] satisfies HouseRule[],
 	note: "Hausregeln sind Kriterien für gegenseitige Passung, keine Dekoration."
+} as const;
+
+/* ------------------------------------------------------------------ */
+/* Die Tintenlegende — die Wand nennt ihren eigenen Code               */
+/* ------------------------------------------------------------------ */
+/* Die sechs Aufgaben der Annotation Ink Rule, in ihren Worten und ihrer
+ * Reihenfolge. Die Zeilen benennen, was eine Tinte BEDEUTET; der Farbton
+ * wird gezeigt, nie ausgeschrieben. Die Überschrift ist die eine
+ * Handschrift-Zeile der Wand in schlichter Tinte — sie beschriftet den
+ * Code und darf ihn deshalb nicht tragen. */
+
+export const inkKey = {
+	title: "die Tinte einer Notiz nennt ihre Aussage",
+	rows: [
+		{ ink: "magenta", job: "meins allein" },
+		{ ink: "violet", job: "die Arbeitsweise" },
+		{ ink: "teal", job: "die Herkunft" },
+		{ ink: "green", job: "die Laufzeit" },
+		{ ink: "amber", job: "die Grenze" },
+		{ ink: "blue", job: "der Weg zu mir" }
+	] satisfies InkKeyRow[]
 } as const;
 
 /* ------------------------------------------------------------------ */

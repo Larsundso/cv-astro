@@ -7,9 +7,15 @@
  * the values statement is the louder artifact — a League Gothic flyer
  * with the six pride inks working, not decorating.
  *
+ * The flyer's magenta rule claims the inks are load-bearing; the InkKey
+ * slip pinned below it is the proof of that claim — the wall's colour
+ * code, stated. The pair is deliberate: four of the flyer's six job names
+ * are already demonstrated in their own inks one artifact above the key.
+ *
  * All copy comes verbatim from ~/data/wall (voice-law final).
  */
 import HandNote from "~/components/wall/HandNote.astro";
+import InkKey from "~/components/wall/InkKey.astro";
 import PinCard from "~/components/wall/PinCard.astro";
 import Sticker from "~/components/wall/Sticker.astro";
 import { getWall, type Locale } from "~/data/i18n";
@@ -89,6 +95,8 @@ const rules = houseRules.rules.map((rule) => {
 			<div class="practice__note">
 				<HandNote ink="amber" as="p">{houseRules.note}</HandNote>
 			</div>
+			<!-- the code the flyer above has just been written in -->
+			<InkKey class="practice__key" rotate={1} />
 		</div>
 	</div>
 </section>
@@ -203,6 +211,17 @@ const rules = houseRules.rules.map((rule) => {
 		rotate: -1.4deg;
 	}
 
+	/* ---- the ink key -------------------------------------------- */
+	/* Pinned under the flyer's own note and flush to the column's left
+	   edge, so it staggers against the right-aligned note instead of
+	   extending it: a separate small artifact, read after the four rules
+	   that have just used four of its six inks. Tilt +1 against the
+	   flyer's -1. */
+
+	.practice :global(.practice__key) {
+		margin-block-start: calc(var(--baseline) * 4);
+	}
+
 	/* ---- a sticker in the cork gutter --------------------------- */
 	/* Stuck in the bare cork right of the typed record's lower half:
 	   past the flyer column's end, clear of the thread that runs down
@@ -220,7 +239,9 @@ const rules = houseRules.rules.map((rule) => {
 		.practice__sticker {
 			display: block;
 			position: absolute;
-			top: 62%;
+			/* dropped from 62 % once the ink key took the cork above it —
+			   marginalia keeps out of an artifact's way, always */
+			top: 72%;
 			left: calc(100% + 4.5rem);
 			/* the offset puts the box past its containing block's right
 			   edge, so shrink-to-fit would resolve to 0 and collapse the

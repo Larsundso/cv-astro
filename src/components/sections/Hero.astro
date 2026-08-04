@@ -138,9 +138,12 @@ const THREAD_MOBILE = {
 				<Greeting greeting={hero.greeting} subline={hero.greetingSubline} />
 			</div>
 
-			<!-- Ayako polaroid -->
+			<!-- Ayako polaroid: a product artifact, labelled like one —
+			     the caption names the thing on line one and measures it on
+			     line two (the newline is joined here so the data keeps two
+			     clean strings; see .hero__polaroid-slot styles) -->
 			<div class="hero__polaroid-slot">
-				<Polaroid caption={hero.polaroid.caption} rotate={-1}>
+				<Polaroid caption={`${hero.polaroid.label}\n${hero.polaroid.caption}`} rotate={-1}>
 					<img
 						src={hero.polaroid.image}
 						alt={hero.polaroid.alt}
@@ -282,6 +285,17 @@ const THREAD_MOBILE = {
 	.hero__polaroid-slot {
 		grid-column: 1 / 4;
 		grid-row: 2;
+	}
+
+	/* the caption is an exhibit label: the product's name and what it is
+	   on its own first line, the measured figures beneath. Only the hero
+	   copy carries the newline — the Polaroid primitive is untouched. */
+	.hero__polaroid-slot :global(.polaroid__caption) {
+		white-space: pre-line;
+	}
+
+	.hero__polaroid-slot :global(.polaroid__caption)::first-line {
+		font-weight: 700;
 	}
 
 	.hero__polaroid-note {

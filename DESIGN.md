@@ -160,7 +160,7 @@ The six pride inks — deep, deliberately darkened so each holds ≥4.5:1 as tex
 - **Card titles** (700, 1.0625–1.25rem, line-height 24px): headings on typed and print cards, set in the card's own face.
 - **Body / print** (400, 0.9375rem on cards, 1rem base, line-height 1.5 = 24px): print-out copy; telemetry figures with `font-variant-numeric: tabular-nums`.
 - **Typed** (400/700, 0.875–1rem, line-height exactly 24px): index-card copy sitting on the printed ruling; also buttons, channel labels, the footer, and stamp text.
-- **Hand** (500, 0.875–1.125rem, line-height 1.3–1.4, rotated −2° to +1.5°): annotations and captions only — never body copy. The greeting is the one large hand setting (700, `clamp(2rem, 4.5vw, 3rem)`), its letters cycling the six pride inks in flag order.
+- **Hand** (500, 0.875–1.125rem, line-height 1.3–1.4, rotated −2° to +1.5°): annotations and captions only — never body copy. The greeting is the one large hand setting, set as a signature: the salutation at 400 in `--ink-soft`, the name at 500 carrying all six pride inks as one continuous stroke (`background-clip: text`), under a hand-drawn swash in the same six inks.
 - **Stamp text** (700 typed, 0.625–0.6875rem, letter-spacing 0.06–0.14em, uppercase): dates and marks inside stamp rings.
 
 ### Named Rules
@@ -238,7 +238,7 @@ Small print-variant PinCards where the whole slip is one link: hand-inked icon (
 The one link treatment on paper: ink-colored bold text underlined in `--thread` (1.5–2px, offset 3px); hover thickens the underline to 2.5px or tips the text into thread color. Used for repo links, in-card links, and — in a 30%-ink resting state — the nav.
 
 ### The Greeting (signature centerpiece)
-The hero's handwritten greeting: motion-capable visitors watch the Lottie ink draw it (the pastel asset pressed into the paper via `filter: brightness(0.62) saturate(1.9)`); everyone else gets the designed resolved state — the same greeting hand-set letter by letter, cycling the six pride inks in flag order. The swap is pure CSS (`:has` on the injected Lottie svg), so the static greeting can never vanish without the animation actually being present. This artifact survives every redesign.
+The hero's handwritten greeting: motion-capable visitors watch the Lottie ink draw it (the pastel asset pressed into the paper via `filter: brightness(0.62) saturate(1.9)`); everyone else gets the designed resolved state — the same greeting hand-set as a signature, the name carrying all six pride inks in one stroke above a pride swash. **The Never-Blank Rule.** The handover is gated on the player reporting ≥92 % of its frames drawn, not on the svg merely existing: this asset draws on from nothing over ~5.7 s, so an earlier swap would serve an empty card to screenshot bots, social-card crawlers and anyone on a slow chunk. The card therefore holds the hand-set signature and settles into the drawn one — never empty, never half-written. This artifact survives every redesign.
 
 ### Telemetry print-outs
 Chart sheets as print PinCards: SSR ECharts SVG on paper ground, series in the deterministic pride-ink palette, labels in the body face with values in ink (never in the series color), a soft-ink unit line under the title, a handwritten margin note quoting the headline figure in its subject's own series ink, an as-of stamp where a figure stands alone, and a `<details>` "Data as a table" fold for assistive tech. Dense seven-day sheets pan horizontally (keyboard-reachable via tabindex) instead of shrinking their type.

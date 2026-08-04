@@ -94,10 +94,13 @@ export const hero = {
 	],
 	location: "Region Bodensee-Oberschwaben, Deutschland — vollständig remote.",
 	languages: "Deutsch (Muttersprache) · Englisch (Arbeitssprache)",
-	/** Ayako polaroid pinned beside the greeting. */
+	/** Ayako polaroid pinned beside the greeting — the product, not a
+	 *  portrait: the label names it, the caption measures it. */
 	polaroid: {
 		image: "/Ayako.webp",
-		alt: "Ayako, der Discord-Bot",
+		alt: "Ayakos Avatar — die gezeichnete Figur, die als Logo des Discord-Bots dient: orangefarbenes Haar, grüne Augen, spitze Ohren.",
+		/** Printed as the caption's first line: what this artifact is. */
+		label: "Ayako — mein Discord-Bot",
 		caption: `${ayako.usersDisplay} Nutzer · ${ayako.serversDisplay} Server · ${ayako.rating.value} auf ${ayako.rating.platform}, Stand ${SNAPSHOT_AS_OF}`,
 		annotation: {
 			text: "in Produktion seit 2019 — eine Person betreibt das alles",

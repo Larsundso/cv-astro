@@ -108,7 +108,22 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 			<PinCard as="figure" variant="print" rotate={1} class="telemetry__card telemetry__habit">
 				<h3 class="telemetry__title">{habit.title}</h3>
 				<p class="telemetry__unit">{habit.unit}</p>
-				<div class="telemetry__field" role="img" aria-label={habit.alt} set:html={habit.svg} />
+				{
+					/* Two blocks, not one grid. The empty days are a second
+					   quantity with a label of its own, so the tail of the
+					   graphic can never be mistaken for the recent past. */
+				}
+				<div class="telemetry__field" role="img" aria-label={habit.alt}>
+					<div class="telemetry__block" set:html={habit.svg} />
+					{
+						habit.idle && (
+							<>
+								<p class="telemetry__idle">{habit.idle.label}</p>
+								<div class="telemetry__block" set:html={habit.idle.svg} />
+							</>
+						)
+					}
+				</div>
 				<p class="telemetry__figure">{habit.line}</p>
 				<p class="telemetry__smallprint">{habit.smallPrint}</p>
 				<HandNote as="p" ink={habit.annotation.ink} class="telemetry__note telemetry__note--flow">
@@ -124,6 +139,9 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 	.telemetry {
 		padding-block: calc(var(--baseline) * 8);
 		scroll-margin-top: calc(var(--baseline) * 4);
+		/* one measure for the corner margin notes; the printed header
+		   reserves exactly this much room, so the two can never meet */
+		--note-width: 15rem;
 	}
 
 	.telemetry__grid {
@@ -149,7 +167,8 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 
 	.telemetry__h {
 		margin: 0;
-		font-size: clamp(3rem, 2.4rem + 2.6vw, 4.25rem);
+		font-size: var(--step-5);
+		line-height: var(--lh-5);
 	}
 
 	.telemetry__rule {
@@ -163,7 +182,8 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 
 	.telemetry__since {
 		margin: calc(var(--baseline) * 2) 0 0;
-		font-size: clamp(1.125rem, 1rem + 0.6vw, 1.375rem);
+		font-size: var(--step-1);
+		line-height: var(--lh-1);
 		color: var(--ink-soft);
 	}
 
@@ -171,13 +191,15 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 
 	.telemetry :global(.telemetry__prov) {
 		max-width: 34rem;
-		font-size: 0.875rem;
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
 	}
 
 	/* one line tall, lifted into the header band onto the red rule */
 	.telemetry__prov-title {
 		margin: calc(var(--baseline) * -4) 0 var(--baseline);
-		font-size: 1rem;
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
 		font-weight: 700;
 	}
 
@@ -195,13 +217,15 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 
 	.telemetry__title {
 		margin: 0;
-		font-size: 1.125rem;
-		line-height: calc(var(--baseline) * 3);
+		font-size: var(--step-1);
+		line-height: var(--lh-1);
+		text-wrap: balance;
 	}
 
 	.telemetry__unit {
 		margin: calc(var(--baseline) / 2) 0 0;
-		font-size: 0.8125rem;
+		font-size: var(--step--1);
+		line-height: var(--lh--1);
 		color: var(--ink-soft);
 	}
 
@@ -215,6 +239,17 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 		display: block;
 		width: 100%;
 		height: auto;
+	}
+
+	/* the break between the run and the days outside it: a rule, a line of
+	   air, and a label that carries full ink weight at body size */
+	.telemetry__idle {
+		margin: var(--baseline) 0 var(--baseline);
+		padding-block-start: var(--baseline);
+		border-block-start: 1px solid color-mix(in oklab, var(--ink) 18%, transparent);
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
+		font-weight: 700;
 	}
 
 	/* the dense seven-day sheets pan on narrow screens instead of
@@ -231,9 +266,10 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 
 	.telemetry :global(.telemetry__note) {
 		margin: var(--baseline) 0 0;
-		font-size: 1.0625rem;
-		line-height: 1.3;
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
 		text-align: right;
+		text-wrap: pretty;
 		rotate: -2deg;
 	}
 
@@ -247,7 +283,8 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 
 	.telemetry__details summary {
 		cursor: pointer;
-		font-size: 0.8125rem;
+		font-size: var(--step--1);
+		line-height: var(--lh--1);
 		font-weight: 700;
 		color: var(--ink-soft);
 	}
@@ -267,7 +304,8 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 	.telemetry__details table {
 		width: 100%;
 		border-collapse: collapse;
-		font-size: 0.8125rem;
+		font-size: var(--step--1);
+		line-height: var(--lh--1);
 	}
 
 	.telemetry__details :is(th, td) {
@@ -278,9 +316,10 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 	}
 
 	.telemetry__details th[scope="col"] {
-		font-size: 0.75rem;
+		font-size: var(--step--1);
+		line-height: var(--lh--1);
 		text-transform: uppercase;
-		letter-spacing: 0.06em;
+		letter-spacing: var(--track-display);
 		color: var(--ink-soft);
 	}
 
@@ -291,13 +330,15 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 
 	.telemetry__tablenote {
 		margin: var(--baseline) 0 0;
-		font-size: 0.75rem;
+		font-size: var(--step--1);
+		line-height: var(--lh--1);
 		color: var(--ink-soft);
 	}
 
 	.telemetry__facenote {
 		margin: var(--baseline) 0 0;
-		font-size: 0.8125rem;
+		font-size: var(--step--1);
+		line-height: var(--lh--1);
 		color: var(--ink-soft);
 	}
 
@@ -305,13 +346,15 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 
 	.telemetry__figure {
 		margin: calc(var(--baseline) * 2) 0 0;
-		font-size: 1rem;
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
 		font-weight: 700;
 	}
 
 	.telemetry__smallprint {
 		margin: calc(var(--baseline) / 2) 0 0;
-		font-size: 0.8125rem;
+		font-size: var(--step--1);
+		line-height: var(--lh--1);
 		color: var(--ink-soft);
 	}
 
@@ -373,13 +416,15 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 			position: absolute;
 			top: calc(var(--baseline) * 1.5);
 			right: calc(var(--baseline) * 3);
-			max-width: 15rem;
+			max-width: var(--note-width);
 			margin: 0;
 		}
 
+		/* the header keeps clear of the note's whole footprint, not a
+		   percentage that happened to work at one title length */
 		.telemetry__slot:not(.telemetry__slot--habit) .telemetry__title,
 		.telemetry__slot:not(.telemetry__slot--habit) .telemetry__unit {
-			padding-inline-end: 34%;
+			padding-inline-end: calc(var(--note-width) + var(--baseline) * 5);
 		}
 	}
 </style>

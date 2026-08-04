@@ -26,6 +26,9 @@ const { caption, rotate = 0, pin = true, class: className } = Astro.props;
 	.polaroid {
 		position: relative;
 		margin: 0;
+		/* photo stock is the thickest paper on the wall — it stands proud
+		   of the notes rather than casting the identical shadow they do */
+		--lift: 1.6;
 		background: var(--paper);
 		box-shadow: var(--pin-shadow);
 		padding: calc(var(--baseline) * 1.5) calc(var(--baseline) * 1.5) calc(var(--baseline) * 2);
@@ -54,8 +57,8 @@ const { caption, rotate = 0, pin = true, class: className } = Astro.props;
 	.polaroid__caption {
 		font-family: var(--font-hand);
 		font-weight: 500;
-		font-size: 0.875rem;
-		line-height: 1.35;
+		font-size: var(--step--1);
+		line-height: var(--lh--1);
 		text-align: center;
 		color: var(--ink);
 		margin-top: calc(var(--baseline) * 1.5);

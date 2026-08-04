@@ -8,6 +8,8 @@ import UnoCSS from "unocss/astro";
 
 // https://astro.build/config
 export default defineConfig({
+ // the toolbar overlays the wall's bottom edge in headless captures
+ devToolbar: { enabled: false },
  integrations: [
   lottie(),
   svelte(),

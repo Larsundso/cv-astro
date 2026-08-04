@@ -7,9 +7,14 @@
 :root {
   color-scheme: light;
 
-  /* ground + surfaces */
-  --cork: oklch(87% 0.035 80);
-  --cork-deep: oklch(82% 0.045 75);
+  /* ground + surfaces
+     The cork is the WALL, not a backdrop: it must sit a clear value step
+     below every sheet pinned to it, or paper stops reading as figure and
+     bare cork stops reading as deliberate space. At 87% the ground was
+     1.38:1 against paper — the same value — which is why the empty areas
+     read as unfilled rather than as field. At 78% it is 1.87:1. */
+  --cork: oklch(78% 0.045 75);
+  --cork-deep: oklch(72% 0.05 72);
   --paper: oklch(97.5% 0.008 90);
   --paper-aged: oklch(94% 0.02 85);
   --ink: oklch(25% 0.015 60);
@@ -27,15 +32,85 @@
   --ink-amber: oklch(48% 0.11 70);
   --ink-blue: oklch(44% 0.15 260);
 
-  /* rhythm + depth — the one shadow of the world */
+  /* rhythm + depth — one light, one shadow, many elevations.
+     The lamp is up and to the LEFT: the brass pin has always carried a
+     specular at 35%/30% and the sheets used to cast straight down, so
+     the hardware and the paper disagreed about where the room was lit.
+     Everything now falls down-and-right from that one source.
+     --lift is the per-artifact elevation: a sticker is glued flat (0.4),
+     paper sits at 1, a polaroid is cardstock and stands proud (1.6). */
   --baseline: 8px;
-  --pin-shadow: 0 2px 8px oklch(25% 0.015 60 / 0.15);
+  --lift: 1;
+  --shade: 25% 0.02 60;
+
+  /* type scale — ONE fluid ladder, 360→1440, every step sharing the same
+     interpolation so two sizes can never swap rank at an intermediate
+     width. Before this there were 36 hand-typed sizes across 11 unrelated
+     clamp() curves, and six pairs inverted on resize. Nothing in src/ may
+     declare a raw font-size: use a step. */
+  /* --step--2 exists for one thing: type struck INTO rubber. A stamp's
+     legend is deliberately below the reading scale — it is an object on the
+     wall, not a voice on the page — so it gets a step of its own rather
+     than a loose value or a borrowed one. */
+  --step--2: clamp(0.625rem, 0.607rem + 0.08vw, 0.6875rem);
+  --step--1: clamp(0.8125rem, 0.792rem + 0.09vw, 0.875rem);
+  --step-0: clamp(0.9375rem, 0.906rem + 0.14vw, 1rem);
+  --step-1: clamp(1.125rem, 1.069rem + 0.25vw, 1.25rem);
+  --step-2: clamp(1.3125rem, 1.229rem + 0.37vw, 1.5rem);
+  --step-3: clamp(1.5625rem, 1.424rem + 0.62vw, 1.875rem);
+  --step-4: clamp(1.875rem, 1.653rem + 0.99vw, 2.375rem);
+  --step-5: clamp(2.25rem, 1.875rem + 1.67vw, 3rem);
+  --step-6: clamp(2.625rem, 1.99rem + 2.82vw, 4rem);
+
+  /* every step lands on a baseline multiple: no bare ratios in src/ */
+  --lh--1: calc(var(--baseline) * 2.5);
+  --lh-0: calc(var(--baseline) * 3);
+  --lh-1: calc(var(--baseline) * 3);
+  --lh-2: calc(var(--baseline) * 4);
+  --lh-3: calc(var(--baseline) * 5);
+  --lh-4: calc(var(--baseline) * 5);
+  --lh-5: calc(var(--baseline) * 6);
+  --lh-6: calc(var(--baseline) * 7);
+
+  /* uppercase tracking: display caps need it most at small sizes */
+  --track-display: 0.04em;
+  --track-display-lg: 0.006em;
+
+  /* tempo: two named steps, not one duration for everything.
+     ~110ms reads as "you did that"; ~200ms reads as "the screen changed".
+     Collapsing both into a single 150ms (27 selectors did) removes the
+     wall's ability to say which of the two just happened. */
+  --t-press: 110ms;
+  --t-settle: 200ms;
+  --e-out: cubic-bezier(0.215, 0.61, 0.355, 1);
 
   /* faces — one physical material each; never mix inside one artifact */
   --font-display: "League Gothic", "Arial Narrow", sans-serif;
   --font-body: "Atkinson Hyperlegible", "Segoe UI", sans-serif;
   --font-typed: "Courier Prime", "Courier New", monospace;
   --font-hand: "Shantell Sans", "Segoe Print", cursive;
+}
+
+/* The shadow has to be BUILT PER ELEMENT, not inherited.
+   A custom property that contains var() is substituted at computed-value
+   time on the element that DECLARES it — so with --pin-shadow declared on
+   :root, its var(--lift) resolved once against :root's 1 and every element
+   inherited that already-flattened string. Setting --lift on a polaroid
+   did nothing: measured, --lift: 1, 1.6 and even 4 all produced a
+   byte-identical shadow. Declaring it here re-runs the substitution for
+   each element against its own --lift, which is what makes the ramp real.
+   Set --lift on the artifact; the three layers scale together, so offset,
+   blur and elevation stay physically consistent. */
+*,
+*::before,
+*::after {
+  --pin-shadow:
+    calc(1px * var(--lift)) calc(1.5px * var(--lift)) calc(3px * var(--lift))
+      oklch(var(--shade) / 0.1),
+    calc(2px * var(--lift)) calc(3px * var(--lift)) calc(8px * var(--lift))
+      oklch(var(--shade) / 0.09),
+    calc(4px * var(--lift)) calc(6px * var(--lift)) calc(16px * var(--lift))
+      oklch(var(--shade) / 0.07);
 }
 
 /* ---- ground ------------------------------------------------ */
@@ -57,8 +132,30 @@ html {
 body {
   min-height: 100dvh;
   background-color: var(--cork);
-  /* the one permitted texture: a single feTurbulence grain on the cork */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.74' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23grain)' opacity='0.05'/%3E%3C/svg%3E");
+  /* Two layers, one lamp. The wash establishes where the light is —
+     brightest at the upper-left corner the brass speculars already point
+     at, falling to --cork-deep in the far corner — and the grain gives
+     the board its tooth. The old grain was 0.05 alpha on a 87% ground:
+     measured σ = 0.65/255, i.e. invisible. It is now legible as cork. */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23grain)' opacity='0.13'/%3E%3C/svg%3E"),
+    linear-gradient(
+      105deg,
+      oklch(80.5% 0.042 78) 0%,
+      var(--cork) 48%,
+      var(--cork-deep) 100%
+    );
+  /* The wash runs ACROSS the board, not down it. A vertical falloff has to
+     choose between two bad options on a 12,000px page: viewport-fixed, which
+     seams at every screen edge in a full-page capture, or document-sized,
+     which puts the whole wall below the fold in shadow. A near-horizontal
+     gradient reads identically at every scroll position, still says the lamp
+     is up and to the left, and agrees with the direction every shadow and
+     every brass specular already falls. */
+  background-attachment: scroll;
+  background-size:
+    280px 280px,
+    100% 100%;
   color: var(--ink);
   font-family: var(--font-body);
   font-size: 1rem;
@@ -113,6 +210,20 @@ main {
   box-shadow: var(--pin-shadow);
 }
 
+/* The Paper Slip Rule, as an actual component. It was named in DESIGN.md
+   and then re-typed at five call sites in Hero.astro alone, each drifting
+   its own max-width and margins. One class; call sites keep only their
+   position. A slip on the darker cork is also how annotation ink keeps
+   its contrast — amber reads 6.2:1 here and would fall below AA on bare
+   board. */
+.paper-slip {
+  width: fit-content;
+  max-width: 16rem;
+  padding: calc(var(--baseline) * 0.75) calc(var(--baseline) * 1.5);
+  background: var(--paper);
+  box-shadow: var(--pin-shadow);
+}
+
 .brass-pin {
   display: inline-block;
   width: 14px;
@@ -124,7 +235,8 @@ main {
     var(--brass) 58%,
     color-mix(in oklab, var(--brass) 55%, black)
   );
-  box-shadow: 0 1px 3px oklch(25% 0.015 60 / 0.35);
+  /* the pin's own cast agrees with its specular and with every sheet */
+  box-shadow: 2px 2px 4px oklch(var(--shade) / 0.34);
 }
 
 /* pinned artifacts: rotation steps of ±1.2deg via --tilt (-1 | 0 | 1);

@@ -1,11 +1,30 @@
 ---
 /**
  * Projects — the projects wall.
- * Ayako as the dominant cluster (polaroid, typed spec card, the free-forever
- * promise on its own flyer, the v3 rewrite with the license line), Kiyu with
- * the self-described label, the VR tools as a filmstrip with the site's one
- * three.js touch, GIFfer, and one breadth note card.
+ *
+ * THE MATERIAL LAW, APPLIED. The four faces each mean a physical thing, and
+ * until now the section assigned them by accident: Ayako and Kiyu were typed
+ * while Ayako v3 and GIFfer were printed — the same kind of content in two
+ * materials, with no rule a reader could infer. The rule the law was missing:
+ *
+ *   a typewriter produced the RECORD, a printer produced the ESSAY.
+ *
+ *   variant="print"  an artifact whose body is continuous writing — Ayako's
+ *                    account, the authorship proof, the v3 rewrite, Kiyu,
+ *                    GIFfer, the VR bench entries.
+ *   variant="typed"  an artifact that is nothing but record — Ayako's spec
+ *                    sheet (figure list, stack, licence) and the "Also
+ *                    pinned" index. Courier stays clipped, dated, factual.
+ *   variant="flyer"  poster statements only: the section headline, the
+ *                    free-forever promise, the bench heading.
+ *   HandNote         the hand, in the margins, never body copy.
+ *
+ * One face per artifact, always — where a project needs both voices it gets
+ * two sheets (Ayako: the printed account, the typed spec sheet beside it),
+ * never two faces on one sheet.
+ *
  * All copy comes from ~/data/wall — every figure carries unit + as-of date.
+ * Nothing here restates a figure; it only decides where the figure sits.
  */
 import HandNote from "~/components/wall/HandNote.astro";
 import PinCard from "~/components/wall/PinCard.astro";
@@ -31,10 +50,32 @@ const kiyu = byId("kiyu");
 const giffer = byId("giffer");
 const vrTools = projects.filter((p) => p.role === "vr");
 
-/* Ayako facts: the last line belongs to the v3 rewrite card. */
+/* Ayako's fact list splits three ways, in the data's own order:
+   the last line belongs to the v3 rewrite card, the one before it is the
+   authorship proof that gets its own sheet, and the rest are the spec. */
 const v3Fact = ayako.facts.at(-1);
-const specFacts = ayako.facts.slice(0, -1);
+const proofFact = ayako.facts.at(-2);
+const specFacts = ayako.facts.slice(0, -2);
 const [ayakoBody, v3Body] = ayako.body;
+
+/* The proof sheet is titled with its own figure. Both locales open the line
+   with the percentage, so the split is a cut, never a rewrite — no digit,
+   date or word is changed, and an unexpected shape falls back to the whole
+   line as the title. */
+const proofParts = proofFact?.match(/^([\d.,]+\s*%)\s*(.*)$/s);
+const proofFigure = proofParts ? proofParts[1].trim() : proofFact;
+const proofRest = proofParts ? proofParts[2] : "";
+
+/* "Also pinned" is a long tail: two entries earn the sheet, three are
+   available rather than unavoidable. Every breadth line is
+   "Name — description", so the folded names make the disclosure label
+   out of the entries' own words. */
+const nameOf = (text: string) => text.split(" — ")[0];
+const KEEP = ["lars-dev.org", "vr-diag"];
+const shown = breadth.filter((item) => KEEP.includes(nameOf(item.text)));
+const pinnedShown = shown.length ? shown : breadth;
+const pinnedFolded = shown.length ? breadth.filter((item) => !shown.includes(item)) : [];
+const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 ---
 
 <section id="projects" class="projects wall-max" aria-labelledby="projects-title">
@@ -47,35 +88,46 @@ const [ayakoBody, v3Body] = ayako.body;
 			<Stamp sub={sectionStrings.asOfStamp} label={SNAPSHOT_AS_OF} rotate={-7} class="head-stamp" />
 		</div>
 
-		<!-- Ayako: the dominant cluster -->
-		<Polaroid
-			class="g-photo"
-			rotate={-1}
-			caption={`${ayako.name} — ${ayako.oneLiner}`}
-		>
-			<img
-				src={ayako.logo ?? "/Ayako.webp"}
-				alt={ps.ayakoAlt}
-				width="800"
-				height="900"
-				loading="lazy"
-				decoding="async"
-			/>
-		</Polaroid>
+		<!-- Ayako, left: the photograph, and under it the one figure that
+		     proves "solo" is not a manner of speaking -->
+		<div class="g-photo col-stack">
+			<Polaroid rotate={-1} caption={`${ayako.name} — ${ayako.oneLiner}`}>
+				<img
+					src={ayako.logo ?? "/Ayako.webp"}
+					alt={ps.ayakoAlt}
+					width="800"
+					height="900"
+					loading="lazy"
+					decoding="async"
+				/>
+			</Polaroid>
+			{
+				proofFact && (
+					<PinCard variant="print" as="article" rotate={1} class="proof-card">
+						<p class="proof-figure">{proofFigure}</p>
+						{proofRest && <p class="proof-rest">{proofRest}</p>}
+					</PinCard>
+				)
+			}
+		</div>
 
-		<div class="g-spec">
-			<PinCard variant="typed" as="article" rotate={1} class="card-flow">
+		<!-- Ayako, right: the printed account, then the typed spec sheet -->
+		<div class="g-ayako col-stack">
+			<PinCard variant="print" as="article" rotate={1} class="card-flow">
 				<h3 class="card-title">{ayako.name}</h3>
 				<p>{ayakoBody}</p>
-				<ul class="facts" role="list">
-					{specFacts.map((fact) => <li>{fact}</li>)}
-				</ul>
-				<p class="stack">{ayako.stack.join(" · ")}</p>
 				<ul class="links" role="list">
 					{ayako.links.map((link) => (
 						<li><a href={link.href}>{link.label}</a></li>
 					))}
 				</ul>
+			</PinCard>
+			<PinCard variant="typed" as="article" rotate={-1} class="card-flow">
+				<ul class="facts" role="list">
+					{specFacts.map((fact) => <li>{fact}</li>)}
+				</ul>
+				<p class="stack">{ayako.stack.join(" · ")}</p>
+				{ayako.license && <p class="license">{ps.licenseLabel} {ayako.license}</p>}
 			</PinCard>
 			{
 				ayako.annotation && (
@@ -86,7 +138,7 @@ const [ayakoBody, v3Body] = ayako.body;
 			}
 		</div>
 
-		<div class="g-promise">
+		<div class="g-promise col-stack">
 			{
 				ayako.promise && (
 					<PinCard variant="flyer" rotate={1} class="promise-card">
@@ -104,21 +156,20 @@ const [ayakoBody, v3Body] = ayako.body;
 		</div>
 
 		<PinCard variant="print" as="article" rotate={-1} class="g-v3 card-flow">
-			<h4 class="card-title">{ps.v3Title}</h4>
+			<h3 class="card-title">{ps.v3Title}</h3>
 			<p>{v3Body}</p>
 			{v3Fact && <p class="fact-line">{v3Fact}</p>}
-			{ayako.license && <p class="license">{ps.licenseLabel} {ayako.license}</p>}
 		</PinCard>
 
-		<!-- Kiyu: named, with the self-described label -->
-		<div class="g-kiyu">
-			<PinCard variant="typed" as="article" rotate={-1} class="card-flow">
+		<!-- Kiyu: printed like GIFfer, because it is the same kind of page.
+		     The amber caveat stays exactly as written — labelling your own
+		     weakest number is the point of it. -->
+		<div class="g-kiyu col-stack">
+			<PinCard variant="print" as="article" rotate={-1} class="card-flow">
 				<h3 class="card-title">{kiyu.name}</h3>
 				<p>{kiyu.oneLiner}</p>
 				{kiyu.body.map((paragraph) => <p>{paragraph}</p>)}
-				<ul class="facts" role="list">
-					{kiyu.facts.map((fact) => <li>{fact}</li>)}
-				</ul>
+				{kiyu.facts.map((fact) => <p class="fact-line">{fact}</p>)}
 				<p class="stack">{kiyu.stack.join(" · ")}</p>
 			</PinCard>
 			{
@@ -140,51 +191,50 @@ const [ayakoBody, v3Body] = ayako.body;
 			{giffer.license && <p class="license">{ps.licenseLabel} {giffer.license}</p>}
 		</PinCard>
 
-		<!-- VR bench: flyer heading, the one three.js touch, the filmstrip -->
-		<div class="g-vrhead">
+		<!-- The VR bench: one sheet for four small tools. Each entry shows its
+		     name and its one line; the LOC, the test suites and the stacks are
+		     one click away rather than four cards deep. -->
+		<div class="g-vrbench col-stack">
 			<PinCard variant="flyer" class="vrhead-card">
-				<h3>{ps.vrBenchTitle}</h3>
+				<h3 class="bench-flyer">{ps.vrBenchTitle}</h3>
 			</PinCard>
-			<HandNote ink="teal" class="note-slip">
-				{ps.vrBenchNote}
-			</HandNote>
-		</div>
-
-		<Polaroid
-			class="g-vrsketch vr-polaroid"
-			rotate={-1}
-			caption={ps.vrSketchCaption}
-		>
-			<VrHeadsetSketch ariaLabel={ps.vrSketchAria} client:visible />
-		</Polaroid>
-
-		<div class="g-strip">
-			<div class="film-strip">
-				<span class="brass-pin strip-pin strip-pin--left" aria-hidden="true"></span>
-				<span class="brass-pin strip-pin strip-pin--right" aria-hidden="true"></span>
-				<Sticker name="peek" size={4.5} rotate={-7} class="strip-sticker" />
-				<ul class="frames" role="list">
+			<PinCard variant="print" as="article" rotate={-1} class="bench-card">
+				<ul class="bench" role="list">
 					{
 						vrTools.map((tool) => (
-							<li class="frame">
-								<h4>{tool.name}</h4>
-								<p>{tool.oneLiner}</p>
-								{tool.body.map((paragraph) => <p>{paragraph}</p>)}
-								{tool.facts.map((fact) => <p class="frame-fact">{fact}</p>)}
-								<p class="frame-stack">{tool.stack.join(" · ")}</p>
+							<li>
+								<details class="fold">
+									<summary>
+										<b class="bench-name">{tool.name}</b> — {tool.oneLiner}
+									</summary>
+									<div class="fold-body">
+										{tool.body.map((paragraph) => <p>{paragraph}</p>)}
+										{tool.facts.map((fact) => <p class="fact-line">{fact}</p>)}
+										<p class="stack">{tool.stack.join(" · ")}</p>
+									</div>
+								</details>
 							</li>
 						))
 					}
 				</ul>
-			</div>
+			</PinCard>
 		</div>
 
-		<!-- breadth: one typed note card -->
+		<!-- the one object on the wall that answers a hand: given the room to
+		     be picked up, and captioned with what it actually is -->
+		<div class="g-vrsketch col-stack">
+			<Polaroid class="vr-polaroid" rotate={-1} caption={ps.vrSketchCaption}>
+				<VrHeadsetSketch ariaLabel={ps.vrSketchAria} client:visible />
+			</Polaroid>
+			<HandNote ink="teal" class="note-slip">{ps.vrBenchNote}</HandNote>
+		</div>
+
+		<!-- breadth: the typed index, with its tail folded -->
 		<PinCard variant="typed" as="aside" rotate={1} class="g-breadth card-flow">
 			<h3 class="card-title">{ps.breadthTitle}</h3>
 			<ul class="facts" role="list">
 				{
-					breadth.map((item) => (
+					pinnedShown.map((item) => (
 						<li>
 							{item.text}
 							{item.link && <> <a href={item.link.href}>{item.link.label}</a></>}
@@ -192,6 +242,22 @@ const [ayakoBody, v3Body] = ayako.body;
 					))
 				}
 			</ul>
+			{
+				pinnedFolded.length > 0 && (
+					<details class="fold fold--tail">
+						<summary>{foldedNames}</summary>
+						<ul class="facts" role="list">
+							{pinnedFolded.map((item) => (
+								<li>
+									{item.text}
+									{item.link && <> <a href={item.link.href}>{item.link.label}</a></>}
+								</li>
+							))}
+						</ul>
+					</details>
+				)
+			}
+			<Sticker name="peek" size={4.5} rotate={-7} class="tail-sticker" />
 		</PinCard>
 	</div>
 </section>
@@ -211,10 +277,10 @@ const [ayakoBody, v3Body] = ayako.body;
 		grid-column: 1 / 7;
 		position: relative;
 	}
-	.projects :global(.g-photo) {
+	.g-photo {
 		grid-column: 1 / 5;
 	}
-	.g-spec {
+	.g-ayako {
 		grid-column: 5 / 13;
 	}
 	.g-promise {
@@ -229,41 +295,40 @@ const [ayakoBody, v3Body] = ayako.body;
 	.projects :global(.g-giffer) {
 		grid-column: 8 / 13;
 	}
-	.g-vrhead {
-		grid-column: 1 / 9;
-		/* the polaroid on the right is tall; center the heading cluster in
-		   the row so the wall doesn't open a void of bare cork below it */
-		align-self: center;
+	.g-vrbench {
+		grid-column: 1 / 7;
 	}
-	.projects :global(.g-vrsketch) {
-		grid-column: 9 / 13;
-	}
-	.g-strip {
-		grid-column: 1 / -1;
+	.g-vrsketch {
+		grid-column: 7 / 13;
 	}
 	.projects :global(.g-breadth) {
 		grid-column: 1 / 9;
 	}
 
+	/* every column that stacks more than one artifact does it the same way:
+	   one gap, set from the baseline, no per-artifact margins */
+	.col-stack {
+		display: grid;
+		row-gap: calc(var(--baseline) * 3);
+		align-content: start;
+	}
+
 	@media (max-width: 48rem) {
 		.g-head,
-		.g-spec,
+		.g-photo,
+		.g-ayako,
 		.g-promise,
 		.g-kiyu,
-		.g-vrhead,
-		.projects :global(.g-photo),
+		.g-vrbench,
+		.g-vrsketch,
 		.projects :global(.g-v3),
 		.projects :global(.g-giffer),
-		.projects :global(.g-vrsketch),
 		.projects :global(.g-breadth) {
 			grid-column: 1 / -1;
 		}
 	}
 
-	/* headline flyer + stamp */
-	.g-head h2 {
-		font-size: clamp(2.75rem, 6vw, 4.5rem);
-	}
+	/* headline flyer + stamp: the flyer takes --step-5 from PinCard */
 	.head-rule {
 		border-bottom: 4px solid var(--thread);
 	}
@@ -282,13 +347,22 @@ const [ayakoBody, v3Body] = ayako.body;
 	/* card interiors: spacing between slotted children; the brass pin is
 	   PinCard's first child, so its follower resets to no extra margin */
 	.projects :global(.card-flow > * + *) {
-		margin-top: calc(var(--baseline) * 1.5);
+		margin-top: calc(var(--baseline) * 3);
 	}
 	.projects :global(.card-flow > .brass-pin + *) {
 		margin-top: 0;
 	}
+
+	/* the print-out reads on the ladder too — without this it inherits the
+	   document's 1rem and drifts off the scale at small widths */
+	.projects :global(.pin-card--print) {
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
+	}
+
 	.card-title {
-		font-size: 1.25rem;
+		font-size: var(--step-1);
+		line-height: var(--lh-1);
 		font-weight: 700;
 	}
 
@@ -296,7 +370,8 @@ const [ayakoBody, v3Body] = ayako.body;
 		list-style: none;
 		margin: 0;
 		padding: 0;
-		font-size: 0.9375rem;
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
 	}
 	.facts > li {
 		padding-left: 1.4ch;
@@ -306,20 +381,20 @@ const [ayakoBody, v3Body] = ayako.body;
 		content: "— ";
 		color: var(--ink-soft);
 	}
+	/* a whole ruling period, so a typed sheet stays registered to its lines */
 	.facts > li + li {
-		margin-top: var(--baseline);
+		margin-top: calc(var(--baseline) * 3);
 	}
 
-	.stack {
-		color: var(--ink-soft);
-		font-size: 0.875rem;
-	}
-	.fact-line {
-		font-size: 0.9375rem;
-	}
+	.stack,
 	.license {
 		color: var(--ink-soft);
-		font-size: 0.875rem;
+		font-size: var(--step--1);
+		line-height: var(--lh--1);
+	}
+	.fact-line {
+		font-size: var(--step--1);
+		line-height: var(--lh--1);
 	}
 
 	.links {
@@ -344,13 +419,33 @@ const [ayakoBody, v3Body] = ayako.body;
 		color: var(--thread);
 	}
 
+	/* the authorship proof: the figure IS the title. Atkinson bold at
+	   --step-3 outranks every card title on the wall and still cannot be
+	   confused with League Gothic at --step-4 above it — different cap
+	   height, different material, no optical tie. */
+	.proof-figure {
+		margin: 0;
+		font-size: var(--step-3);
+		line-height: var(--lh-3);
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
+	}
+	.proof-rest {
+		margin: calc(var(--baseline) * 1) 0 0;
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
+		color: var(--ink-soft);
+	}
+
 	/* the free-forever promise: poster stock, headline type only */
 	.g-promise blockquote {
 		margin: 0;
 	}
 	.g-promise blockquote p {
 		margin: 0;
-		font-size: clamp(1.625rem, 3vw, 2.5rem);
+		font-size: var(--step-4);
+		line-height: var(--lh-4);
+		letter-spacing: var(--track-display-lg);
 	}
 
 	/* handwritten margin notes ride on small paper slips so every pride
@@ -358,122 +453,101 @@ const [ayakoBody, v3Body] = ayako.body;
 	.projects :global(.note-slip) {
 		width: fit-content;
 		max-width: 38ch;
-		margin-top: calc(var(--baseline) * 2);
 		padding: calc(var(--baseline) * 1.5) calc(var(--baseline) * 2);
 		background: var(--paper);
 		box-shadow: var(--pin-shadow);
-		font-size: 0.9375rem;
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
 	}
 	.projects :global(.pull-right) {
-		margin-inline-start: auto;
+		justify-self: end;
 	}
 
-	/* VR flyer heading */
-	.g-vrhead h3 {
-		font-size: clamp(2rem, 4.5vw, 3.25rem);
+	/* the bench heading is a poster, but a smaller one than the section
+	   flyer — one step down, same face, so rank is never in question */
+	.g-vrbench .bench-flyer {
+		font-size: var(--step-4);
+		line-height: var(--lh-4);
+		letter-spacing: var(--track-display-lg);
+	}
+
+	/* four tools, one sheet. The name and its one line are the affordance;
+	   LOC, tests and stack open underneath — nothing is deleted, it is
+	   simply no longer unavoidable. */
+	.bench {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	.bench > li + li {
+		margin-top: calc(var(--baseline) * 2);
+		border-top: 1px solid color-mix(in oklab, var(--ink) 15%, transparent);
+		padding-top: calc(var(--baseline) * 2);
+	}
+	.bench-name {
+		font-weight: 700;
+	}
+
+	/* the disclosure triangle hangs in the margin like the "— " of a fact
+	   list, so a wrapped entry aligns under its own first word */
+	.fold {
+		margin-inline-start: 1.5em;
+	}
+	.fold > summary {
+		cursor: pointer;
+		list-style-position: outside;
+	}
+	.fold > summary:hover {
+		color: var(--thread);
+	}
+	.fold-body > * {
+		margin: var(--baseline) 0 0;
+	}
+
+	/* the folded tail of the typed index: the entries' own names label it,
+	   hung on the same 1.4ch margin the fact bullets use */
+	.fold--tail {
+		margin-inline-start: 1.4ch;
+	}
+	.fold--tail > summary {
+		color: var(--ink-soft);
+		font-weight: 700;
+	}
+	.fold--tail > summary:hover {
+		color: var(--thread);
+	}
+	.fold--tail[open] > summary {
+		margin-bottom: calc(var(--baseline) * 3);
 	}
 
 	/* the sketch polaroid: aged paper ground under ink wireframe lines —
-	   a pencil sketch on the wall, not a screen; landscape frame */
+	   a pencil sketch on the wall, not a screen; landscape frame. It is the
+	   only object on this page that answers a hand, so it gets the room and
+	   a caption large enough to be read as an invitation. */
 	.projects :global(.vr-polaroid .polaroid__frame) {
 		background: var(--paper-aged);
 		aspect-ratio: 4 / 3;
 	}
-
-	/* filmstrip: one paper strip, sprocket holes punched through to cork,
-	   four aged frames, pinned at both ends */
-	.film-strip {
-		position: relative;
-		background-color: var(--paper);
-		box-shadow: var(--pin-shadow);
-		padding: calc(var(--baseline) * 4) calc(var(--baseline) * 3);
-		background-image:
-			radial-gradient(circle, var(--cork) 2.5px, transparent 3px),
-			radial-gradient(circle, var(--cork) 2.5px, transparent 3px);
-		background-size:
-			24px 6px,
-			24px 6px;
-		background-position:
-			left top 10px,
-			left bottom 10px;
-		background-repeat: repeat-x;
+	/* both photo captions read at one setting on the ladder: the hand writes
+	   under a picture at the same size everywhere in this section */
+	.projects :global(.polaroid__caption) {
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
 	}
-	.strip-pin {
+
+	/* Ayako peeking out of the cork beside the last sheet — the strip she
+	   used to sit on is gone, and the columns to the right of the index are
+	   bare board, which is exactly where a sticker belongs. */
+	.projects :global(.tail-sticker) {
 		position: absolute;
-		top: -7px;
-	}
-	.strip-pin--left {
-		left: calc(var(--baseline) * 4);
-	}
-	.strip-pin--right {
-		right: calc(var(--baseline) * 4);
+		left: calc(100% + var(--baseline) * 3);
+		bottom: calc(var(--baseline) * 2);
 	}
 
-	/* the one sticker on this wall: Ayako peeking over the filmstrip's top
-	   edge. Anchored to the strip itself so she travels with it in every
-	   locale; the baseline of clearance keeps the TILTED box off the paper
-	   (a 7° corner swings ~4 px below the upright edge) — she rests on the
-	   cork just above the edge, never on the card face.
-	   The strip is centered in the viewport, so the crimson thread always
-	   crosses it at 50 % — 57 % parks her clear of the thread, clear of
-	   both brass pins, and clear of the sketch polaroid above.
-	   Absolutely positioned: no strip geometry changes. */
-	.projects :global(.strip-sticker) {
-		position: absolute;
-		left: 57%;
-		bottom: calc(100% + var(--baseline));
-	}
-
-	/* stacked layout leaves only the bare row gap above the strip — not
-	   enough cork to stick anything on */
+	/* stacked layout leaves no cork beside the sheet to stick anything on */
 	@media (max-width: 48rem) {
-		.projects :global(.strip-sticker) {
+		.projects :global(.tail-sticker) {
 			display: none;
 		}
-	}
-
-	.frames {
-		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-		gap: calc(var(--baseline) * 2);
-		list-style: none;
-		margin: 0;
-		padding: 0;
-		font-family: var(--font-typed);
-	}
-	@media (max-width: 64rem) {
-		.frames {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-	}
-	@media (max-width: 40rem) {
-		.frames {
-			grid-template-columns: minmax(0, 1fr);
-		}
-	}
-	.frame {
-		display: flex;
-		flex-direction: column;
-		gap: var(--baseline);
-		background: var(--paper-aged);
-		border: 1px solid color-mix(in oklab, var(--ink) 18%, transparent);
-		padding: calc(var(--baseline) * 2);
-	}
-	.frame h4 {
-		margin: 0;
-		font-size: 1rem;
-		font-weight: 700;
-	}
-	.frame p {
-		margin: 0;
-		font-size: 0.8125rem;
-		line-height: 1.5;
-	}
-	.frame-fact {
-		color: var(--ink-soft);
-	}
-	.frame .frame-stack {
-		color: var(--ink-soft);
-		margin-top: auto;
 	}
 </style>

@@ -1,21 +1,42 @@
 ---
 /**
- * Greeting — the handwritten centerpiece of the hero cluster.
+ * Greeting — the handwritten centerpiece of the hero cluster, and the
+ * wall's single most distinctive artifact: a SIGNATURE.
  *
- * Motion-capable visitors watch the Lottie ink draw "Hi, ich bin Lars".
- * Everyone else — prefers-reduced-motion, no JS, failed load, screenshot
- * bots, link-preview crawlers — gets the designed resolved state: the same
- * greeting hand-set as a SIGNATURE. The swap is driven purely by CSS (on a
- * data-anim flag the player only earns once it has really painted), so the
- * static greeting can never vanish without the animation actually drawing.
+ * TWO STATES, ONE SENTENCE. The card is a salutation line in the reader's
+ * own language, the signed NAME beneath it, and a dateline. The name has
+ * two states — hand-set (Shantell Sans in the six pride inks) and drawn
+ * (the Lottie, in the same six inks) — and they now say the same word,
+ * because the drawn asset was cropped to the name alone. That crop is
+ * what makes the artifact bilingual: the English-only "Hi, I'm" strokes
+ * are gone from the asset and the salutation is set as text, so the
+ * German page no longer watches an English sentence write itself. The
+ * `<h1>`'s accessible text is the whole sentence, surname included.
+ *
+ * MOTION (feel F1). The draw used to run its full 10s inside a
+ * `display:none` box and was revealed only once it had STOPPED. It is now
+ * LAYERED, not swapped: the `<h1>` and the Lottie share one grid cell and
+ * cross-fade. The asset itself was retimed — the salutation frames and
+ * 3.1s of dead tail at the end are gone — and the player is sped up to a
+ * ~2.5s draw, so the card writes itself in front of the reader.
+ *
+ * THE NEVER-BLANK RULE, STRONGER THAN BEFORE. The fade is tied to frames
+ * ACTUALLY ADVANCING, not to a one-shot "it exists" flag: the ink has to
+ * be moving for the hand-set signature to step aside, and if it ever
+ * stops moving before the end (throttled tab, dropped chunk, no rAF) the
+ * flag is withdrawn and the hand-set signature fades straight back in.
+ * No JS, a failed fetch, a screenshot bot or prefers-reduced-motion never
+ * reach the flag at all, so they keep the designed resolved state
+ * permanently. There is no path on which this card is blank.
  *
  * Register law for the resolved state: pen, not marker. The salutation is
  * written in soft ink at hand weight; the NAME carries the six pride inks
- * in flag order, as one continuous wet stroke, and is underscored by a
- * hand-drawn swash in the same six inks. Colour is applied at word
- * granularity, never per letter — a per-letter hue cycle at display weight
- * reads as a children's-book logo, which is the one thing this greeting
- * must not be. The inks stay load-bearing: they write the person's name.
+ * in flag order — magenta, amber, green, teal, blue, violet — as six HARD
+ * bands rather than a continuous smear, and is underscored by a
+ * hand-drawn swash in the same six inks in the same order. The drawn
+ * asset carries the identical six values natively, one solid ink per run
+ * of strokes, so no filter is needed to press it into the paper and
+ * neither state contains a grey, a pastel, or a second red.
  *
  * Material law: everything on this sheet is hand material (Shantell Sans
  * / the Lottie's handwriting). No other face enters the card.
@@ -24,15 +45,15 @@ import LottieAnimation from "astro-integration-lottie/Lottie.astro";
 import Hi from "~/assets/Hi.json?url";
 
 interface Props {
-	/** The greeting text; also the accessible <h1> content. */
+	/** The greeting text, e.g. "Hi, I'm Lars" — salutation plus name. */
 	greeting: string;
 	/** Small handwritten line below the greeting. */
 	subline: string;
 	/**
-	 * The signed name inside the greeting — the part that carries the pride
-	 * inks. Defaults to the greeting's last word ("Hi, ich bin **Lars**"),
-	 * which holds for both locales; pass it explicitly if a greeting ever
-	 * ends in something other than the name.
+	 * The signed name — the part that carries the pride inks and the part
+	 * the Lottie draws. Pass the full signature ("Lars Boese"); whatever
+	 * shorter form the greeting string ends with is replaced by it, so the
+	 * hand-set state, the drawn state and the `<h1>` all say one sentence.
 	 */
 	name?: string;
 }
@@ -40,14 +61,20 @@ interface Props {
 const { greeting, subline, name } = Astro.props;
 
 const text = greeting.trim();
-/* The signed part: the caller's name when the greeting really contains it,
-   otherwise the greeting's last word. Everything before it is salutation. */
-const signature = name && text.includes(name) ? name : text.slice(text.lastIndexOf(" ") + 1);
-const salutation = text
-	.slice(0, text.lastIndexOf(signature))
+/* The signed part: the caller's signature when given, otherwise the
+   greeting's last word. Everything before it is salutation — and when the
+   caller's signature extends the greeting's last word ("Lars" →
+   "Lars Boese") that last word is dropped, never printed twice. */
+const signature = name?.trim() || text.slice(text.lastIndexOf(" ") + 1);
+const before = text.includes(signature)
+	? text.slice(0, text.lastIndexOf(signature))
+	: text.slice(0, text.lastIndexOf(" ") + 1);
+const salutation = before
 	.trim()
 	.split(/\s+/)
 	.filter((word) => word.length > 0);
+/** What the h1 actually says, surname included, in the page's language. */
+const sentence = [...salutation, signature].join(" ");
 
 /** Baseline drift, in the order a hand writes: no word sits dead level. */
 const DRIFT = [
@@ -63,57 +90,78 @@ const drift = (i: number) => {
 ---
 
 <div class="hero-greeting">
-	<h1 class="hero-greeting__title">
-		<span class="sr-only">{greeting}</span>
-		<span class="hero-greeting__hand" aria-hidden="true">
-			{
-				salutation.map((word, i) => (
-					<>
-						<span class="hero-greeting__word" style={drift(i)}>
-							{word}
-						</span>{" "}
-					</>
-				))
-			}<span class="hero-greeting__sig" style={drift(salutation.length)}>
-				<span class="hero-greeting__name">{signature}</span>
-				<svg
-					class="hero-greeting__swash"
-					viewBox="0 0 120 9"
-					preserveAspectRatio="none"
-					fill="none"
-					aria-hidden="true"
-					focusable="false"
-				>
-					<linearGradient id="greeting-swash" x1="0" y1="0" x2="1" y2="0">
-						<stop offset="0%" stop-color="var(--ink-magenta)"></stop>
-						<stop offset="20%" stop-color="var(--ink-amber)"></stop>
-						<stop offset="40%" stop-color="var(--ink-green)"></stop>
-						<stop offset="60%" stop-color="var(--ink-teal)"></stop>
-						<stop offset="80%" stop-color="var(--ink-blue)"></stop>
-						<stop offset="100%" stop-color="var(--ink-violet)"></stop>
-					</linearGradient>
-					<path
-						d="M2 6 C 22 2.4, 54 1.6, 84 3.2 S 110 6, 118 2.8"
-						stroke="url(#greeting-swash)"
-						stroke-linecap="round"
-						vector-effect="non-scaling-stroke"></path>
-				</svg>
+	<p class="hero-greeting__salutation" aria-hidden="true">
+		{
+			salutation.map((word, i) => (
+				<>
+					<span class="hero-greeting__word" style={drift(i)}>
+						{word}
+					</span>{" "}
+				</>
+			))
+		}
+	</p>
+
+	{/* One grid cell, two states of the same name: the hand-set signature
+	    and the drawn one sit on top of each other and cross-fade. */}
+	<div class="hero-greeting__stage">
+		<h1 class="hero-greeting__title">
+			<span class="sr-only">{sentence}</span>
+			<span class="hero-greeting__hand" aria-hidden="true">
+				<span class="hero-greeting__sig" style={drift(salutation.length)}>
+					<span class="hero-greeting__name">{signature}</span>
+					<svg
+						class="hero-greeting__swash"
+						viewBox="0 0 120 9"
+						preserveAspectRatio="none"
+						fill="none"
+						aria-hidden="true"
+						focusable="false"
+					>
+						<linearGradient id="greeting-swash" x1="0" y1="0" x2="1" y2="0">
+							<stop offset="0%" stop-color="var(--ink-magenta)"></stop>
+							<stop offset="16.67%" stop-color="var(--ink-magenta)"></stop>
+							<stop offset="16.67%" stop-color="var(--ink-amber)"></stop>
+							<stop offset="33.33%" stop-color="var(--ink-amber)"></stop>
+							<stop offset="33.33%" stop-color="var(--ink-green)"></stop>
+							<stop offset="50%" stop-color="var(--ink-green)"></stop>
+							<stop offset="50%" stop-color="var(--ink-teal)"></stop>
+							<stop offset="66.67%" stop-color="var(--ink-teal)"></stop>
+							<stop offset="66.67%" stop-color="var(--ink-blue)"></stop>
+							<stop offset="83.33%" stop-color="var(--ink-blue)"></stop>
+							<stop offset="83.33%" stop-color="var(--ink-violet)"></stop>
+							<stop offset="100%" stop-color="var(--ink-violet)"></stop>
+						</linearGradient>
+						<path
+							d="M2 6 C 22 2.4, 54 1.6, 84 3.2 S 110 6, 118 2.8"
+							stroke="url(#greeting-swash)"
+							stroke-linecap="round"
+							vector-effect="non-scaling-stroke"></path>
+					</svg>
+				</span>
 			</span>
-		</span>
-	</h1>
-	<div class="hero-greeting__anim" aria-hidden="true">
-		<LottieAnimation src={Hi} autoplay={true} loop={false} />
+		</h1>
+		<div class="hero-greeting__anim" aria-hidden="true">
+			<LottieAnimation src={Hi} autoplay={true} loop={false} />
+		</div>
 	</div>
+
 	<p class="hero-greeting__subline">{subline}</p>
 </div>
 
 <script is:inline>
-	/* Hand over to the ink only once it has actually drawn.
-	   The player injects its <svg> before the first frame paints, and this
-	   asset draws on from nothing — so swapping on mere presence leaves a
-	   blank centerpiece whenever playback stalls (slow chunk, no rAF,
-	   screenshot bots). Marking the wrapper only after real geometry has
-	   been painted keeps the hand-set signature as the safe resting state. */
+	/* Hand over to the ink only while the ink is MOVING.
+	   Three jobs, in order of importance:
+	   1. Never blank. `data-anim` is set only after the player reports a
+	      frame past 0, and it is WITHDRAWN again the moment frames stop
+	      advancing before the end — so a stalled player, a throttled tab or
+	      a dropped chunk restores the hand-set signature instead of leaving
+	      an empty card. No JS and no player never set it at all.
+	   2. A watchable duration. The asset is authored at 100fps; the player
+	      is sped up so the draw lands at ~2.5s whatever the asset's length,
+	      derived from the file rather than hard-coded against it.
+	   3. Reduced motion means no draw at all: the player is stopped on the
+	      first frame it is found, and the CSS gate never opens. */
 	(() => {
 		const root = document.currentScript?.previousElementSibling?.closest?.(".hero-greeting");
 		const host = root ?? document.querySelector(".hero-greeting");
@@ -121,34 +169,64 @@ const drift = (i: number) => {
 		const frame = host.querySelector(".hero-greeting__anim");
 		if (!frame) return;
 
-		const painted = () => {
-			if (!frame.querySelector("svg")) return false;
-			/* Ask the player, not the layout: the frame is display:none
-			   until we hand over, so geometry cannot be measured.
-			   Hand over only once the ink is essentially all down. This
-			   asset draws on over ~5.7s from nothing, so swapping early
-			   trades a legible signature for an empty card — the exact
-			   blank hero a screenshot bot, a social-card crawler or a
-			   visitor on a slow chunk would otherwise be served. Waiting
-			   for the finished state means the card is never empty and
-			   never half-written: it holds the hand-set signature, then
-			   settles into the drawn one. */
+		const TARGET_SECONDS = 2.5;
+		/* frames must advance at least this often or the ink is not drawing */
+		const STALL_MS = 700;
+
+		const quiet = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+		let anim = null;
+		let tuned = false;
+		let done = false;
+		let seen = -1;
+		let movedAt = 0;
+		const startedAt = performance.now();
+
+		const find = () => {
+			if (!frame.querySelector("svg")) return null;
 			const list = window.lottie?.getRegisteredAnimations?.() ?? [];
-			const mine =
-				list.find((a) => a?.wrapper && frame.contains(a.wrapper)) ?? list[0];
-			if (!mine) return false;
-			const last = (mine.totalFrames || 0) - 1;
-			return last > 0 && mine.currentFrame >= last * 0.92;
+			return list.find((a) => a?.wrapper && frame.contains(a.wrapper)) ?? null;
 		};
 
-		/* generous: the draw itself takes ~5.7s, so the watch must outlast it */
-		const deadline = performance.now() + 12000;
-		const tick = () => {
-			if (painted()) {
-				host.dataset.anim = "drawn";
-				return;
+		const tick = (now) => {
+			anim = anim || find();
+
+			if (anim && !tuned && anim.totalFrames > 0) {
+				tuned = true;
+				if (quiet?.matches) {
+					anim.goToAndStop(0, true);
+					return; /* resolved state stands; nothing to watch */
+				}
+				const rate = anim.frameRate || 60;
+				const speed = anim.totalFrames / rate / TARGET_SECONDS;
+				if (speed > 0.1 && speed < 20) anim.setSpeed(speed);
+				anim.addEventListener?.("complete", () => {
+					done = true;
+					host.dataset.anim = "drawn";
+				});
 			}
-			if (performance.now() < deadline) requestAnimationFrame(tick);
+
+			if (anim && !done) {
+				const f = anim.currentFrame || 0;
+				if (f > seen) {
+					seen = f;
+					movedAt = now;
+				}
+				if (f >= anim.totalFrames - 1.5 && anim.totalFrames > 0) {
+					done = true;
+					host.dataset.anim = "drawn";
+				} else if (seen >= 1 && now - movedAt < STALL_MS) {
+					host.dataset.anim = "drawn";
+				} else if (seen >= 1) {
+					/* the ink stopped moving before the end — take the hand back */
+					delete host.dataset.anim;
+				}
+			}
+
+			if (done) return;
+			/* stop watching only if nothing ever started; a drawing player
+			   keeps the watch alive for as long as it keeps drawing */
+			if (seen < 1 && now - startedAt > 15000) return;
+			requestAnimationFrame(tick);
 		};
 		requestAnimationFrame(tick);
 	})();
@@ -159,35 +237,55 @@ const drift = (i: number) => {
 		text-align: center;
 	}
 
-	.hero-greeting__title {
+	/* The salutation is the quiet half of the card: the same pen, a step
+	   the reader reads as address rather than as name. It is set as TEXT,
+	   never drawn, which is the whole reason the card can be bilingual. */
+	.hero-greeting__salutation {
 		margin: 0;
-		/* Holds the card's proportion steady across the swap: the signature
-		   is shorter than the drawn ink, so the title reserves exactly the
-		   height the Lottie frame will take (97/557 of the card's width). */
-		display: grid;
-		align-content: center;
-		min-height: 4rem;
+		font-family: var(--font-hand);
+		font-weight: 400;
+		font-size: var(--step-2);
+		line-height: var(--lh-2);
+		letter-spacing: 0.005em;
+		color: var(--ink-soft);
 	}
 
-	@supports (container-type: inline-size) {
-		.hero-greeting {
-			container-type: inline-size;
-		}
+	/* ONE CELL, TWO STATES. Both children are placed at 1/1, so the card's
+	   height is the taller of the hand-set name and the drawn one and never
+	   changes at handover — no `display` swap, no min-height release, no
+	   layout shift. (The old build dropped the title box 56px → 0 in a
+	   single frame at exactly the moment the reader was looking at it.) */
+	.hero-greeting__stage {
+		display: grid;
+		align-items: center;
+		justify-items: center;
+		/* The drawn signature's width, in ems of the hand-set one it
+		   replaces. 4.6em is the value at which the two states carry the
+		   same ink: the artwork is a signature and packs more stroke into
+		   less width than the face does, so matching them on WIDTH would
+		   make the drawn ink half again as tall as the hand-set letters at
+		   the handover. Measured at 1440: hand-set 342 × 63, drawn 296 × 74. */
+		--sig-width: 4.6em;
+	}
 
-		.hero-greeting__title {
-			min-height: 17.4cqw;
-		}
+	.hero-greeting__title,
+	.hero-greeting__anim {
+		grid-area: 1 / 1;
+	}
+
+	.hero-greeting__title {
+		margin: 0;
+		font-weight: 400;
 	}
 
 	/* ---- the resolved state: a signature, not a headline ------- */
 	.hero-greeting__hand {
 		display: block;
 		font-family: var(--font-hand);
-		/* 400 = pen. The old 700 at 3rem was a marker, and a marker with
-		   colour in it reads as a logo. */
+		/* 400 = pen. A marker with colour in it reads as a logo. */
 		font-weight: 400;
-		font-size: clamp(1.625rem, 2.6vw, 2.25rem);
-		line-height: 1.3;
+		font-size: var(--step-6);
+		line-height: var(--lh-6);
 		letter-spacing: 0.005em;
 		color: var(--ink-soft);
 	}
@@ -203,8 +301,12 @@ const drift = (i: number) => {
 		position: relative;
 	}
 
-	/* The name is the one thing on this sheet the pride inks write. One
-	   continuous stroke through the flag order, not a hue per letter. */
+	/* The name is the one thing on this sheet the pride inks write — SIX
+	   BANDS, not a gradient. The old ramp interpolated between the six
+	   stops, so five-sixths of the stroke was a colour no ink on this wall
+	   uses (measured: 8.8 % of it sat at pure red, which the One Thread
+	   Rule reserves for the thread alone). Hard stops mean every pixel of
+	   the name is a declared ink and the flag reads as a flag. */
 	.hero-greeting__name {
 		font-weight: 500;
 		color: var(--ink-magenta);
@@ -213,25 +315,13 @@ const drift = (i: number) => {
 	@supports (background-clip: text) or (-webkit-background-clip: text) {
 		.hero-greeting__name {
 			background-image: linear-gradient(
-				100deg,
-				var(--ink-magenta) 0%,
-				var(--ink-amber) 20%,
-				var(--ink-green) 40%,
-				var(--ink-teal) 60%,
-				var(--ink-blue) 80%,
-				var(--ink-violet) 100%
-			);
-			/* The inks are authored in OKLCH; interpolating there keeps the
-			   magenta→amber crossover an orange instead of a mud brown.
-			   Declared second so browsers without it keep the sRGB ramp. */
-			background-image: linear-gradient(
-				100deg in oklch,
-				var(--ink-magenta) 0%,
-				var(--ink-amber) 20%,
-				var(--ink-green) 40%,
-				var(--ink-teal) 60%,
-				var(--ink-blue) 80%,
-				var(--ink-violet) 100%
+				95deg,
+				var(--ink-magenta) 0 16.67%,
+				var(--ink-amber) 16.67% 33.33%,
+				var(--ink-green) 33.33% 50%,
+				var(--ink-teal) 50% 66.67%,
+				var(--ink-blue) 66.67% 83.33%,
+				var(--ink-violet) 83.33% 100%
 			);
 			-webkit-background-clip: text;
 			background-clip: text;
@@ -240,7 +330,7 @@ const drift = (i: number) => {
 		}
 	}
 
-	/* the signing stroke under the name — same six inks, hand-drawn */
+	/* the signing stroke under the name — same six inks, same six bands */
 	.hero-greeting__swash {
 		position: absolute;
 		left: -7%;
@@ -264,47 +354,63 @@ const drift = (i: number) => {
 		}
 	}
 
-	/* Lottie frame — hidden until the player has actually injected its svg */
+	/* ---- the drawn state --------------------------------------- */
+	/* Sized in em against the hand-set name it replaces, so the two states
+	   are the same signature at the same scale at every viewport width and
+	   the cross-fade is a hand settling, not a jump. Width, not height,
+	   because the asset's own aspect ratio then supplies the height and
+	   nothing can shift. Hidden by default: it earns its opacity from the
+	   script, and only where motion is welcome. */
 	.hero-greeting__anim {
-		display: none;
-		width: 100%;
-		aspect-ratio: 557 / 97;
+		width: var(--sig-width);
+		aspect-ratio: 341 / 79;
+		font-size: var(--step-6);
+		opacity: 0;
 	}
 
 	.hero-greeting__subline {
 		margin: calc(var(--baseline) * 2) 0 0;
 		font-family: var(--font-hand);
-		font-weight: 400;
-		font-size: 1rem;
+		/* one hand at one setting: identical to every margin note in the
+		   first viewport (--step--1 / 500), so the sheet reads as one pen */
+		font-weight: 500;
+		font-size: var(--step--1);
+		line-height: var(--lh--1);
 		color: var(--ink-soft);
 	}
 </style>
 
 <style is:global>
-	/* Swap the hand-set signature for the drawing ink only when motion is
-	   welcome AND the Lottie really painted. Reduced motion, no JS, or a
-	   failed load all keep the resolved signature. */
-	@media (prefers-reduced-motion: no-preference) {
-		.hero-greeting[data-anim="drawn"] .hero-greeting__anim {
-			display: block;
-		}
-
-		.hero-greeting[data-anim="drawn"] .hero-greeting__hand {
-			display: none;
-		}
-
-		/* the drawn ink brings its own frame height; release the reserve */
-		.hero-greeting[data-anim="drawn"] .hero-greeting__title {
-			min-height: 0;
-		}
-	}
-
+	/* CROSS-FADE, NOT SWAP. Both states occupy the same cell; the drawn one
+	   fades up as soon as the ink is moving and the hand-set one dissolves
+	   under it a beat later, so the card is written rather than replaced —
+	   and is never empty in between. Withdrawing `data-anim` (a stalled
+	   player) runs the same transition backwards. */
 	.hero-greeting__anim svg {
 		display: block;
 		width: 100%;
 		height: 100%;
-		/* The asset's strokes are pastel; press the same hues deeper into
-		   the paper so the greeting holds up against --paper. */
-		filter: brightness(0.62) saturate(1.9);
+		/* No filter. The asset now carries the six declared inks natively;
+		   `saturate()` cannot manufacture chroma out of grey, which is what
+		   the old `brightness(.62) saturate(1.9)` was being asked to do. */
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.hero-greeting__title,
+		.hero-greeting__anim {
+			transition: opacity calc(var(--t-settle) * 3) var(--e-out);
+		}
+
+		.hero-greeting__title {
+			transition-delay: calc(var(--t-settle) * 1.5);
+		}
+
+		.hero-greeting[data-anim="drawn"] .hero-greeting__anim {
+			opacity: 1;
+		}
+
+		.hero-greeting[data-anim="drawn"] .hero-greeting__title {
+			opacity: 0;
+		}
 	}
 </style>

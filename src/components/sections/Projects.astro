@@ -11,6 +11,7 @@ import HandNote from "~/components/wall/HandNote.astro";
 import PinCard from "~/components/wall/PinCard.astro";
 import Polaroid from "~/components/wall/Polaroid.astro";
 import Stamp from "~/components/wall/Stamp.astro";
+import Sticker from "~/components/wall/Sticker.astro";
 import { getWall, type Locale } from "~/data/i18n";
 import { SNAPSHOT_AS_OF } from "~/data/snapshot";
 import VrHeadsetSketch from "./VrHeadsetSketch.svelte";
@@ -161,6 +162,7 @@ const [ayakoBody, v3Body] = ayako.body;
 			<div class="film-strip">
 				<span class="brass-pin strip-pin strip-pin--left" aria-hidden="true"></span>
 				<span class="brass-pin strip-pin strip-pin--right" aria-hidden="true"></span>
+				<Sticker name="peek" size={4.5} rotate={-7} class="strip-sticker" />
 				<ul class="frames" role="list">
 					{
 						vrTools.map((tool) => (
@@ -405,6 +407,29 @@ const [ayakoBody, v3Body] = ayako.body;
 	}
 	.strip-pin--right {
 		right: calc(var(--baseline) * 4);
+	}
+
+	/* the one sticker on this wall: Ayako peeking over the filmstrip's top
+	   edge. Anchored to the strip itself so she travels with it in every
+	   locale; the baseline of clearance keeps the TILTED box off the paper
+	   (a 7° corner swings ~4 px below the upright edge) — she rests on the
+	   cork just above the edge, never on the card face.
+	   The strip is centered in the viewport, so the crimson thread always
+	   crosses it at 50 % — 57 % parks her clear of the thread, clear of
+	   both brass pins, and clear of the sketch polaroid above.
+	   Absolutely positioned: no strip geometry changes. */
+	.projects :global(.strip-sticker) {
+		position: absolute;
+		left: 57%;
+		bottom: calc(100% + var(--baseline));
+	}
+
+	/* stacked layout leaves only the bare row gap above the strip — not
+	   enough cork to stick anything on */
+	@media (max-width: 48rem) {
+		.projects :global(.strip-sticker) {
+			display: none;
+		}
 	}
 
 	.frames {

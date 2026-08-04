@@ -16,6 +16,7 @@ import path from "node:path";
 import HandNote from "~/components/wall/HandNote.astro";
 import PinCard from "~/components/wall/PinCard.astro";
 import Stamp from "~/components/wall/Stamp.astro";
+import Sticker from "~/components/wall/Sticker.astro";
 import Thread from "~/components/wall/Thread.astro";
 import { getWall, type Locale } from "~/data/i18n";
 import { ihk } from "~/data/snapshot";
@@ -43,6 +44,14 @@ const assetExists = (publicPath: string): boolean => {
 /* ---- merge career + education into one chronological path --------- */
 
 const FLAGSHIP_ID = "ihk-final-project-2025";
+
+/* The one sticker this section carries. The 2019 row is a RIGHT card, so
+   its whole left grid column is bare cork — the widest empty run on the
+   wall, far outside the thread's ±76px corridor and on the opposite side
+   from that row's date stamp. Artwork: the pixel-art Ayako, the lowest-
+   resolution version of her, against the line that reads "Ayako begins
+   as a single JavaScript file". */
+const STICKER_ROW_ID = "start-2019";
 
 /**
  * Education entries whose facts already appear verbatim on the
@@ -227,6 +236,11 @@ const links = layout.map(({ side }, i) => {
 								</>
 							)}
 							<span class="brass-pin rf-pin" aria-hidden="true" />
+							{row.entry.id === STICKER_ROW_ID && (
+								<span class="rf-sticker" aria-hidden="true">
+									<Sticker name="pixel" size={4.25} rotate={-7} />
+								</span>
+							)}
 							<div class="rf-cardwrap">
 								<span class="rf-stampwrap">
 									<Stamp
@@ -536,6 +550,15 @@ const links = layout.map(({ side }, i) => {
 		margin-left: calc(var(--baseline) * 3);
 	}
 
+	/* ---- sticker ----------------------------------------------------- */
+	/* Below 48rem every card runs the full width beside the thread and the
+	   only bare strip left is the 40px the thread itself occupies — there
+	   is no cork to spare, so the sticker is desktop-only. */
+
+	.rf-sticker {
+		display: none;
+	}
+
 	/* ---- desktop: cards alternate around the 15rem spine ------------- */
 
 	@media (min-width: 48rem) {
@@ -691,6 +714,20 @@ const links = layout.map(({ side }, i) => {
 
 		.rf-row--wide .rf-cardwrap .rf-scrap {
 			margin-left: 55%;
+		}
+
+		/* the 2019 row is a RIGHT card: its left grid column holds no card,
+		   no stamp, no scrap and no thread (the corridor is 50%±76px). The
+		   sticker sits in that alley, centred on the row so it keeps its
+		   distance from the left-hand cards in the rows above and below,
+		   and under z-index 1 so paper always paints over it. */
+		.rf-sticker {
+			display: block;
+			position: absolute;
+			z-index: 0;
+			top: 50%;
+			left: calc(var(--baseline) * 9);
+			translate: 0 -50%;
 		}
 	}
 </style>

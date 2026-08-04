@@ -2,28 +2,47 @@
 /**
  * LangTab — the language switcher as a wall artifact, not a UI widget.
  *
- * A small paper tab pinned beside the title card: typed face (Courier
- * Prime 700), its own brass mini-pin, one tilt step like every pinned
- * sheet. The `.pinned` foundation supplies the hover settle (150ms,
- * motion-gated) and the global :focus-visible thread ring supplies the
- * focus state. No flags, no globe icons — just the other language's
- * name typed on paper.
+ * A small paper tab pinned beside the title card. It reads as a CONTROL,
+ * not a label: both languages are shown as a pair, the current one
+ * pressed into the paper and the other standing as an underlined link in
+ * thread red, with a hand-inked exchange arrow between them. Earlier the
+ * tab printed only the other language's name in typed caps, which read
+ * as a heading — a single word on paper gives a reader nothing to
+ * recognise as clickable.
  *
- * The link's label, href, hreflang, and aria-label come from the
- * locale's ui.langSwitch (EN page → "Deutsch" → /de/, DE page →
- * "English" → /).
+ * `.pinned` supplies the hover settle (150ms, motion-gated); the global
+ * :focus-visible thread ring supplies the focus state. No flags, no
+ * globe icons — the wall draws its own marks.
+ *
+ * Label, href, hreflang and aria-label come from the locale's
+ * ui.langSwitch (EN page → "Deutsch" → /de/, DE page → "English" → /).
  */
 interface Props {
+	/** The OTHER language's name, e.g. "Deutsch" on the English page. */
 	label: string;
 	href: string;
+	/** The other language's code, e.g. "de". */
 	hreflang: string;
 	ariaLabel: string;
+	/** The CURRENT page's language code, e.g. "en". */
+	currentLang: string;
 	/** rotation step: -1 | 0 | 1 → ±1.2deg; alternate against the neighbor card */
 	rotate?: -1 | 0 | 1;
 	class?: string;
 }
 
-const { label, href, hreflang, ariaLabel, rotate = -1, class: className } = Astro.props;
+const {
+	label,
+	href,
+	hreflang,
+	ariaLabel,
+	currentLang,
+	rotate = -1,
+	class: className
+} = Astro.props;
+
+const here = currentLang.slice(0, 2).toUpperCase();
+const there = hreflang.slice(0, 2).toUpperCase();
 ---
 
 <a
@@ -31,11 +50,25 @@ const { label, href, hreflang, ariaLabel, rotate = -1, class: className } = Astr
 	style={`--tilt:${rotate};`}
 	href={href}
 	hreflang={hreflang}
-	lang={hreflang}
 	aria-label={ariaLabel}
 >
 	<span class="brass-pin lang-tab__pin" aria-hidden="true"></span>
-	{label}
+	<span class="lang-tab__here" aria-hidden="true">{here}</span>
+	<svg class="lang-tab__arrow" viewBox="0 0 22 12" aria-hidden="true" fill="none">
+		<path
+			d="M2 6.2 C 7 5.4, 13 5.8, 19.4 5.6"
+			stroke="currentColor"
+			stroke-width="1.6"
+			stroke-linecap="round"></path>
+		<path
+			d="M15.6 2.4 L 19.8 5.6 L 15.7 9"
+			stroke="currentColor"
+			stroke-width="1.6"
+			stroke-linecap="round"
+			stroke-linejoin="round"></path>
+	</svg>
+	<span class="lang-tab__there" lang={hreflang}>{there}</span>
+	<span class="lang-tab__word" lang={hreflang}>{label}</span>
 </a>
 
 <style>
@@ -43,27 +76,70 @@ const { label, href, hreflang, ariaLabel, rotate = -1, class: className } = Astr
 		position: relative;
 		display: inline-flex;
 		align-items: center;
-		justify-content: center;
+		gap: calc(var(--baseline) * 0.75);
 		/* tap target ≥44px in both axes */
 		min-width: 44px;
 		min-height: 44px;
-		padding: calc(var(--baseline) * 1.5) calc(var(--baseline) * 2);
+		padding: calc(var(--baseline) * 1.75) calc(var(--baseline) * 2);
 		background: var(--paper);
 		box-shadow: var(--pin-shadow);
 		font-family: var(--font-typed);
-		font-weight: 700;
-		font-size: 0.9375rem;
+		font-size: 0.875rem;
 		line-height: 1;
 		letter-spacing: 0.04em;
-		color: var(--ink);
+		color: var(--ink-soft);
 		text-decoration: none;
 	}
 
-	.lang-tab:hover {
+	/* the current language: pressed into the paper, plainly inert */
+	.lang-tab__here {
+		font-weight: 400;
+		color: var(--ink-soft);
+		opacity: 0.65;
+	}
+
+	/* the hand-inked exchange arrow between the pair */
+	.lang-tab__arrow {
+		width: 1.125rem;
+		height: auto;
+		color: var(--ink-soft);
+		opacity: 0.75;
+	}
+
+	/* the destination: the only thing here that looks clickable */
+	.lang-tab__there {
+		font-weight: 700;
+		color: var(--thread);
 		text-decoration: underline;
 		text-decoration-thickness: 2px;
-		text-decoration-color: var(--thread);
-		text-underline-offset: 4px;
+		text-underline-offset: 3px;
+	}
+
+	/* the full language name, so the control is never a bare code */
+	.lang-tab__word {
+		font-weight: 700;
+		color: var(--thread);
+		text-decoration: underline;
+		text-decoration-thickness: 2px;
+		text-underline-offset: 3px;
+	}
+
+	/* the pair is enough on narrow tabs; the word carries wider ones */
+	@media (max-width: 26rem) {
+		.lang-tab__word {
+			display: none;
+		}
+	}
+
+	@media (min-width: 26.0625rem) {
+		.lang-tab__there {
+			display: none;
+		}
+	}
+
+	.lang-tab:hover .lang-tab__there,
+	.lang-tab:hover .lang-tab__word {
+		text-decoration-thickness: 3px;
 	}
 
 	/* the mini-pin: a smaller head than the card pins, same brass */

@@ -99,7 +99,7 @@ components:
 
 The site is a career pinned to a cork wall by its owner's hand. One crimson thread — *der rote Faden*, German for both a literal red thread and a story's through-line — enters at a stamped 12/2019 pin in the hero, stitches every artifact in chronological order down the whole page, and is cut in a loose knot on open cork just before the contact corner. Everything on screen is a physical object on that wall: typed index cards, flyer posters, clean print-outs, polaroids, handwritten margin notes, brass pins, circular rubber stamps. The world refuses the dark-neon developer-dashboard default and the neutral CV alike (the direction contract committed in `src/layouts/main.astro`).
 
-The wall proves instead of asserting. Every figure on it carries its unit and its as-of date; standalone dates arrive as hand-pressed stamps; telemetry hangs as annotated chart print-outs with the data repeated in a folded table. The six pride inks are the owner's working colors — they write the margin notes and encode the chart series — and the house-rules flyer states in League Gothic that removing them makes the wall stop making sense. Two durable brand commitments live here: the handwritten Lottie greeting (drawn in pride inks) survives every redesign, and queer-friendliness is expressed openly as identity, not decoration.
+The wall proves instead of asserting. Every figure on it carries its unit and its as-of date; standalone dates arrive as hand-pressed stamps; telemetry hangs as annotated chart print-outs with the data repeated in a folded table. The six pride inks are the owner's working colors — they write the margin notes and encode the chart series — and the house-rules flyer states in League Gothic that removing them makes the wall stop making sense. Each ink carries one declared job in the margins (ownership, method, provenance, the run, the limit, the way in), so a handwritten note's colour is read, not admired. Two durable brand commitments live here: the handwritten Lottie greeting (drawn in pride inks) survives every redesign, and queer-friendliness is expressed openly as identity, not decoration.
 
 Density is a curated collage: artifacts cluster, overlap, and tilt, but a hidden 12-column grid organizes every placement and the tilt comes in fixed ±1.2° steps. Motion is quiet and physical — the thread draws itself as the wall scrolls, pins settle in 150ms, and every animation has a designed resolved state that stands on its own wherever motion is unwelcome or unsupported.
 
@@ -120,13 +120,13 @@ A warm paper-and-cork neutral field where one crimson accent does the structure 
 - **Crimson Thread** (`oklch(50% 0.19 22)`, ≈ #b7162d): the one structural accent. It is the thread itself (2.5px stroke), the focus ring on every interactive element, link underlines, the hand-drawn headline rules under flyer titles, the selection tint, and — darkened one step toward ink via `color-mix` — the rubber-stamp ink. Nothing else on the wall gets to be red.
 
 ### Secondary
-The six pride inks — deep, deliberately darkened so each holds ≥4.5:1 as text on paper. They are working colors with two jobs: handwritten annotations (HandNote) and deterministic chart-series encoding (an entity registers an ink on first sight in `getCharts` and keeps it across every chart; two entities never share an ink on one sheet).
-- **Magenta Ink** (`oklch(45% 0.19 350)`, ≈ #9a0064): first ink in flag order; Ayako's series color.
-- **Violet Ink** (`oklch(42% 0.17 300)`, ≈ #5e2b9a): annotations; series color.
-- **Teal Ink** (`oklch(44% 0.09 200)`, ≈ #006166): annotations (the timeline's margin note, the VR bench note); series color.
-- **Green Ink** (`oklch(44% 0.12 150)`, ≈ #03642b): annotations (the 12/2019 origin note, the free-forever note); series color.
-- **Amber Ink** (`oklch(48% 0.11 70)`, ≈ #845000): annotations ("The only address I publish", the house-rules note); series color.
-- **Blue Ink** (`oklch(44% 0.15 260)`, ≈ #184da3): annotations; series color; at 20% opacity it also rules the index-card lines.
+The six pride inks — deep, deliberately darkened so each holds ≥4.5:1 as text on paper. They are working colors with two jobs, each with its own code: handwritten annotations (HandNote), where the ink names the *kind of claim* the note makes (The Annotation Ink Rule, below), and deterministic chart-series encoding (an entity registers an ink on first sight in `getCharts` and keeps it across every chart; two entities never share an ink on one sheet).
+- **Magenta Ink** (`oklch(45% 0.19 350)`, ≈ #9a0064): annotation job — **mine alone**: sole ownership and the scale it reaches ("one person runs all of this"; the Ayako lifetime-share note). First ink in flag order; Ayako's series color.
+- **Violet Ink** (`oklch(42% 0.17 300)`, ≈ #5e2b9a): annotation job — **the method**: how I work, and how that changed (the TypeScript byte-share note on the bot-building years; "rules written after incidents, not before"). Series color.
+- **Teal Ink** (`oklch(44% 0.09 200)`, ≈ #006166): annotation job — **the provenance**: how a figure was measured, how the record is kept, who checked it ("the meter has run every day since 2021"; "the examined piece — the code is public"; the timeline's one-history note; the VR bench's first-hand note). Series color.
+- **Green Ink** (`oklch(44% 0.12 150)`, ≈ #03642b): annotation job — **the run**: when something started, and that it has not stopped (the 12/2019 origin note, "this is where the thread starts", "the thread has not stopped", the free-forever note). Series color.
+- **Amber Ink** (`oklch(48% 0.11 70)`, ≈ #845000): annotation job — **the limit**: what is unverified, what is the only one, what a thing is not (Kiyu's "10,000+ servers" caveat; "The only address I publish"; "House rules are mutual-fit criteria, not decoration"). Series color.
+- **Blue Ink** (`oklch(44% 0.15 260)`, ≈ #184da3): annotation job — **the way in**: how to reach me ("this address reaches me directly"). Series color; at 20% opacity it also rules the index-card lines.
 
 ### Tertiary
 - **Brass** (`oklch(70% 0.09 85)`, ≈ #b89a5a): hardware only. Rendered as a lit sphere (radial gradient from a 40%-white mix through brass to a 55%-black mix) for the 14px pins, the filmstrip's end pins, and the 44px scroll-to-top pin. Never a text or surface color.
@@ -144,7 +144,24 @@ The six pride inks — deep, deliberately darkened so each holds ≥4.5:1 as tex
 
 **The Working Ink Rule.** The six pride inks are load-bearing: they annotate the wall and encode the data series, and the house-rules flyer says so in type ("remove them and the wall stops making sense"). An ink that is neither writing a note nor naming a series has no business on the wall.
 
-**The Paper Slip Rule.** Handwritten ink goes on paper, not raw cork. Every pride ink clears 4.5:1 on `--paper`; green, violet, and blue do not clear raw cork, so freestanding notes ride small paper slips with the pin shadow.
+**The Annotation Ink Rule.** A handwritten note's ink names the kind of claim the note is making. Six inks, six jobs, and no note may wear an ink whose job it is not doing:
+
+| Ink | Job | The note answers |
+| --- | --- | --- |
+| Magenta | **Mine alone** — sole ownership and the scale it reaches | *Who owns this, and how big is it?* |
+| Violet | **The method** — how I work, and how that changed | *How is the work done?* |
+| Teal | **The provenance** — how a figure was measured, how the record is kept, who checked it | *How do you know?* |
+| Green | **The run** — when it started, and that it has not stopped | *Since when, and is it still going?* |
+| Amber | **The limit** — what is unverified, what is the only one, what a thing is not | *Where does this claim stop?* |
+| Blue | **The way in** — how to reach me | *What do I do next?* |
+
+Three consequences make the code checkable rather than decorative. First, **the ink follows the claim, not the date**: a note may mention a year and still not be green — "in production since 2019 — one person runs all of this" is magenta because its claim is sole ownership, and "the meter has run every day since 2021" is teal because its claim is that the record has no gaps. Second, **repetition is the point**: green opens and closes the thread (the hero's 12/2019 pin, "this is where the thread starts", "the thread has not stopped") and teal appears wherever something was measured or examined, so a reader who has decoded one note has decoded the wall. Third, **an ink is content, so it never translates** — `wall.ts` and `wall.de.ts` carry the same ink on the same note.
+
+One exception, and it is the sibling code, not an escape: a telemetry sheet's margin note quotes a figure printed on its own sheet, so it is written in the ink of the mark it quotes — the registered series ink on a bar chart, the cell ink on the habit grid — and works as a legend pointing at the data. Inside a telemetry print-out, ink means *which mark*; everywhere else on the wall it means *which kind of claim*.
+
+The house-rules flyer is where the code is stated out loud rather than used: it is not an annotation — it is the wall's colour statement in League Gothic, one ink per rule — and its four statements are set in the inks of the four jobs they describe (magenta: the inks are mine; violet: moderation is infrastructure I built and run; teal: every figure carries its unit and its as-of date; blue: write to jobs@lars-dev.org).
+
+**The Paper Slip Rule.** Handwritten ink goes on paper, not raw cork. Measured against the flat tokens, every ink is comfortable on `--paper` (6.27:1 amber to 8.57:1 violet) but only marginal on `--cork` (amber 4.52:1, teal 4.87:1, green 4.94:1) — and cork is never flat: it carries the grain, the stickers, and the thread. So a freestanding note rides a small paper slip with the pin shadow, which buys back roughly two points of contrast and keeps the thread from crossing ink. Three notes do sit on bare cork today (the hero's meter note in teal, the contact and house-rules notes in amber) — they hold, but with the least headroom of any note on the wall, so a new cork note is measured, never assumed.
 
 ## Typography
 
@@ -219,7 +236,7 @@ The universal container: paper ground, pin shadow, 24px padding, a centered bras
 - There is no secondary or ghost button; secondary actions are thread-underlined links.
 
 ### HandNote (annotation)
-Shantell Sans 500 in one of the six pride inks via `color: var(--ink-*)`, small rotation (−2° to +1.5°). Rides directly on a card's margin or, when freestanding on cork, on a paper slip (fit-content, pin shadow, 8–12px padding). Never body copy, never more than a sentence or two.
+Shantell Sans 500 in one of the six pride inks via `color: var(--ink-*)`, small rotation (−2° to +1.5°). Rides directly on a card's margin or, when freestanding on cork, on a paper slip (fit-content, pin shadow, 8–12px padding). Never body copy, never more than a sentence or two. The ink is not a choice of hue but a choice of meaning — pick it from The Annotation Ink Rule (mine alone / the method / the provenance / the run / the limit / the way in), and set the same ink on the note's German twin.
 
 ### Polaroid
 Paper frame (12px sides, 16px chin), aged-paper photo well at `aspect-ratio: 8/9` (4/3 for the landscape VR sketch), image `object-fit: cover`, hand-face caption centered below, brass pin on top. Carries the Ayako portrait in the hero and projects, and hosts the site's one three.js touch: an ink-wireframe VR headset drawn on aged paper, drag-to-spin.
@@ -261,7 +278,8 @@ Chart sheets as print PinCards: SSR ECharts SVG on paper ground, series in the d
 ### Do:
 - **Do** pin every new artifact properly: paper or aged-paper ground, the single pin shadow, a brass pin bridging the top edge, and a tilt step from {−1, 0, 1} — neighbors never share a tilt.
 - **Do** set every figure with its unit and as-of date, and stamp standalone dates ("as of" sub + ISO date). A number without provenance doesn't go on the wall.
-- **Do** keep handwritten pride ink on paper — put freestanding notes on paper slips; green, violet, and blue do not clear 4.5:1 on raw cork.
+- **Do** keep handwritten pride ink on paper — put freestanding notes on paper slips; on bare cork the whole set sits within half a point of the 4.5:1 floor (amber 4.52:1, teal 4.87:1, green 4.94:1), and a slip lifts every ink past 6:1.
+- **Do** choose a new annotation's ink from its job (The Annotation Ink Rule) and give the German twin the same ink. If the note fits no job, the note is wrong, not the code — rewrite the note or leave it unwritten.
 - **Do** design the resolved state first and gate motion behind `@supports (animation-timeline: view())` and `prefers-reduced-motion: no-preference`; the CSS default state is the finished one.
 - **Do** draw new icons in the house grammar: 24px viewBox, stroke 1.75, `currentColor`, round caps and joins, a deliberate waver in every path.
 - **Do** keep the wall's German artifacts German with `lang="de"` — "Werdegang", "2010 – heute", the HEUTE stamp — the market literacy is part of the design.
@@ -275,3 +293,4 @@ Chart sheets as print PinCards: SSR ECharts SVG on paper ground, series in the d
 - **Don't** let the AI-workflow story outscale the human record: it stays a subordinate typed index card; the values flyer stays the louder artifact.
 - **Don't** let the thread cross printed text or sit above paper — it runs behind and surfaces in cork gaps only.
 - **Don't** introduce a second red or spend `--thread` on fills; it is thread, stamp ink, focus ring, and underline — its scarcity is the structure.
+- **Don't** pick an annotation ink for variety, contrast, or "because the neighbour is already teal". Two notes making the same kind of claim share an ink on purpose; an ink chosen to look different is the one way this palette turns back into decoration.

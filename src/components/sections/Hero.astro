@@ -14,7 +14,18 @@
  * users, its servers and the year it went to production; band 2 is the
  * signature, the evidence print-out, the polaroid as a pinned exhibit at
  * the right, and the contact button. Reading order: claim → evidence →
- * exhibit → action. The whole cluster closes above the fold at
+ * exhibit → action.
+ *
+ * ONE READING ORDER, and the document holds it. The markup below is
+ * written in the narrative's own sequence — origin stamp, signature,
+ * CLAIM, EVIDENCE, EXHIBIT, ACTION — so the story a sighted reader walks
+ * is the story a screen reader reads out and the sequence a keyboard
+ * walks. Neither breakpoint re-sorts it: the stacked column is a plain
+ * flex column in source order (no `order` anywhere in this file), and the
+ * desktop wall reaches its two bands through explicit grid-column /
+ * grid-row placement. If an artifact ever has to move on the wall, move
+ * its grid placement — never the markup, and never with `order`.
+ * The whole cluster closes above the fold at
  * 1440 × 900 (board 690px tall), so every one of those four lands in the
  * first viewport. The polaroid stays a first-viewport artifact at a
  * legible 15rem — this is a change of RANK, never a demotion.
@@ -158,10 +169,44 @@ const THREAD_MOBILE = {
 				<Greeting greeting={hero.greeting} subline={hero.greetingSubline} />
 			</div>
 
-			<!-- Ayako polaroid: a product artifact, labelled like one —
-			     the caption names the thing on line one and measures it on
-			     line two (the newline is joined here so the data keeps two
-			     clean strings; see .hero__polaroid-slot styles) -->
+			<!-- CLAIM. Typed record card: what / who / where. It leads the
+			     cluster, so the MEASURED claim (intro[1]: the bot, its users,
+			     its servers, the year it went to production) is typed on the
+			     card's first rules and the employment record follows on the
+			     next ones. Both strings stay verbatim from the data layer —
+			     only which one the card opens with changed. -->
+			<div class="hero__intro-slot">
+				<PinCard variant="typed" rotate={1}>
+					<p class="hero__intro-lead">{hero.intro[1]}</p>
+					<p>{hero.intro[0]}</p>
+					<p>{hero.location}</p>
+					<p class="hero__intro-langs">{hero.languages}</p>
+				</PinCard>
+			</div>
+
+			<!-- EVIDENCE. The hand-annotated telemetry print-out that proves
+			     the claim above it. -->
+			<div class="hero__telemetry-slot">
+				<PinCard variant="print" rotate={-1} as="article">
+					<h2 class="hero__telemetry-title">{hero.telemetryCard.title}</h2>
+					<ul class="hero__telemetry-lines" role="list">
+						{telemetryLines.map((line) => <li>{line}</li>)}
+					</ul>
+					<p class="hero__telemetry-source">{sourceLine}</p>
+				</PinCard>
+				<div class="hero__telemetry-note">
+					<HandNote ink={hero.telemetryCard.annotation.ink}>
+						{hero.telemetryCard.annotation.text}
+					</HandNote>
+				</div>
+			</div>
+
+			<!-- EXHIBIT. Ayako polaroid: a product artifact, labelled like
+			     one — the caption names the thing on line one and measures it
+			     on line two (the newline is joined here so the data keeps two
+			     clean strings; see .hero__polaroid-slot styles). It is the
+			     thing the claim and the evidence are ABOUT, so it follows
+			     them in the document; the grid pins it to the right edge. -->
 			<div class="hero__polaroid-slot">
 				<Polaroid caption={`${hero.polaroid.label}\n${hero.polaroid.caption}`} rotate={0}>
 					<img
@@ -179,38 +224,9 @@ const THREAD_MOBILE = {
 				</div>
 			</div>
 
-			<!-- typed record card: what / who / where. It leads the cluster,
-			     so the MEASURED claim (intro[1]: the bot, its users, its
-			     servers, the year it went to production) is typed on the
-			     card's first rules and the employment record follows on the
-			     next ones. Both strings stay verbatim from the data layer —
-			     only which one the card opens with changed. -->
-			<div class="hero__intro-slot">
-				<PinCard variant="typed" rotate={1}>
-					<p class="hero__intro-lead">{hero.intro[1]}</p>
-					<p>{hero.intro[0]}</p>
-					<p>{hero.location}</p>
-					<p class="hero__intro-langs">{hero.languages}</p>
-				</PinCard>
-			</div>
-
-			<!-- hand-annotated telemetry print-out -->
-			<div class="hero__telemetry-slot">
-				<PinCard variant="print" rotate={-1} as="article">
-					<h2 class="hero__telemetry-title">{hero.telemetryCard.title}</h2>
-					<ul class="hero__telemetry-lines" role="list">
-						{telemetryLines.map((line) => <li>{line}</li>)}
-					</ul>
-					<p class="hero__telemetry-source">{sourceLine}</p>
-				</PinCard>
-				<div class="hero__telemetry-note">
-					<HandNote ink={hero.telemetryCard.annotation.ink}>
-						{hero.telemetryCard.annotation.text}
-					</HandNote>
-				</div>
-			</div>
-
-			<!-- the pinned primary action -->
+			<!-- ACTION. The pinned primary action — the cluster's last beat
+			     and the hero's only focusable element, so it is also the last
+			     tab stop in the first viewport. -->
 			<div class="hero__action">
 				<PinButton href={hero.primaryAction.href} rotate={1}>
 					{hero.primaryAction.label}
@@ -293,6 +309,14 @@ const THREAD_MOBILE = {
 	   record card passes ABOVE the slip instead of under it */
 	.hero__origin-note {
 		max-width: 16rem;
+		/* the slip is a flex item beside the stamp, and a flex item's
+		   default min-width is its longest word: at big type sizes the
+		   16rem cap stops binding and the slip pushes out of its four
+		   columns onto the record card (measured: 5px into it at 1024 with
+		   type at 2×). min-width: 0 lets it wrap inside its columns
+		   instead. Nothing moves at normal type — 16rem is well inside the
+		   track there, so the item never shrinks. */
+		min-width: 0;
 		margin-top: calc(var(--baseline) * 7);
 		rotate: -1.5deg;
 		/* paper slip: these notes sit in the thread's path */
@@ -405,6 +429,8 @@ const THREAD_MOBILE = {
 		   thread crosses between them */
 		margin-top: calc(var(--baseline) * 4);
 		position: relative;
+		/* query container for the annotation's zoom fallback below */
+		container: hero-evidence / inline-size;
 	}
 
 	/* The evidence sheet is the loudest print on the wall: this is the
@@ -443,16 +469,52 @@ const THREAD_MOBILE = {
 		color: var(--ink-soft);
 	}
 
-	/* the annotation hangs off the print-out's bottom edge, held clear of
-	   both the polaroid's column and the thread's run down to the board's
-	   bottom edge — this slip has no paper under it, so no yarn may
-	   cross it */
+	/* The annotation is pinned to the CORK below the print-out, never on it:
+	   a note slip sits beside the sheet it annotates and no slip prints over
+	   a sheet (DESIGN.md, the paper law). Two numbers hold that:
+
+	   — bottom: -72px clears the note's own 45.5px box plus the card's ~5px
+	     rotation overhang, leaving ≥21px of bare cork between the sheet's
+	     bottom edge and the top of the handwriting at every desktop width.
+	     The previous -32px left the note's box 15px INSIDE the card.
+	   — hung under the card's middle rather than its right corner: this slip
+	     has no paper under it, so no yarn may cross it, and the thread's
+	     exit run (polaroid pin → the board's bottom edge at x ≈ 67 %) sweeps
+	     leftward across exactly the band the note used to occupy. Off-centre
+	     by 16px so the slip reads pinned, not typeset. */
 	.hero__telemetry-note {
 		position: absolute;
-		right: calc(var(--baseline) * 5);
-		bottom: calc(var(--baseline) * -4);
+		left: 50%;
+		translate: calc(-50% - var(--baseline) * 2) 0;
+		bottom: calc(var(--baseline) * -9);
 		max-width: 15rem;
 		rotate: 1.5deg;
+	}
+
+	/* ZOOM SAFETY NET. The hang above is the only absolute position left in
+	   the hero, and it is the one thing here that cannot survive type
+	   growing on its own: the clearance is spent in fixed px (--baseline is
+	   8px, always) while the slip's height is set in em, so a big enough
+	   type size eats the cork and the slip climbs back onto the print — the
+	   exact collision the -72px was tuned to end.
+
+	   The em in this container query is resolved against the print-out
+	   itself, so the condition reads "the sheet has become narrow FOR ITS
+	   OWN TYPE" — the sheet is 30.4em wide at 1440 and 24.2em at the 1024
+	   breakpoint edge with normal type, and shrinks past 22em only once type
+	   has really grown. Past that line the slip stops hanging and drops into
+	   flow under the sheet, exactly as it does in the stacked column: a note
+	   in flow can never print over the sheet it annotates, whatever the type
+	   size. Nothing is shrunk to make this fit. */
+	@container hero-evidence (max-width: 22em) {
+		.hero__telemetry-note {
+			position: static;
+			translate: none;
+			margin: calc(var(--baseline) * 4) 0 0 calc(var(--baseline) * 2);
+			background: var(--paper);
+			box-shadow: var(--pin-shadow);
+			padding: calc(var(--baseline) * 0.75) calc(var(--baseline) * 1.5);
+		}
 	}
 
 	/* primary action: band 2, under the signature — the last stop.
@@ -518,17 +580,19 @@ const THREAD_MOBILE = {
 			gap: calc(var(--baseline) * 6);
 		}
 
-		/* The stacked column reads in the same order as the wall does:
-		   stamp → signature → the typed record (the claim) → the evidence
-		   print-out → the Ayako exhibit → the action (the `order` on each
-		   artifact below). Visual order only — the DOM order, and with it
-		   the reading order for assistive tech, is untouched, and nothing
-		   in the reordered artifacts is focusable, so tab order cannot
-		   desync from what is on screen. */
+		/* ONE order in this document, not two. The stacked column reads
+		   stamp → signature → claim → evidence → exhibit → action, and that
+		   is exactly the DOM order the markup above is written in, so this
+		   block carries no `order` at all: the flex column just falls in
+		   source order. (It used to re-sort the flex items with order 1–6
+		   because the markup had the exhibit third; the markup is fixed, so
+		   the override is gone.) A screen-reader user, a keyboard user and a
+		   sighted reader now walk the same six beats in the same sequence at
+		   every width — the desktop wall reaches the same order through
+		   explicit grid placement, never through `order`. */
 
 		/* origin drops onto the thread's center line */
 		.hero__origin {
-			order: 1;
 			flex-direction: column;
 			align-items: center;
 			gap: var(--baseline);
@@ -545,41 +609,54 @@ const THREAD_MOBILE = {
 		}
 
 		.hero__intro-slot {
-			order: 3;
 			margin-top: 0;
 			align-self: center;
 			width: min(100%, 26rem);
 		}
 
 		.hero__greeting {
-			order: 2;
 			align-self: center;
 			width: min(100%, 34rem);
 			padding: calc(var(--baseline) * 4) calc(var(--baseline) * 3) calc(var(--baseline) * 3);
 		}
 
-		/* the exhibit keeps its full 20rem here: nothing competes with it
-		   in a one-column viewport, and it now comes after the evidence */
-		.hero__polaroid-slot {
-			order: 5;
-			align-self: center;
-			width: min(100%, 20rem);
-		}
-
 		.hero__telemetry-slot {
-			order: 4;
 			margin-top: 0;
 			align-self: center;
 			width: min(100%, 30rem);
 		}
 
+		/* the exhibit keeps its full 20rem here: nothing competes with it
+		   in a one-column viewport, and it comes after the evidence */
+		.hero__polaroid-slot {
+			align-self: center;
+			width: min(100%, 20rem);
+		}
+
+		/* Stacked: the slip drops back into flow under the sheet. 32px, not
+		   16px — the card's rotation overhang, the note's own, and the slip's
+		   6px of padding eat ~13px of any margin, and 16px left only 9.3px of
+		   visible cork, the tightest note on the wall. 32px lands it above
+		   the ~17px the polaroid's note holds, and still reads as the card's
+		   note: the column's gap between artifacts is 48px.
+
+		   And it gets PAPER here, which it does not on the desktop wall. The
+		   column's thread is one near-vertical run down the centre of a
+		   342px board with a 240px note across it: there is no x that dodges
+		   it, so the only way to keep yarn off bare ink is the slip the
+		   other three hero notes already carry at every width. Same three
+		   declarations, same tokens — at this breakpoint all four notes are
+		   one material. */
 		.hero__telemetry-note {
 			position: static;
-			margin: calc(var(--baseline) * 2) 0 0 calc(var(--baseline) * 2);
+			translate: none;
+			margin: calc(var(--baseline) * 4) 0 0 calc(var(--baseline) * 2);
+			background: var(--paper);
+			box-shadow: var(--pin-shadow);
+			padding: calc(var(--baseline) * 0.75) calc(var(--baseline) * 1.5);
 		}
 
 		.hero__action {
-			order: 6;
 			margin-top: 0;
 			align-self: center;
 		}

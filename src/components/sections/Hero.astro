@@ -26,8 +26,9 @@
  * grid-row placement. If an artifact ever has to move on the wall, move
  * its grid placement — never the markup, and never with `order`.
  * The whole cluster closes above the fold at
- * 1440 × 900 (board 690px tall), so every one of those four lands in the
- * first viewport. The polaroid stays a first-viewport artifact at a
+ * 1440 × 900 (board 693px tall; lowest ink — the polaroid's margin note —
+ * bottoms at 890px), so every one of those four lands in the first
+ * viewport. The polaroid stays a first-viewport artifact at a
  * legible 15rem — this is a change of RANK, never a demotion.
  *
  * Telemetry lines render live WakaTime figures when WAKA_KEY is set at
@@ -85,9 +86,11 @@ const sourceLine = ht.sourceLine(
    wrap around each pin (tautPath). Coordinates live in the viewBox
    space and stretch with the board (preserveAspectRatio="none") —
    straight segments survive that stretch exactly. Every vertex is a
-   measured pin centre at 1440 × 900 (board 1248 × 690), exact at every
+   measured pin centre at 1440 × 900 (board 1248 × 693), exact at every
    width where the 78rem shell is full: re-measure and retune whenever an
-   artifact moves. */
+   artifact moves. Current registration, measured pin-centre to vertex:
+   worst 2.2px (the record card's pin), everything else ≤1.3px — all well
+   inside the 7px pin head the thread wraps, so the joins read closed. */
 const THREAD_DESKTOP = {
 	width: 1200,
 	height: 880,
@@ -249,6 +252,13 @@ const THREAD_MOBILE = {
 
 	.hero__board {
 		position: relative;
+		/* query container for the origin row's zoom fallback further down.
+		   It sits HERE, on the board, and not on the row it restyles,
+		   because a container query only ever reaches its container's
+		   DESCENDANTS: the row has to change axis, and the tuned thread —
+		   the row's sibling, not its child — has to stop being drawn with
+		   it. The board is the nearest element that contains both. */
+		container: hero-wall / inline-size;
 	}
 
 	/* ---- the thread through the cluster ------------------------ */
@@ -317,12 +327,71 @@ const THREAD_MOBILE = {
 		   instead. Nothing moves at normal type — 16rem is well inside the
 		   track there, so the item never shrinks. */
 		min-width: 0;
+		/* …and this is the other half of that trade. min-width: 0 keeps the
+		   slip's BOX inside its four columns, but a box is not ink: once the
+		   box is narrower than the longest word, the word paints straight
+		   out of it. Measured at 1024 with text at 200 %: 2.4px of hand
+		   escaping the slip; at 225 % it reaches 13.7px ONTO the record card
+		   (16.6px in German), which the box measurement cannot see because
+		   the boxes are still 15px apart. The word breaks instead. */
+		overflow-wrap: break-word;
 		margin-top: calc(var(--baseline) * 7);
 		rotate: -1.5deg;
 		/* paper slip: these notes sit in the thread's path */
 		background: var(--paper);
 		box-shadow: var(--pin-shadow);
 		padding: calc(var(--baseline) * 0.75) calc(var(--baseline) * 1.5);
+	}
+
+	/* ZOOM SAFETY NET, the origin row. Same idiom as the evidence slip
+	   below, for the same reason: a row of three items whose gaps are fixed
+	   px and whose contents grow in em eventually has no room for the third.
+	   The stamp is sized in rem, so at 200 % text it is 166px of a 309px row
+	   at the 1024 breakpoint and the slip is squeezed to 124px — narrower
+	   than the words on it.
+
+	   The em resolves against the wall's own type, so the condition reads
+	   "the wall has become narrow FOR ITS OWN TYPE": the board is 64em at the
+	   1024 breakpoint and 78em at a full shell with normal text, and only
+	   crosses 36em once type has roughly doubled. Past that line the origin
+	   row stops being a row and becomes the same centred column the stacked
+	   breakpoint already uses — the slip returns to flow under the stamp with
+	   the full track to wrap in. Nothing is shrunk to make this fit, and
+	   nothing moves at or near normal type: the first break appears at 32em
+	   (1024px shell, text at 200 %), so the net closes a clear step before
+	   it, and the nearest passing case is 36.6em.
+
+	   AND THE TUNED THREAD RETIRES WITH THE ROW IT WAS MEASURED AGAINST.
+	   Every vertex in THREAD_DESKTOP is a pin centre measured at 1440 × 900;
+	   the note above the path says to re-measure whenever an artifact moves,
+	   and this is the one state where artifacts move without anyone
+	   re-measuring — the stamp recentres under its own column and lands in
+	   the first run's way. Measured: the yarn crossed the "12/2019" label,
+	   the wall's only artifact with no paper under it, from 181 % text
+	   upward. A stale thread that crosses bare ink is worse than no thread,
+	   so past this line the desktop path is not drawn. The stacked column
+	   keeps its own thread below 1024px, and the section connectors carry
+	   the metaphor down the rest of the page; this affects only a zoomed
+	   desktop wall, and only until a third path is measured for it. */
+	@container hero-wall (max-width: 36em) {
+		.hero__thread--desktop {
+			display: none;
+		}
+
+		.hero__origin {
+			flex-direction: column;
+			align-items: center;
+			gap: var(--baseline);
+		}
+
+		.hero__origin-pin {
+			margin-top: 0;
+		}
+
+		.hero__origin-note {
+			margin-top: 0;
+			text-align: center;
+		}
 	}
 
 	/* greeting card: band 2, left — the signature under the record */
@@ -346,9 +415,19 @@ const THREAD_MOBILE = {
 	   so the line beneath it drops to the cluster's annotation size —
 	   at 1rem it read as its own voice next to a different handwriting,
 	   which is what made the first viewport look like five families.
-	   Face and material are unchanged: the sheet stays all hand. */
+	   Face and material are unchanged: the sheet stays all hand.
+
+	   Weight comes with it. The size was already matched to the margin
+	   notes but the weight was not (400 against their 500), and once the
+	   Lottie hands over this is the ONLY hand-set line left on the sheet —
+	   a lone 400 sitting among five 500s at the same 14px. Small hand text
+	   needs the extra weight to hold the same optical colour, which is
+	   exactly why the notes are 500 while the 36px signature above is 400;
+	   matching it here is the system, not an exception to it. */
 	.hero__greeting :global(.hero-greeting__subline) {
 		font-size: 0.875rem;
+		font-weight: 500;
+		line-height: 1.4;
 	}
 
 	/* polaroid: the product exhibit, pinned at the wall's right in band 2.
@@ -370,15 +449,22 @@ const THREAD_MOBILE = {
 		max-width: 100%;
 	}
 
-	/* the caption is an exhibit label: the product's name and what it is
+	/* The caption is an exhibit label: the product's name and what it is
 	   on its own first line, the measured figures beneath. Only the hero
-	   copy carries the newline — the Polaroid primitive is untouched. */
+	   copy carries the newline — the Polaroid primitive is untouched.
+
+	   The label reading is carried by the LINE BREAK, not by a weight. A
+	   ::first-line at 700 used to bold the name, which put a third weight
+	   of the hand face in one viewport (signature 400, notes 500, caption
+	   700) at a size where Shantell's bold clots — so the one pen looked
+	   like two. The break, the em-dash construction and the caption's
+	   centred position already say "name, then measurements"; the weight
+	   was decoration on structure that exists without it. Line-height is
+	   matched to the margin notes' 1.4 for the same reason: every
+	   hand-set line in the first viewport is now literally one setting. */
 	.hero__polaroid-slot :global(.polaroid__caption) {
 		white-space: pre-line;
-	}
-
-	.hero__polaroid-slot :global(.polaroid__caption)::first-line {
-		font-weight: 700;
+		line-height: 1.4;
 	}
 
 	.hero__polaroid-note {
@@ -407,11 +493,18 @@ const THREAD_MOBILE = {
 		font-size: 0.9375rem;
 	}
 
-	/* the claim: the card's first line, one step up the typed band and
-	   given the only blank rule on the sheet */
+	/* The claim: the card's first line, given the only blank rule on the
+	   sheet and struck at the typewriter's bold — but at the CARD'S OWN
+	   SIZE. It used to be 1rem against the record's 0.9375rem, and on a
+	   monospace sheet a second size is a second machine: Courier's advance
+	   is 0.6em, so 16px type sets a 9.6px pitch and 15px type a 9.0px one,
+	   and the claim's character columns stopped lining up with the record
+	   beneath it. One index card, one carriage. The 1px did nothing the
+	   bold was not already doing (measured: the lead reads as emphasis
+	   identically at either size), and dropping it also retires a whole
+	   Courier setting from the first viewport. */
 	.hero__intro-slot :global(.pin-card) p.hero__intro-lead {
 		margin-bottom: calc(var(--baseline) * 3);
-		font-size: 1rem;
 		font-weight: 700;
 	}
 
@@ -438,11 +531,22 @@ const THREAD_MOBILE = {
 	   size ladder (flyer 2.75rem › signature ~2.25rem › THIS › typed
 	   record 0.9375–1rem › hand 0.875rem). Four faces, four bands — the
 	   collision was three of them sitting at the same 15–18px. */
+	/* LEADING IN REM, SPACING IN PX. --baseline is a fixed 8px by design, so
+	   `calc(var(--baseline) * 3)` is a leading that ignores type size. That is
+	   right for margins — under text-only zoom, spacing that holds still keeps
+	   the wall compact so more words fit the screen — and wrong for leading,
+	   which has to grow with the words or the rows close on each other. This
+	   heading measured line-height ÷ font-size = 1.091 at normal type but
+	   0.873 at 125 % text and 0.545 at 200 %: below 1.0 the leading is shorter
+	   than the em box and ascenders sit in the row above. 1.5rem is the same
+	   24px at normal type — the third baseline, unchanged — and stays 1.091
+	   at every zoom step because rem is what the user's font-size setting
+	   actually moves. */
 	.hero__telemetry-title {
 		margin: 0 0 calc(var(--baseline) * 2);
 		font-size: 1.375rem;
 		font-weight: 700;
-		line-height: calc(var(--baseline) * 3);
+		line-height: 1.5rem;
 	}
 
 	.hero__telemetry-lines {
@@ -452,11 +556,15 @@ const THREAD_MOBILE = {
 	}
 
 	/* the figures sit a step above card copy — and stay on the 24px
-	   baseline, which 1.5 × 1.0625rem would not */
+	   baseline, which 1.5 × 1.0625rem would not. 1.5rem, not 24px: same
+	   third baseline at normal type, but it tracks the reader's type size
+	   (see the heading above). These are the lines that showed it — they
+	   wrap to two and three rows, and at 200 % text their leading ÷ size
+	   was 0.706. */
 	.hero__telemetry-lines li {
 		margin-bottom: var(--baseline);
 		font-size: 1.0625rem;
-		line-height: calc(var(--baseline) * 3);
+		line-height: 1.5rem;
 	}
 
 	.hero__telemetry-lines li:last-child {
@@ -471,12 +579,25 @@ const THREAD_MOBILE = {
 
 	/* The annotation is pinned to the CORK below the print-out, never on it:
 	   a note slip sits beside the sheet it annotates and no slip prints over
-	   a sheet (DESIGN.md, the paper law). Two numbers hold that:
+	   a sheet (DESIGN.md, the paper law). Two decisions hold that:
 
-	   — bottom: -72px clears the note's own 45.5px box plus the card's ~5px
-	     rotation overhang, leaving ≥21px of bare cork between the sheet's
-	     bottom edge and the top of the handwriting at every desktop width.
-	     The previous -32px left the note's box 15px INSIDE the card.
+	   — HUNG BY ITS TOP EDGE, not its bottom. `top: 100%` puts the slip's
+	     first line a fixed 32px under the sheet's bottom edge and lets the
+	     slip grow DOWNWARD into bare cork. That 32px covers the card's ~5px
+	     rotation overhang and leaves 23.8px of visible cork at 1440 with
+	     normal type, against the old `bottom: -72px`'s 24.6px — and it is
+	     the same 32px the stacked and container fallbacks below already put
+	     between sheet and slip, so the hang distance and the in-flow margin
+	     are now one number. What the swap buys is what no number could: the
+	     slip's own height is no longer part of the clearance, so no type
+	     size can push it back up onto the sheet. Hanging by the BOTTOM edge
+	     spent the clearance in fixed px (--baseline is 8px, always) while
+	     the slip's height grew in em, so growing type ate the cork from
+	     below and the slip climbed onto the print — measured at 7.3px INTO
+	     the sheet at a 1600px shell with text at 175 % (both locales), i.e.
+	     inside WCAG 1.4.4's 200 %. Hung from the top, that failure mode does
+	     not exist at any size: worst clearance across 320–1600px × 100–250 %
+	     text is 17.6px of cork, and it never goes below that.
 	   — hung under the card's middle rather than its right corner: this slip
 	     has no paper under it, so no yarn may cross it, and the thread's
 	     exit run (polaroid pin → the board's bottom edge at x ≈ 67 %) sweeps
@@ -486,7 +607,8 @@ const THREAD_MOBILE = {
 		position: absolute;
 		left: 50%;
 		translate: calc(-50% - var(--baseline) * 2) 0;
-		bottom: calc(var(--baseline) * -9);
+		top: 100%;
+		margin-top: calc(var(--baseline) * 4);
 		max-width: 15rem;
 		rotate: 1.5deg;
 	}
@@ -544,10 +666,13 @@ const THREAD_MOBILE = {
 		padding: calc(var(--baseline) * 0.75) calc(var(--baseline) * 1.5);
 	}
 
-	/* Handwritten margin notes: ONE hand at ONE size across the cluster,
-	   matched to the polaroid's caption (0.875rem) so every hand-set line
-	   in the first viewport is the same pen. Marginalia sits below the
-	   printed record, never level with it. */
+	/* Handwritten margin notes: ONE hand at ONE SETTING across the cluster
+	   — 0.875rem / 500 / 1.4 — shared verbatim by the polaroid's caption
+	   and the greeting's dateline above, so every hand-set line in the
+	   first viewport is the same pen held the same way. Size alone was not
+	   enough: the caption's bolded first line and the dateline's lighter
+	   weight were both at 0.875rem and still read as separate hands.
+	   Marginalia sits below the printed record, never level with it. */
 	.hero__origin-note :global(.hand-note),
 	.hero__polaroid-note :global(.hand-note),
 	.hero__telemetry-note :global(.hand-note),

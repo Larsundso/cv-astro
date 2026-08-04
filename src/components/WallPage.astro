@@ -199,6 +199,25 @@ const STITCH_END = {
 	   too narrow for the pair — still inside the first viewport */
 	.wall-head :global(.wall-head__tab) {
 		margin-block-start: var(--baseline);
+		/* Typed paper, so it is typed at the TYPED SETTING — the same
+		   0.9375rem / normal tracking the record card below it is struck
+		   at. The tab used to run at 0.875rem / 0.04em: a third Courier
+		   size and a third Courier tracking in one viewport, on a chit
+		   sitting inches from a 44px headline, which made a language
+		   switcher look like its own typeface. Worse, 0.875rem put it at
+		   14px — dead level with every handwritten note on the wall, the
+		   second two-faces-at-one-size collision in the first viewport.
+
+		   It costs no room: Courier's advance is 0.6em, so the size step
+		   adds 0.6px per character and the tracking removal gives back
+		   0.56px — the tab is measured 0.5px wider. The control's own
+		   signals are untouched (inert language soft and light, the
+		   destination bold in thread red under the house link underline,
+		   the inked exchange arrow between them); only the face's setting
+		   joins the system. Weight still does the talking, and 400/700 is
+		   the same binary the record card uses. */
+		font-size: 0.9375rem;
+		letter-spacing: normal;
 	}
 
 	.wall-head__title {
@@ -222,12 +241,36 @@ const STITCH_END = {
 		column-gap: calc(var(--baseline) * 3);
 	}
 
+	/* The index, in the flyer's own press at the flyer's own tracking.
+	   THIS RULE SETS NO LETTER-SPACING, and that absence is the fix. The
+	   sheet declares its tracking once — `.pin-card--flyer` at 0.01em,
+	   which resolves against the CARD's 16px and so inherits down to every
+	   line on the sheet as a flat 0.16px gap, the title included. This row
+	   used to override it at 0.045em, and at 1.375rem that opened a 0.99px
+	   gap: 6.2× the headline's own, out of one League Gothic sheet. A
+	   reader has no name for that, so they read it as a second face — the
+	   "small-caps nav" the panel kept counting. Now nothing on the sheet
+	   overrides the sheet.
+
+	   Inheriting the gap in px is also the correct optical answer, for
+	   free: 0.16px is 0.0036em at the title's 44px but 0.008em here, so
+	   the smaller rank automatically carries 2.2× the relative air that
+	   condensed caps need at 20px — the compensation arrives without a
+	   second declaration to keep in sync.
+
+	   The size drop is the other half. At 1.375rem this row was exactly
+	   22px — the same size as the evidence print-out's title in Atkinson.
+	   Two faces at one size in one viewport leaves a reader no way to rank
+	   them, so they read as rivals rather than as different materials (the
+	   One Setting Per Face Rule forbids precisely this). 20px also puts
+	   the index BELOW the wall's central claim, where an index belongs.
+	   Padding grows to hold the tap target at 44px and the row near its
+	   previous height, so the cluster does not move. */
 	.wall-head nav a {
 		display: inline-block;
-		padding-block: calc(var(--baseline) * 1.25);
-		font-size: 1.375rem;
+		padding-block: calc(var(--baseline) * 1.5);
+		font-size: 1.25rem;
 		line-height: 1;
-		letter-spacing: 0.045em;
 		color: var(--ink);
 		text-decoration: underline;
 		text-decoration-thickness: 1.5px;

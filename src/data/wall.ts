@@ -83,6 +83,13 @@ export interface HouseRule {
 	ink: PrideInk;
 }
 
+/** One row of the wall's colour key: an ink and the job it does. */
+export interface InkKeyRow {
+	ink: PrideInk;
+	/** The job, two or three words — never the name of the hue. */
+	job: string;
+}
+
 export interface ContactEntry {
 	id: string;
 	label: string;
@@ -777,6 +784,26 @@ export const houseRules = {
 		}
 	] satisfies HouseRule[],
 	note: "House rules are mutual-fit criteria, not decoration."
+} as const;
+
+/* ------------------------------------------------------------------ */
+/* The ink key — the wall states its own code                          */
+/* ------------------------------------------------------------------ */
+/* The six jobs of The Annotation Ink Rule, in the rule's own words and
+ * the rule's own order. Rows name what an ink MEANS; the hue is shown,
+ * never spelled. The heading is the one hand line on the wall written
+ * in plain ink — it labels the code, so it may not wear it. */
+
+export const inkKey = {
+	title: "a note's ink names its claim",
+	rows: [
+		{ ink: "magenta", job: "mine alone" },
+		{ ink: "violet", job: "the method" },
+		{ ink: "teal", job: "the provenance" },
+		{ ink: "green", job: "the run" },
+		{ ink: "amber", job: "the limit" },
+		{ ink: "blue", job: "the way in" }
+	] satisfies InkKeyRow[]
 } as const;
 
 /* ------------------------------------------------------------------ */

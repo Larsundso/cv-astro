@@ -1,0 +1,454 @@
+---
+/**
+ * Projects — the projects wall.
+ * Ayako as the dominant cluster (polaroid, typed spec card, the free-forever
+ * promise on its own flyer, the v3 rewrite with the license line), Kiyu with
+ * the self-described label, the VR tools as a filmstrip with the site's one
+ * three.js touch, GIFfer, and one breadth note card.
+ * All copy comes from ~/data/wall — every figure carries unit + as-of date.
+ */
+import HandNote from "~/components/wall/HandNote.astro";
+import PinCard from "~/components/wall/PinCard.astro";
+import Polaroid from "~/components/wall/Polaroid.astro";
+import Stamp from "~/components/wall/Stamp.astro";
+import { getWall, type Locale } from "~/data/i18n";
+import { SNAPSHOT_AS_OF } from "~/data/snapshot";
+import VrHeadsetSketch from "./VrHeadsetSketch.svelte";
+
+const locale = (Astro.currentLocale ?? "en") as Locale;
+const { breadth, projects, sectionStrings, ui } = getWall(locale);
+const ps = sectionStrings.projects;
+
+const byId = (id: string) => {
+	const entry = projects.find((p) => p.id === id);
+	if (!entry) throw new Error(`Projects.astro: missing project "${id}" in ~/data/wall`);
+	return entry;
+};
+
+const ayako = byId("ayako");
+const kiyu = byId("kiyu");
+const giffer = byId("giffer");
+const vrTools = projects.filter((p) => p.role === "vr");
+
+/* Ayako facts: the last line belongs to the v3 rewrite card. */
+const v3Fact = ayako.facts.at(-1);
+const specFacts = ayako.facts.slice(0, -1);
+const [ayakoBody, v3Body] = ayako.body;
+---
+
+<section id="projects" class="projects wall-max" aria-labelledby="projects-title">
+	<div class="wall-grid projects-grid">
+		<!-- section headline: flyer + as-of stamp -->
+		<div class="g-head">
+			<PinCard variant="flyer" class="head-card">
+				<h2 id="projects-title"><span class="head-rule">{ui.nav.projects}</span></h2>
+			</PinCard>
+			<Stamp sub={sectionStrings.asOfStamp} label={SNAPSHOT_AS_OF} rotate={-7} class="head-stamp" />
+		</div>
+
+		<!-- Ayako: the dominant cluster -->
+		<Polaroid
+			class="g-photo"
+			rotate={-1}
+			caption={`${ayako.name} — ${ayako.oneLiner}`}
+		>
+			<img
+				src={ayako.logo ?? "/Ayako.webp"}
+				alt={ps.ayakoAlt}
+				width="800"
+				height="900"
+				loading="lazy"
+				decoding="async"
+			/>
+		</Polaroid>
+
+		<div class="g-spec">
+			<PinCard variant="typed" as="article" rotate={1} class="card-flow">
+				<h3 class="card-title">{ayako.name}</h3>
+				<p>{ayakoBody}</p>
+				<ul class="facts" role="list">
+					{specFacts.map((fact) => <li>{fact}</li>)}
+				</ul>
+				<p class="stack">{ayako.stack.join(" · ")}</p>
+				<ul class="links" role="list">
+					{ayako.links.map((link) => (
+						<li><a href={link.href}>{link.label}</a></li>
+					))}
+				</ul>
+			</PinCard>
+			{
+				ayako.annotation && (
+					<HandNote ink={ayako.annotation.ink} class="note-slip pull-right">
+						{ayako.annotation.text}
+					</HandNote>
+				)
+			}
+		</div>
+
+		<div class="g-promise">
+			{
+				ayako.promise && (
+					<PinCard variant="flyer" rotate={1} class="promise-card">
+						<blockquote>
+							<p>“{ayako.promise}”</p>
+						</blockquote>
+					</PinCard>
+				)
+			}
+			{
+				ayako.promiseNote && (
+					<HandNote ink="green" class="note-slip">{ayako.promiseNote}</HandNote>
+				)
+			}
+		</div>
+
+		<PinCard variant="print" as="article" rotate={-1} class="g-v3 card-flow">
+			<h4 class="card-title">{ps.v3Title}</h4>
+			<p>{v3Body}</p>
+			{v3Fact && <p class="fact-line">{v3Fact}</p>}
+			{ayako.license && <p class="license">{ps.licenseLabel} {ayako.license}</p>}
+		</PinCard>
+
+		<!-- Kiyu: named, with the self-described label -->
+		<div class="g-kiyu">
+			<PinCard variant="typed" as="article" rotate={-1} class="card-flow">
+				<h3 class="card-title">{kiyu.name}</h3>
+				<p>{kiyu.oneLiner}</p>
+				{kiyu.body.map((paragraph) => <p>{paragraph}</p>)}
+				<ul class="facts" role="list">
+					{kiyu.facts.map((fact) => <li>{fact}</li>)}
+				</ul>
+				<p class="stack">{kiyu.stack.join(" · ")}</p>
+			</PinCard>
+			{
+				kiyu.annotation && (
+					<HandNote ink={kiyu.annotation.ink} class="note-slip pull-right">
+						{kiyu.annotation.text}
+					</HandNote>
+				)
+			}
+		</div>
+
+		<!-- GIFfer -->
+		<PinCard variant="print" as="article" rotate={1} class="g-giffer card-flow">
+			<h3 class="card-title">{giffer.name}</h3>
+			<p>{giffer.oneLiner}</p>
+			{giffer.body.map((paragraph) => <p>{paragraph}</p>)}
+			{giffer.facts.map((fact) => <p class="fact-line">{fact}</p>)}
+			<p class="stack">{giffer.stack.join(" · ")}</p>
+			{giffer.license && <p class="license">{ps.licenseLabel} {giffer.license}</p>}
+		</PinCard>
+
+		<!-- VR bench: flyer heading, the one three.js touch, the filmstrip -->
+		<div class="g-vrhead">
+			<PinCard variant="flyer" class="vrhead-card">
+				<h3>{ps.vrBenchTitle}</h3>
+			</PinCard>
+			<HandNote ink="teal" class="note-slip">
+				{ps.vrBenchNote}
+			</HandNote>
+		</div>
+
+		<Polaroid
+			class="g-vrsketch vr-polaroid"
+			rotate={-1}
+			caption={ps.vrSketchCaption}
+		>
+			<VrHeadsetSketch ariaLabel={ps.vrSketchAria} client:visible />
+		</Polaroid>
+
+		<div class="g-strip">
+			<div class="film-strip">
+				<span class="brass-pin strip-pin strip-pin--left" aria-hidden="true"></span>
+				<span class="brass-pin strip-pin strip-pin--right" aria-hidden="true"></span>
+				<ul class="frames" role="list">
+					{
+						vrTools.map((tool) => (
+							<li class="frame">
+								<h4>{tool.name}</h4>
+								<p>{tool.oneLiner}</p>
+								{tool.body.map((paragraph) => <p>{paragraph}</p>)}
+								{tool.facts.map((fact) => <p class="frame-fact">{fact}</p>)}
+								<p class="frame-stack">{tool.stack.join(" · ")}</p>
+							</li>
+						))
+					}
+				</ul>
+			</div>
+		</div>
+
+		<!-- breadth: one typed note card -->
+		<PinCard variant="typed" as="aside" rotate={1} class="g-breadth card-flow">
+			<h3 class="card-title">{ps.breadthTitle}</h3>
+			<ul class="facts" role="list">
+				{
+					breadth.map((item) => (
+						<li>
+							{item.text}
+							{item.link && <> <a href={item.link.href}>{item.link.label}</a></>}
+						</li>
+					))
+				}
+			</ul>
+		</PinCard>
+	</div>
+</section>
+
+<style>
+	/* NOTE on scoping: Astro's attribute scoping never reaches classes
+	   passed to child components (PinCard/Polaroid/Stamp/HandNote roots),
+	   so those rules run through `.projects :global(...)` — still fenced
+	   by the section root. Slot content is authored here and stays scoped. */
+
+	/* collage: cards keep their natural height, the hidden grid organizes */
+	.projects-grid {
+		align-items: start;
+	}
+
+	.g-head {
+		grid-column: 1 / 7;
+		position: relative;
+	}
+	.projects :global(.g-photo) {
+		grid-column: 1 / 5;
+	}
+	.g-spec {
+		grid-column: 5 / 13;
+	}
+	.g-promise {
+		grid-column: 1 / 7;
+	}
+	.projects :global(.g-v3) {
+		grid-column: 7 / 13;
+	}
+	.g-kiyu {
+		grid-column: 1 / 8;
+	}
+	.projects :global(.g-giffer) {
+		grid-column: 8 / 13;
+	}
+	.g-vrhead {
+		grid-column: 1 / 9;
+		/* the polaroid on the right is tall; center the heading cluster in
+		   the row so the wall doesn't open a void of bare cork below it */
+		align-self: center;
+	}
+	.projects :global(.g-vrsketch) {
+		grid-column: 9 / 13;
+	}
+	.g-strip {
+		grid-column: 1 / -1;
+	}
+	.projects :global(.g-breadth) {
+		grid-column: 1 / 9;
+	}
+
+	@media (max-width: 48rem) {
+		.g-head,
+		.g-spec,
+		.g-promise,
+		.g-kiyu,
+		.g-vrhead,
+		.projects :global(.g-photo),
+		.projects :global(.g-v3),
+		.projects :global(.g-giffer),
+		.projects :global(.g-vrsketch),
+		.projects :global(.g-breadth) {
+			grid-column: 1 / -1;
+		}
+	}
+
+	/* headline flyer + stamp */
+	.g-head h2 {
+		font-size: clamp(2.75rem, 6vw, 4.5rem);
+	}
+	.head-rule {
+		border-bottom: 4px solid var(--thread);
+	}
+	.projects :global(.head-stamp) {
+		--stamp-size: 5.5rem;
+		position: absolute;
+		right: calc(var(--baseline) * -2);
+		top: calc(var(--baseline) * -3);
+	}
+	@media (max-width: 48rem) {
+		.projects :global(.head-stamp) {
+			right: 0;
+		}
+	}
+
+	/* card interiors: spacing between slotted children; the brass pin is
+	   PinCard's first child, so its follower resets to no extra margin */
+	.projects :global(.card-flow > * + *) {
+		margin-top: calc(var(--baseline) * 1.5);
+	}
+	.projects :global(.card-flow > .brass-pin + *) {
+		margin-top: 0;
+	}
+	.card-title {
+		font-size: 1.25rem;
+		font-weight: 700;
+	}
+
+	.facts {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		font-size: 0.9375rem;
+	}
+	.facts > li {
+		padding-left: 1.4ch;
+		text-indent: -1.4ch;
+	}
+	.facts > li::before {
+		content: "— ";
+		color: var(--ink-soft);
+	}
+	.facts > li + li {
+		margin-top: var(--baseline);
+	}
+
+	.stack {
+		color: var(--ink-soft);
+		font-size: 0.875rem;
+	}
+	.fact-line {
+		font-size: 0.9375rem;
+	}
+	.license {
+		color: var(--ink-soft);
+		font-size: 0.875rem;
+	}
+
+	.links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--baseline) calc(var(--baseline) * 3);
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		font-weight: 700;
+	}
+	.links a,
+	.facts a {
+		color: var(--ink);
+		text-decoration: underline;
+		text-decoration-color: var(--thread);
+		text-decoration-thickness: 2px;
+		text-underline-offset: 3px;
+	}
+	.links a:hover,
+	.facts a:hover {
+		color: var(--thread);
+	}
+
+	/* the free-forever promise: poster stock, headline type only */
+	.g-promise blockquote {
+		margin: 0;
+	}
+	.g-promise blockquote p {
+		margin: 0;
+		font-size: clamp(1.625rem, 3vw, 2.5rem);
+	}
+
+	/* handwritten margin notes ride on small paper slips so every pride
+	   ink keeps >=4.5:1 (green/violet/blue do not clear raw cork) */
+	.projects :global(.note-slip) {
+		width: fit-content;
+		max-width: 38ch;
+		margin-top: calc(var(--baseline) * 2);
+		padding: calc(var(--baseline) * 1.5) calc(var(--baseline) * 2);
+		background: var(--paper);
+		box-shadow: var(--pin-shadow);
+		font-size: 0.9375rem;
+	}
+	.projects :global(.pull-right) {
+		margin-inline-start: auto;
+	}
+
+	/* VR flyer heading */
+	.g-vrhead h3 {
+		font-size: clamp(2rem, 4.5vw, 3.25rem);
+	}
+
+	/* the sketch polaroid: aged paper ground under ink wireframe lines —
+	   a pencil sketch on the wall, not a screen; landscape frame */
+	.projects :global(.vr-polaroid .polaroid__frame) {
+		background: var(--paper-aged);
+		aspect-ratio: 4 / 3;
+	}
+
+	/* filmstrip: one paper strip, sprocket holes punched through to cork,
+	   four aged frames, pinned at both ends */
+	.film-strip {
+		position: relative;
+		background-color: var(--paper);
+		box-shadow: var(--pin-shadow);
+		padding: calc(var(--baseline) * 4) calc(var(--baseline) * 3);
+		background-image:
+			radial-gradient(circle, var(--cork) 2.5px, transparent 3px),
+			radial-gradient(circle, var(--cork) 2.5px, transparent 3px);
+		background-size:
+			24px 6px,
+			24px 6px;
+		background-position:
+			left top 10px,
+			left bottom 10px;
+		background-repeat: repeat-x;
+	}
+	.strip-pin {
+		position: absolute;
+		top: -7px;
+	}
+	.strip-pin--left {
+		left: calc(var(--baseline) * 4);
+	}
+	.strip-pin--right {
+		right: calc(var(--baseline) * 4);
+	}
+
+	.frames {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: calc(var(--baseline) * 2);
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		font-family: var(--font-typed);
+	}
+	@media (max-width: 64rem) {
+		.frames {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+	@media (max-width: 40rem) {
+		.frames {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+	.frame {
+		display: flex;
+		flex-direction: column;
+		gap: var(--baseline);
+		background: var(--paper-aged);
+		border: 1px solid color-mix(in oklab, var(--ink) 18%, transparent);
+		padding: calc(var(--baseline) * 2);
+	}
+	.frame h4 {
+		margin: 0;
+		font-size: 1rem;
+		font-weight: 700;
+	}
+	.frame p {
+		margin: 0;
+		font-size: 0.8125rem;
+		line-height: 1.5;
+	}
+	.frame-fact {
+		color: var(--ink-soft);
+	}
+	.frame .frame-stack {
+		color: var(--ink-soft);
+		margin-top: auto;
+	}
+</style>

@@ -1,179 +1,134 @@
-let res: BaseInsights | null = null;
+/**
+ * Last-7-days coding summaries (WakaTime summaries, range last_7_days).
+ *
+ * Tries the live API when WAKA_KEY is set; falls back to the checked-in
+ * snapshot without throwing. The snapshot records only one publishable
+ * last-7-days figure (AI-Coding share, 69.76 %, as of 2026-08-03) — when
+ * `source` is "snapshot", `days` is empty and totals are null; render the
+ * dated July-2026 window from src/data/snapshot.ts for "currently" copy.
+ */
+import { telemetry } from "~/data/snapshot";
+import {
+	formatHM,
+	isoDay,
+	toSlice,
+	wakaFetch,
+	type StatSlice,
+	type TelemetrySource,
+	type WakaShare
+} from "~/data/telemetry";
 
-export default async () => {
- if (res) return res;
+export type { StatSlice, TelemetrySource };
 
- res = await fetch(
-  `https://wakatime.com/api/v1/users/current/summaries?range=last_7_days`,
-  {
-   headers: { Authorization: `Basic ${btoa(`${import.meta.env.WAKA_KEY}:`)}` },
-  }
- ).then((r) => (r.ok ? (r.json() as Promise<BaseInsights>) : null));
- if (!res) throw new Error("Failed to fetch WakaTime stats");
+export interface DaySummary {
+	/** YYYY-MM-DD. */
+	date: string;
+	total: { seconds: number; text: string };
+	languages: StatSlice[];
+	projects: StatSlice[];
+}
 
- return res;
+export interface WeekStats {
+	source: TelemetrySource;
+	/** Date the figures were measured (live pull date or snapshot date). */
+	asOf: string;
+	/** Null when the snapshot cannot state a verified window. */
+	range: { start: string; end: string } | null;
+	cumulative: { seconds: number; text: string } | null;
+	dailyAverage: { seconds: number; text: string } | null;
+	days: DaySummary[];
+	/** Aggregated across the window (live) or the snapshot's recorded slices. */
+	categories: StatSlice[];
+}
+
+/** Trimmed WakaTime `summaries?range=last_7_days` response. */
+interface WakaSummaries {
+	data: Array<{
+		grand_total: { total_seconds: number; text: string };
+		range: { date: string };
+		languages?: WakaShare[];
+		projects?: WakaShare[];
+		categories?: WakaShare[];
+	}>;
+	start: string;
+	end: string;
+	cumulative_total: { seconds: number; text: string };
+	daily_average: { seconds: number; text: string };
+}
+
+const fromLive = (live: WakaSummaries): WeekStats => {
+	const totalSeconds = live.cumulative_total.seconds;
+
+	// Aggregate categories across the window's days.
+	const byCategory = new Map<string, number>();
+	for (const day of live.data) {
+		for (const c of day.categories ?? []) {
+			byCategory.set(c.name, (byCategory.get(c.name) ?? 0) + c.total_seconds);
+		}
+	}
+	const categories: StatSlice[] = [...byCategory.entries()]
+		.sort((a, b) => b[1] - a[1])
+		.map(([name, seconds]) => ({
+			name,
+			seconds,
+			percent: totalSeconds > 0 ? Math.round((seconds / totalSeconds) * 10_000) / 100 : null,
+			text: formatHM(seconds)
+		}));
+
+	return {
+		source: "live",
+		asOf: isoDay(live.end, telemetry.asOf),
+		range: { start: isoDay(live.start, ""), end: isoDay(live.end, telemetry.asOf) },
+		cumulative: { seconds: totalSeconds, text: formatHM(totalSeconds) },
+		dailyAverage: {
+			seconds: live.daily_average.seconds,
+			text: formatHM(live.daily_average.seconds)
+		},
+		days: live.data.map((day) => ({
+			date: day.range.date,
+			total: {
+				seconds: day.grand_total.total_seconds,
+				text: formatHM(day.grand_total.total_seconds)
+			},
+			languages: (day.languages ?? []).map(toSlice),
+			projects: (day.projects ?? []).map(toSlice)
+		})),
+		categories
+	};
 };
 
-export interface Language {
- name: string;
- total_seconds: number;
- percent: number;
- digital: string;
- decimal: string;
- text: string;
- hours: number;
- minutes: number;
-}
+const fromSnapshot = (): WeekStats => ({
+	source: "snapshot",
+	asOf: telemetry.asOf,
+	range: null,
+	cumulative: null,
+	dailyAverage: null,
+	days: [],
+	categories: [
+		{
+			name: "AI Coding",
+			seconds: null,
+			percent: telemetry.windowLast7Days.aiCodingSharePercent,
+			text: null
+		}
+	]
+});
 
-export interface Project {
- total_seconds: number;
- name: string;
- percent: number;
- digital: string;
- decimal: string;
- text: string;
- hours: number;
- minutes: number;
- seconds: number;
-}
+let cached: WeekStats | null = null;
 
-export interface OperatingSystem {
- total_seconds: number;
- name: string;
- percent: number;
- digital: string;
- decimal: string;
- text: string;
- hours: number;
- minutes: number;
- seconds: number;
-}
+export default async (): Promise<WeekStats> => {
+	if (cached) return cached;
 
-export interface BestDay {
- date: string; // YYYY-MM-DD
- total_seconds: number;
- text: string;
-}
+	const live = await wakaFetch<WakaSummaries>("/users/current/summaries?range=last_7_days");
+	if (live?.data && live.cumulative_total) {
+		try {
+			cached = fromLive(live);
+			return cached;
+		} catch {
+			// Malformed live payload — fall through to the snapshot.
+		}
+	}
 
-export interface CurrentUser {
- total: {
-  seconds: number;
-  text: string;
- };
- daily_average: {
-  seconds: number;
-  text: string;
- };
-}
-
-export interface AllUsers {
- total: {
-  average: number;
-  text: string;
-  max: number;
-  median: number;
- };
- daily_average: {
-  average: number;
-  text: string;
-  max: number;
-  median: number;
- };
-}
-
-export interface Machine {
- total_seconds: 1684195.320762;
- name: string;
- machine_name_id: "5fb56f64-8aa0-4fa5-b800-5eb2cce2078c";
- percent: 39.09;
- digital: "467:49";
- decimal: "467.82";
- text: "467 hrs 49 mins";
- hours: 467;
- minutes: 49;
- seconds: number;
-}
-
-export interface Category {
- name: "Coding" | "Building" | "Debugging";
- total_seconds: number;
- percent: number;
- digital: string;
- decimal: string;
- text: string;
- hours: number;
- minutes: number;
- seconds: number;
-}
-
-export interface Dependency {
- total_seconds: number;
- name: string;
- percent: number;
- digital: string;
- decimal: string;
- text: string;
- hours: number;
- minutes: number;
- seconds: number;
-}
-
-export interface Editor {
- total_seconds: number;
- name: string;
- percent: number;
- digital: string;
- decimal: string;
- text: string;
- hours: number;
- minutes: number;
- seconds: number;
-}
-
-export interface BaseInsights {
- data: Array<{
-  all_users: AllUsers;
-  best_day: BestDay;
-
-  grand_total: {
-   hours: number;
-   minutes: number;
-   total_seconds: number;
-   digital: string;
-   decimal: string;
-   text: string;
-  };
-  range: {
-   start: string; // Datestring
-   end: string; // Datestring
-   date: string; // Dates
-   text: string;
-   timezone: string;
-  };
-
-  operating_systems: Array<OperatingSystem>;
-  projects: Array<Project>;
-  languages: Array<Language>;
-  machines: Array<Machine>;
-  dependencies: Array<Dependency>;
-  editors: Array<Editor>;
-  categories: Array<Category>;
- }>;
- start: string; // Datestring
- end: string; // Datestring
- cumulative_total: {
-  seconds: number;
-  text: string;
-  digital: string;
-  decimal: string;
- };
- daily_average: {
-  holidays: number;
-  days_minus_holidays: number;
-  days_including_holidays: number;
-  seconds: number;
-  seconds_including_other_language: number;
-  text: string;
-  text_including_other_language: string;
- };
-}
+	cached = fromSnapshot();
+	return cached;
+};

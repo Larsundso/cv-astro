@@ -1,647 +1,682 @@
+/**
+ * getCharts — SSR ECharts SVG print-outs for the telemetry wall section.
+ *
+ * Complete rewrite for "Der Rote Faden": the charts are clean print-outs
+ * pinned to cork, not dashboard widgets.
+ *
+ * - Paper ground: transparent chart background — the PinCard supplies the
+ *   stock; axes and grid lines are recessive ink mixes.
+ * - The six pride inks are a DETERMINISTIC series palette (no Math.random):
+ *   entities register an ink on first sight and keep it across every chart
+ *   of a build. The adjacency order is CVD-checked — worst adjacent pair
+ *   ΔE 11.2 (OKLab ×100) across protan/deutan/tritan simulations,
+ *   brute-forced over all 720 orders of the fixed token set.
+ * - Atkinson Hyperlegible labels (the print material), values in ink —
+ *   never in the series color.
+ * - Responsive: width/height stripped from the SVG root, viewBox retained;
+ *   the consumer sizes it with CSS. The SVG is presentational
+ *   (aria-hidden) — the consumer labels the frame and renders the
+ *   accompanying data table.
+ * - Snapshot-safe: with no WAKA_KEY every figure comes from the checked-in,
+ *   dated snapshot; the seven-day charts are omitted, never fabricated.
+ * - Voice law: every chart's `unit` line carries the unit, the window, and
+ *   the as-of date.
+ */
 import * as echarts from "echarts";
-import getSummaries from "./getSummaries.js";
-import getTotalTime from "./getTotalTime.js";
-import getInsights from "./getInsights.js";
+import { getWall, type Locale, type WallModule } from "~/data/i18n";
+import { telemetry } from "~/data/snapshot";
+import { formatH, formatHM, type StatSlice, type TelemetrySource } from "~/data/telemetry";
+import type { PrideInk } from "~/data/wall";
+import getInsights from "./getInsights";
+import getSummaries, { type DaySummary } from "./getSummaries";
+import getTotalTime from "./getTotalTime";
 
-const totalStats = await getTotalTime();
-const lastYearStats = await getInsights();
-const recentStats = await getSummaries();
+/** Locale-resolved display strings (wall.ts / wall.de.ts, same shape). */
+type ChartStrings = WallModule["chartStrings"];
 
-// Enhanced color palette with gradient capability
-const colors = {
- primary: [
-  "#f4651c",
-  "#e74c3c",
-  "#3498db",
-  "#2ecc71",
-  "#9b59b6",
-  "#f1c40f",
-  "#1abc9c",
-  "#e67e22",
-  "#34495e",
-  "#1a5276"
- ],
- // Gradient definitions
- gradients: (color: string) => ({
-  type: "linear",
-  x: 0,
-  y: 0,
-  x2: 0,
-  y2: 1,
-  colorStops: [
-   { offset: 0, color: color },
-   { offset: 1, color: echarts.color.modifyAlpha(color, 0.7) }
-  ]
- })
+/* ------------------------------------------------------------------ */
+/* Wall tokens as sRGB hex                                             */
+/* ------------------------------------------------------------------ */
+/* The SSR renderer emits concrete paint values, so the OKLCH tokens in
+ * src/styles/wall.css are resolved to hex here (cork resolves to #e1d2bb,
+ * cross-checked against the foundation reference). Mixes are computed in
+ * OKLab, matching color-mix(in oklab, …). */
+
+const INK = "#27201a"; // --ink
+const INK_SOFT = "#49413b"; // --ink-soft
+const PAPER = "#f9f7f1"; // --paper
+const GRID_LINE = "#d8d5cf"; // ink 14 % over paper
+const AXIS_LINE = "#99948e"; // ink 42 % over paper
+const NEUTRAL = "#aba6a0"; // ink 34 % over paper — the "everything else" bucket
+
+const INK_HEX: Record<PrideInk, string> = {
+	magenta: "#9a0064", // --ink-magenta
+	blue: "#184da3", // --ink-blue
+	amber: "#845000", // --ink-amber
+	teal: "#006166", // --ink-teal
+	violet: "#5e2b9a", // --ink-violet
+	green: "#03642b" // --ink-green
 };
 
-// Chart initialization options with responsive consideration
-const chartOpts = {
- renderer: "svg",
- ssr: true,
- width: 500,
- height: 300
-} satisfies echarts.EChartsInitOpts;
+/** Fixed assignment order — CVD-safe adjacency (see module doc). */
+const SERIES_ORDER: readonly PrideInk[] = ["magenta", "blue", "amber", "teal", "violet", "green"];
 
-// Enhanced common chart configurations
-const commonOptions = {
- backgroundColor: "transparent",
- grid: {
-  left: "8%",
-  right: "8%",
-  bottom: "18%",
-  top: "22%",
-  containLabel: true
- },
- title: {
-  left: "center",
-  textStyle: {
-   color: "#f7f1ee",
-   fontWeight: "bold",
-   fontSize: 16,
-   fontFamily: "sans-serif"
-  },
-  top: 10
- },
- // Default animation
- animation: true,
- animationDuration: 1000,
- animationEasing: "cubicInOut",
- animationThreshold: 2000
-} satisfies echarts.EChartsCoreOption;
+/** Reverse lookup so a margin note can write in its subject's series ink. */
+const INK_NAME = new Map<string, PrideInk>(
+	(Object.entries(INK_HEX) as [PrideInk, string][]).map(([name, hex]) => [hex, name])
+);
 
-// Enhanced axis styling
-const xAxisOpts = {
- type: "category" as const,
- nameLocation: "middle" as const,
- nameTextStyle: {
-  fontStyle: "italic",
-  fontWeight: "bold",
-  color: "#f7f1ee",
-  padding: [10, 0, 0, 0]
- },
- nameGap: 35,
- axisLine: { lineStyle: { color: "#666", width: 1 } },
- axisTick: { alignWithLabel: true, lineStyle: { color: "#555" } },
- axisLabel: { color: "#f7f1ee", fontSize: 12, rotate: 0, margin: 12 }
+const inkNameOf = (hex: string | undefined, fallback: PrideInk): PrideInk =>
+	(hex && INK_NAME.get(hex)) || fallback;
+
+const FONT_BODY = '"Atkinson Hyperlegible", "Segoe UI", sans-serif';
+/** Ranked bars stay legible when scaled down to a phone-wide card. */
+const RANKED_W = 460;
+/** Seven stacked days + legend need the full sheet; consumers pan on narrow screens. */
+const STACKED_W = 620;
+
+/* ------------------------------------------------------------------ */
+/* Public shapes                                                       */
+/* ------------------------------------------------------------------ */
+
+export interface ChartAnnotation {
+	/** Handwritten margin note quoting the headline figure. */
+	text: string;
+	ink: PrideInk;
+}
+
+export interface ChartTable {
+	head: string[];
+	/** First cell of each row is the row header. */
+	rows: string[][];
+	/** Footnote, e.g. explaining a derived figure marked with "*". */
+	note?: string;
+}
+
+export interface PrintChart {
+	id: "projects" | "languages" | "recent-projects" | "recent-languages";
+	title: string;
+	/** Unit + window + as-of line, printed under the title (voice law). */
+	unit: string;
+	/** Presentational inline SVG: aria-hidden, viewBox-scaled, CSS-sized. */
+	svg: string;
+	/** Full-sentence description for the labelled chart frame. */
+	alt: string;
+	table: ChartTable;
+	annotation: ChartAnnotation;
+}
+
+export interface HabitField {
+	title: string;
+	unit: string;
+	svg: string;
+	alt: string;
+	/** Printed figures line — the accessible record of the grid. */
+	line: string;
+	/** Honesty clause: the cells tally days, they are not a calendar. */
+	smallPrint: string;
+	asOf: string;
+	annotation: ChartAnnotation;
+}
+
+export interface ChartsBundle {
+	source: TelemetrySource;
+	asOf: string;
+	/** Start of the tracking span, e.g. "2021-10-29". */
+	trackingStart: string;
+	/** Two charts on snapshot builds, four on live builds. */
+	charts: PrintChart[];
+	habit: HabitField;
+	/** Typed provenance-card lines; snapshot builds add the July-2026
+	 *  "currently" line because the seven-day window has no snapshot. */
+	provenance: string[];
+}
+
+/* ------------------------------------------------------------------ */
+/* Deterministic pride-ink assignment                                  */
+/* ------------------------------------------------------------------ */
+
+type InkFor = (name: string) => string;
+
+/** First-seen registration: a name keeps its ink for the whole build. */
+const inkRegistry = (): InkFor => {
+	const assigned = new Map<string, string>();
+	return (name) => {
+		let ink = assigned.get(name);
+		if (!ink) {
+			ink = INK_HEX[SERIES_ORDER[assigned.size % SERIES_ORDER.length]];
+			assigned.set(name, ink);
+		}
+		return ink;
+	};
 };
 
-const yAxisOpts = {
- type: "value" as const,
- name: "Hours",
- nameLocation: "middle" as const,
- nameGap: 45,
- nameTextStyle: {
-  fontStyle: "italic",
-  fontWeight: "bold",
-  color: "#f7f1ee",
-  fontSize: 13
- },
- axisLine: {
-  show: true,
-  lineStyle: { color: "#666" }
- },
- splitLine: {
-  lineStyle: {
-   color: "rgba(120, 120, 120, 0.2)",
-   type: [2, 4] as [number, number]
-  }
- },
- axisLabel: { color: "#f7f1ee", formatter: "{value}", fontSize: 11 }
+/** Registry inks for one chart, de-duplicated so two entities can never
+ *  share an ink on the same sheet (possible once >6 names registered). */
+const chartInks = (names: string[], inkFor: InkFor): Map<string, string> => {
+	const used = new Set<string>();
+	const out = new Map<string, string>();
+	for (const name of names) {
+		let ink = inkFor(name);
+		if (used.has(ink)) {
+			ink = SERIES_ORDER.map((k) => INK_HEX[k]).find((hex) => !used.has(hex)) ?? ink;
+		}
+		used.add(ink);
+		out.set(name, ink);
+	}
+	return out;
 };
 
-// Helper to get a shuffled color array
-const getShuffledColors = (count: number) => {
- const shuffledColors = [...colors.primary].sort(() => Math.random() - 0.5);
- return shuffledColors.slice(0, count);
+/* ------------------------------------------------------------------ */
+/* Rendering plumbing                                                  */
+/* ------------------------------------------------------------------ */
+
+const renderSvg = (width: number, height: number, option: echarts.EChartsOption): string => {
+	const chart = echarts.init(null, null, {
+		renderer: "svg",
+		ssr: true,
+		width,
+		height
+	});
+	chart.setOption({
+		animation: false,
+		backgroundColor: "transparent",
+		textStyle: { fontFamily: FONT_BODY, color: INK },
+		...option
+	});
+	const svg = chart.renderToSVGString();
+	chart.dispose();
+	// Responsive + presentational: keep the viewBox, drop the fixed size,
+	// hide from assistive tech (the frame carries the label, the table the data).
+	const cut = svg.indexOf(">");
+	const open = svg
+		.slice(0, cut)
+		.replace(/\s(?:width|height)="[^"]*"/g, "")
+		.replace("<svg", '<svg aria-hidden="true" focusable="false"');
+	return open + svg.slice(cut);
 };
 
-// Format time value for tooltips
-const formatTimeValue = (hours: number): string => {
- if (hours < 0.01) return "< 1 min";
- const h = Math.floor(hours);
- const m = Math.floor((hours - h) * 60);
+const round2 = (n: number): number => Math.round(n * 100) / 100;
 
- if (h === 0) return `${m} min${m !== 1 ? "s" : ""}`;
- if (m === 0) return `${h} hr${h !== 1 ? "s" : ""}`;
- return `${h} hr${h !== 1 ? "s" : ""} ${m} min${m !== 1 ? "s" : ""}`;
-};
+const pct = (p: number | null): string | null => (p == null ? null : `${round2(p)} %`);
 
-// Format hours only for average values (rounded to 1 decimal)
-const formatHoursOnly = (hours: number): string => {
- return `${hours.toFixed(1)} hr${hours !== 1 ? "s" : ""}`;
-};
+/* ------------------------------------------------------------------ */
+/* Ranked horizontal bars (top projects / top languages)               */
+/* ------------------------------------------------------------------ */
 
-export default () => ({
- top: [topProj(), topLang()],
- recent: [recentProj(), recentLang()]
+interface RankedRow {
+	name: string;
+	/** Printed time, e.g. "3,019 h 54 m" — may carry a trailing "*". */
+	time: string;
+	hours: number;
+	/** Share display, e.g. "55.68 %"; null when not recorded. */
+	share: string | null;
+	color: string;
+}
+
+const rankedBarSvg = (rows: RankedRow[]): string =>
+	renderSvg(RANKED_W, 24 + rows.length * 48, {
+		grid: { left: 8, right: 104, top: 10, bottom: 10, containLabel: true },
+		xAxis: { type: "value", show: false },
+		yAxis: {
+			type: "category",
+			inverse: true,
+			data: rows.map((r) => r.name),
+			axisLine: { show: false },
+			axisTick: { show: false },
+			axisLabel: {
+				color: INK,
+				fontFamily: FONT_BODY,
+				fontSize: 15,
+				width: 130,
+				overflow: "truncate"
+			}
+		},
+		series: [
+			{
+				type: "bar",
+				barWidth: 18,
+				data: rows.map((r) => ({
+					value: round2(r.hours),
+					itemStyle: { color: r.color, borderRadius: [0, 4, 4, 0] }
+				})),
+				label: {
+					show: true,
+					position: "right",
+					distance: 8,
+					color: INK,
+					fontFamily: FONT_BODY,
+					fontWeight: "bold",
+					fontSize: 15,
+					formatter: (p: { dataIndex: number }) => rows[p.dataIndex].time
+				}
+			}
+		]
+	});
+
+const rankedAlt = (intro: string, rows: RankedRow[]): string =>
+	`${intro}: ${rows
+		.map((r) => `${r.name} ${r.time}${r.share ? ` (${r.share})` : ""}`)
+		.join("; ")}.`;
+
+const rankedTable = (
+	kind: string,
+	heads: ChartStrings["tableHeads"],
+	rows: RankedRow[],
+	note?: string
+): ChartTable => ({
+	head: [kind, heads.trackedTime, heads.share],
+	rows: rows.map((r) => [r.name, r.time, r.share ?? "—"]),
+	...(note ? { note } : {})
 });
 
-const topProj = () => {
- const chart: echarts.ECharts | null = echarts.init(null, null, chartOpts);
- const topProjects = totalStats.projects.slice(0, 5);
+/* ------------------------------------------------------------------ */
+/* Stacked daily bars (last 7 days)                                    */
+/* ------------------------------------------------------------------ */
 
- // Calculate average for reference line
- const avgValue =
-  topProjects.reduce((sum, p) => sum + Number(p.decimal), 0) /
-  topProjects.length;
- const chartColors = getShuffledColors(topProjects.length);
+interface StackResult {
+	svg: string;
+	names: string[];
+	/** Seconds per series per day, aligned with `names`. */
+	matrix: number[][];
+	/** Seconds outside the top series, per day. */
+	other: number[];
+	/** Summed seconds of the leading series across the window. */
+	leadSeconds: number;
+	/** The leading series' assigned ink (hex). */
+	leadColor: string;
+}
 
- chart.setOption({
-  ...commonOptions,
-  title: {
-   ...commonOptions.title,
-   text: "Top 5 Projects",
-   subtextStyle: {
-    color: "rgba(247, 241, 238, 0.65)",
-    fontSize: 12,
-    fontWeight: "normal"
-   }
-  },
-  xAxis: {
-   ...xAxisOpts,
-   data: topProjects.map((p) => p.name),
-   name: "Project",
-   axisLabel: {
-    ...xAxisOpts.axisLabel,
-    formatter: (value: string) =>
-     value.length > 10 ? value.substring(0, 8) + "..." : value,
-    rotate: 0,
-    interval: 0
-   }
-  },
-  yAxis: yAxisOpts,
-  series: [
-   {
-    name: "Hours",
-    type: "bar",
-    barWidth: "50%",
-    data: topProjects.map((p, i) => ({
-     value: Number(p.decimal),
-     text: p.text,
-     percent: p.percent.toFixed(1),
-     itemStyle: {
-      color: colors.gradients(chartColors[i]),
-      borderRadius: [6, 6, 0, 0]
-     }
-    })),
-    label: {
-     show: true,
-     position: "top",
-     distance: 35,
-     formatter: (params: any) => formatTimeValue(params.data.value),
-     fontSize: 12,
-     backgroundColor: "rgba(0, 0, 0, 0.6)",
-     padding: [3, 6],
-     borderRadius: 4,
-     rotate: 35,
-     offset: [26, 26],
-     color: "#fff"
-    },
-    emphasis: {
-     itemStyle: {
-      shadowBlur: 10,
-      shadowColor: "rgba(0,0,0,0.3)"
-     }
-    }
-   },
-   // Add average line
-   {
-    name: "Average",
-    type: "line",
-    markLine: {
-     silent: true,
-     symbol: "none",
-     label: {
-      formatter: `Avg: ${formatHoursOnly(avgValue)}`,
-      position: "insideStartBottom",
-      backgroundColor: "rgba(0,0,0,0.6)",
-      padding: [2, 4],
-      borderRadius: 2,
-      color: "#fff",
-      fontSize: 10
-     },
-     lineStyle: {
-      color: "#f7f1ee",
-      type: "dashed",
-      width: 1,
-      opacity: 0.8
-     },
-     data: [{ yAxis: avgValue }]
-    }
-   }
-  ]
- });
+const stackedDays = (
+	days: DaySummary[],
+	pick: (d: DaySummary) => StatSlice[],
+	inkFor: InkFor,
+	cs: ChartStrings
+): StackResult => {
+	const totals = new Map<string, number>();
+	for (const day of days) {
+		for (const slice of pick(day)) {
+			totals.set(slice.name, (totals.get(slice.name) ?? 0) + (slice.seconds ?? 0));
+		}
+	}
+	const names = [...totals.entries()]
+		.sort((a, b) => b[1] - a[1])
+		.slice(0, 5)
+		.map(([name]) => name);
+	const colors = chartInks(names, inkFor);
 
- return chart.renderToSVGString();
+	const matrix = names.map((name) =>
+		days.map((day) => pick(day).find((s) => s.name === name)?.seconds ?? 0)
+	);
+	const other = days.map((day, i) => {
+		const covered = matrix.reduce((sum, row) => sum + row[i], 0);
+		return Math.max(0, day.total.seconds - covered);
+	});
+	const hasOther = other.some((s) => s >= 60);
+
+	const barSeries = (name: string, color: string, seconds: number[]) => ({
+		name,
+		type: "bar" as const,
+		stack: "day",
+		barWidth: 26,
+		// 1px paper border on every segment = a 2px paper gap between fills
+		itemStyle: { color, borderColor: PAPER, borderWidth: 1 },
+		data: seconds.map((s) => round2(s / 3600))
+	});
+
+	const svg = renderSvg(STACKED_W, 344, {
+		grid: { left: 8, right: 8, top: 12, bottom: 48, containLabel: true },
+		legend: {
+			bottom: 0,
+			left: "center",
+			icon: "rect",
+			itemWidth: 10,
+			itemHeight: 10,
+			itemGap: 14,
+			textStyle: { color: INK_SOFT, fontFamily: FONT_BODY, fontSize: 12 },
+			// full names live in the data table
+			formatter: (name: string) => (name.length > 16 ? `${name.slice(0, 15)}…` : name)
+		},
+		xAxis: {
+			type: "category",
+			data: days.map((d) => d.date.slice(5)),
+			axisLine: { lineStyle: { color: AXIS_LINE } },
+			axisTick: { show: false },
+			axisLabel: { color: INK_SOFT, fontFamily: FONT_BODY, fontSize: 12 }
+		},
+		yAxis: {
+			type: "value",
+			splitNumber: 3,
+			axisLabel: {
+				color: INK_SOFT,
+				fontFamily: FONT_BODY,
+				fontSize: 12,
+				formatter: cs.axisHours
+			},
+			splitLine: { lineStyle: { color: GRID_LINE } }
+		},
+		series: [
+			...names.map((name, i) => barSeries(name, colors.get(name) ?? NEUTRAL, matrix[i])),
+			...(hasOther ? [barSeries(cs.other, NEUTRAL, other)] : [])
+		]
+	});
+
+	return {
+		svg,
+		names,
+		matrix,
+		other,
+		leadSeconds: names.length ? (totals.get(names[0]) ?? 0) : 0,
+		leadColor: names.length ? (colors.get(names[0]) ?? NEUTRAL) : NEUTRAL
+	};
 };
 
-const topLang = () => {
- const chart: echarts.ECharts | null = echarts.init(null, null, chartOpts);
- const topLanguages = lastYearStats.data.languages.slice(0, 5);
+const stackedTable = (days: DaySummary[], stack: StackResult, cs: ChartStrings): ChartTable => ({
+	head: [cs.tableHeads.day, ...stack.names, cs.other, cs.tableHeads.total],
+	rows: days.map((day, i) => [
+		day.date,
+		...stack.matrix.map((row) => (row[i] >= 60 ? formatHM(row[i]) : "—")),
+		stack.other[i] >= 60 ? formatHM(stack.other[i]) : "—",
+		day.total.text
+	])
+});
 
- // Calculate average for reference line
- const avgValue =
-  topLanguages.reduce((sum, p) => sum + Number(p.decimal), 0) /
-  topLanguages.length;
- const chartColors = getShuffledColors(topLanguages.length);
- const lastYear = new Date();
- lastYear.setFullYear(new Date().getFullYear() - 1);
+/* ------------------------------------------------------------------ */
+/* The habit field — one cell per elapsed day, tallied not dated       */
+/* ------------------------------------------------------------------ */
+/* Rendered as four pattern-filled rects (single-digit DOM nodes for
+ * 1,700+ cells). Only the counts are published, so filled cells run in
+ * sequence — a tally, deliberately not a calendar. */
 
- chart.setOption({
-  ...commonOptions,
-  title: {
-   ...commonOptions.title,
-   text: "Top 5 Languages",
-   subtext: `from ${lastYear.getMonth()}/${lastYear.getFullYear()} to ${new Date().getMonth()}/${new Date().getFullYear()}`,
-   subtextStyle: {
-    color: "rgba(247, 241, 238, 0.65)",
-    fontSize: 12,
-    fontWeight: "normal"
-   }
-  },
-  xAxis: {
-   ...xAxisOpts,
-   data: topLanguages.map((p) => p.name),
-   name: "Language",
-   axisLabel: {
-    ...xAxisOpts.axisLabel,
-    rotate: 0,
-    interval: 0
-   }
-  },
-  yAxis: yAxisOpts,
-  series: [
-   {
-    name: "Hours",
-    type: "bar",
-    barWidth: "50%",
-    data: topLanguages.map((p, i) => ({
-     value: Number(p.decimal),
-     text: p.text,
-     percent: p.percent.toFixed(1),
-     itemStyle: {
-      color: colors.gradients(chartColors[i]),
-      borderRadius: [6, 6, 0, 0]
-     }
-    })),
-    label: {
-     show: true,
-     position: "top",
-     distance: 35,
-     formatter: (params: any) => formatTimeValue(params.data.value),
-     fontSize: 12,
-     backgroundColor: "rgba(0, 0, 0, 0.6)",
-     padding: [3, 6],
-     borderRadius: 4,
-     rotate: 35,
-     offset: [26, 26],
-     color: "#fff"
-    },
-    emphasis: {
-     itemStyle: {
-      shadowBlur: 10,
-      shadowColor: "rgba(0,0,0,0.3)"
-     }
-    }
-   },
-   // Add average line
-   {
-    name: "Average",
-    type: "line",
-    markLine: {
-     silent: true,
-     symbol: "none",
-     label: {
-      formatter: `Avg: ${formatHoursOnly(avgValue)}`,
-      position: "insideStartBottom",
-      backgroundColor: "rgba(0,0,0,0.6)",
-      padding: [2, 4],
-      borderRadius: 2,
-      color: "#fff",
-      fontSize: 10
-     },
-     lineStyle: {
-      color: "#f7f1ee",
-      type: "dashed",
-      width: 1,
-      opacity: 0.8
-     },
-     data: [{ yAxis: avgValue }]
-    }
-   }
-  ]
- });
+const habitFieldSvg = (active: number, elapsed: number): string => {
+	const COLS = 47; // 1,739 elapsed days = 47 × 37, a full rectangle
+	const CELL = 10;
+	const GAP = 3;
+	const PITCH = CELL + GAP;
+	const rows = Math.ceil(elapsed / COLS);
+	const w = COLS * PITCH - GAP;
+	const h = rows * PITCH - GAP;
 
- return chart.renderToSVGString();
+	/** Cover the sequential cell range [from, to) with at most 3 rects. */
+	const rectsFor = (from: number, to: number): string => {
+		if (to <= from) return "";
+		const parts: string[] = [];
+		const rect = (row: number, colA: number, colB: number, rowSpan = 1) =>
+			parts.push(
+				`<rect x="${colA * PITCH}" y="${row * PITCH}" width="${(colB - colA) * PITCH - GAP}" height="${rowSpan * PITCH - GAP}"/>`
+			);
+		const r0 = Math.floor(from / COLS);
+		const c0 = from % COLS;
+		const r1 = Math.floor((to - 1) / COLS);
+		const c1 = (to - 1) % COLS;
+		if (r0 === r1) {
+			rect(r0, c0, c1 + 1);
+		} else {
+			rect(r0, c0, COLS);
+			if (r1 - r0 > 1) rect(r0 + 1, 0, COLS, r1 - r0 - 1);
+			rect(r1, 0, c1 + 1);
+		}
+		return parts.join("");
+	};
+
+	const filled = Math.min(active, elapsed);
+	return (
+		`<svg viewBox="-1 -1 ${w + 2} ${h + 2}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">` +
+		`<defs>` +
+		`<pattern id="rf-day-on" width="${PITCH}" height="${PITCH}" patternUnits="userSpaceOnUse">` +
+		`<rect width="${CELL}" height="${CELL}" rx="2" fill="${INK_HEX.green}"/>` +
+		`</pattern>` +
+		`<pattern id="rf-day-off" width="${PITCH}" height="${PITCH}" patternUnits="userSpaceOnUse">` +
+		`<rect x="0.5" y="0.5" width="${CELL - 1}" height="${CELL - 1}" rx="2" fill="none" stroke="${AXIS_LINE}"/>` +
+		`</pattern>` +
+		`</defs>` +
+		`<g fill="url(#rf-day-on)">${rectsFor(0, filled)}</g>` +
+		`<g fill="url(#rf-day-off)">${rectsFor(filled, elapsed)}</g>` +
+		`</svg>`
+	);
 };
 
-const recentLang = () => {
- const chart: echarts.ECharts | null = echarts.init(null, null, chartOpts);
+/* ------------------------------------------------------------------ */
+/* Bundle assembly                                                     */
+/* ------------------------------------------------------------------ */
 
- // Get the top 5 languages across all days
- const allLanguages = new Map<string, number>();
- recentStats.data.forEach((day) => {
-  day.languages.forEach((lang) => {
-   if (!allLanguages.has(lang.name)) allLanguages.set(lang.name, 0);
-   allLanguages.set(
-    lang.name,
-    allLanguages.get(lang.name)! + Number(lang.decimal)
-   );
-  });
- });
+/* Figures keep en-US grouping in every locale — the wall's figure style
+ * is uniform (wall.de.ts copies figure strings verbatim, same rule). */
+const fmt = (n: number): string => n.toLocaleString("en-US");
 
- const topLanguages = [...allLanguages.entries()]
-  .sort((a, b) => b[1] - a[1])
-  .slice(0, 5)
-  .map(([name]) => name);
+const build = async (locale: Locale): Promise<ChartsBundle> => {
+	const cs: ChartStrings = getWall(locale).chartStrings;
+	const [career, year, week] = await Promise.all([getTotalTime(), getInsights(), getSummaries()]);
+	const projectInk = inkRegistry();
+	const languageInk = inkRegistry();
+	const charts: PrintChart[] = [];
+	const lifetimeWindow = `${career.range.start} → ${career.range.end}`;
 
- // Prepare data for each day
- const dayTopLanguages = recentStats.data.map((day) => {
-  const dayLangMap = new Map<string, number>();
-  topLanguages.forEach((lang) => {
-   const langData = day.languages.find((l) => l.name === lang);
-   dayLangMap.set(lang, langData ? Number(langData.decimal) : 0);
-  });
-  return dayLangMap;
- });
+	/* -- projects ---------------------------------------------------- */
+	if (career.source === "live" && career.projects.length > 1) {
+		const top = career.projects.slice(0, 5);
+		const colors = chartInks(
+			top.map((p) => p.name),
+			projectInk
+		);
+		const rows: RankedRow[] = top.map((p) => ({
+			name: p.name,
+			time: formatHM(p.seconds ?? 0),
+			hours: (p.seconds ?? 0) / 3600,
+			share: pct(p.percent),
+			color: colors.get(p.name) ?? NEUTRAL
+		}));
+		charts.push({
+			id: "projects",
+			title: cs.titles.topProjects(rows.length),
+			unit: cs.units.lifetimeHours(lifetimeWindow, career.asOf),
+			svg: rankedBarSvg(rows),
+			alt: rankedAlt(cs.alt.topProjectsIntro(rows.length, career.asOf), rows),
+			table: rankedTable(cs.tableHeads.project, cs.tableHeads, rows),
+			annotation: {
+				text: cs.annotations.projectLeads(rows[0].name, rows[0].time),
+				ink: inkNameOf(rows[0].color, "magenta")
+			}
+		});
+	} else {
+		// Snapshot: only the Ayako-family figure is published per project.
+		const fam = career.projects[0];
+		const famSeconds = fam.seconds ?? 0;
+		const famShare = fam.percent ?? telemetry.lifetime.ayakoFamily.percent;
+		const restSeconds = Math.max(0, career.total.seconds - famSeconds);
+		const rows: RankedRow[] = [
+			{
+				name: cs.ayakoFamilyRow,
+				time: fam.text ?? formatHM(famSeconds),
+				hours: famSeconds / 3600,
+				share: `${famShare} %`,
+				color: projectInk(cs.ayakoFamilyRow)
+			},
+			{
+				name: cs.other,
+				time: `${formatHM(restSeconds)}*`,
+				hours: restSeconds / 3600,
+				share: `${round2(100 - famShare)} %*`,
+				color: NEUTRAL
+			}
+		];
+		charts.push({
+			id: "projects",
+			title: cs.titles.ayakoFamily,
+			unit: cs.units.lifetimeShare(lifetimeWindow, career.asOf),
+			svg: rankedBarSvg(rows),
+			alt: rankedAlt(cs.alt.ayakoFamilyIntro(career.asOf), rows),
+			table: rankedTable(cs.tableHeads.project, cs.tableHeads, rows, cs.notes.projectsDerived(career.asOf)),
+			annotation: {
+				text: cs.annotations.ayakoShare(famShare),
+				ink: inkNameOf(rows[0].color, "magenta")
+			}
+		});
+	}
 
- // Get dates for x-axis
- const dayLabels = getLast7Days();
- const chartColors = getShuffledColors(topLanguages.length);
+	/* -- languages ---------------------------------------------------- */
+	if (year.source === "live" && year.languages.length > 0 && year.range) {
+		const top = year.languages.slice(0, 5);
+		const colors = chartInks(
+			top.map((l) => l.name),
+			languageInk
+		);
+		const rows: RankedRow[] = top.map((l) => ({
+			name: l.name,
+			time: formatHM(l.seconds ?? 0),
+			hours: (l.seconds ?? 0) / 3600,
+			share: pct(l.percent),
+			color: colors.get(l.name) ?? NEUTRAL
+		}));
+		charts.push({
+			id: "languages",
+			title: cs.titles.topLanguages(rows.length),
+			unit: cs.units.last12MonthsHours(`${year.range.start} → ${year.range.end}`, year.asOf),
+			svg: rankedBarSvg(rows),
+			alt: rankedAlt(cs.alt.topLanguagesYearIntro(rows.length, year.asOf), rows),
+			table: rankedTable(cs.tableHeads.language, cs.tableHeads, rows),
+			annotation: {
+				text: cs.annotations.languageTop(rows[0].name, rows[0].time),
+				ink: inkNameOf(rows[0].color, "blue")
+			}
+		});
+	} else {
+		// Snapshot: the four published lifetime language figures.
+		const langs = telemetry.lifetime.languages;
+		const colors = chartInks(
+			langs.map((l) => l.name),
+			languageInk
+		);
+		const rows: RankedRow[] = langs.map((l) => ({
+			name: l.name,
+			time: formatH(l.hours),
+			hours: l.hours,
+			share: `${l.percent} %${l.derived ? "*" : ""}`,
+			color: colors.get(l.name) ?? NEUTRAL
+		}));
+		charts.push({
+			id: "languages",
+			title: cs.titles.topLanguages(rows.length),
+			unit: cs.units.lifetimeHours(lifetimeWindow, career.asOf),
+			svg: rankedBarSvg(rows),
+			alt: rankedAlt(cs.alt.topLanguagesLifetimeIntro(rows.length, career.asOf), rows),
+			table: rankedTable(
+				cs.tableHeads.language,
+				cs.tableHeads,
+				rows,
+				cs.notes.languagesDerived(career.asOf)
+			),
+			annotation: {
+				text: cs.annotations.languageTop(rows[0].name, rows[0].time),
+				ink: inkNameOf(rows[0].color, "blue")
+			}
+		});
+	}
 
- // Calculate total coding time per day for tooltip
- const dailyTotals = recentStats.data.map((day) =>
-  day.grand_total ? Number(day.grand_total.decimal) : 0
- );
+	/* -- last 7 days (live builds only — the window has no snapshot) -- */
+	if (week.source === "live" && week.days.length > 0 && week.range) {
+		const windowUnit = cs.units.weekHoursPerDay(
+			`${week.range.start} → ${week.range.end}`,
+			week.asOf
+		);
+		const cumulative = week.cumulative?.text ?? formatHM(0);
+		const average = week.dailyAverage?.text ?? formatHM(0);
 
- // Calculate daily average for the entire week
- const dailyAverage =
-  dailyTotals.reduce((sum, val) => sum + val, 0) / dailyTotals.length;
+		const byProject = stackedDays(week.days, (d) => d.projects, projectInk, cs);
+		charts.push({
+			id: "recent-projects",
+			title: cs.titles.weekByProject,
+			unit: windowUnit,
+			svg: byProject.svg,
+			alt: cs.alt.weekByProject({
+				start: week.range.start,
+				end: week.range.end,
+				topCount: byProject.names.length,
+				weekTotal: cumulative,
+				dailyAverage: average,
+				leadName: byProject.names[0],
+				leadTime: formatHM(byProject.leadSeconds)
+			}),
+			table: stackedTable(week.days, byProject, cs),
+			annotation: {
+				text: cs.annotations.weekTotal(cumulative, byProject.names[0]),
+				ink: inkNameOf(byProject.leadColor, "teal")
+			}
+		});
 
- // Prepare data series
- const series = topLanguages.map((langName, langIndex) => {
-  return {
-   name: langName,
-   type: "bar",
-   stack: "total",
-   barWidth: "60%",
-   emphasis: {
-    focus: "series",
-    itemStyle: {
-     shadowBlur: 10,
-     shadowColor: "rgba(0,0,0,0.3)"
-    }
-   },
-   itemStyle: {
-    color: colors.gradients(chartColors[langIndex])
-   },
-   data: recentStats.data.map((day, dayIndex) => {
-    const lang = day.languages.find((l) => l.name === langName);
-    const value = lang ? Number(lang.decimal) : 0;
+		const byLanguage = stackedDays(week.days, (d) => d.languages, languageInk, cs);
+		charts.push({
+			id: "recent-languages",
+			title: cs.titles.weekByLanguage,
+			unit: windowUnit,
+			svg: byLanguage.svg,
+			alt: cs.alt.weekByLanguage({
+				start: week.range.start,
+				end: week.range.end,
+				topCount: byLanguage.names.length,
+				weekTotal: cumulative,
+				dailyAverage: average,
+				leadName: byLanguage.names[0],
+				leadTime: formatHM(byLanguage.leadSeconds)
+			}),
+			table: stackedTable(week.days, byLanguage, cs),
+			annotation: {
+				text: cs.annotations.weekDaily(average, byLanguage.names[0]),
+				ink: inkNameOf(byLanguage.leadColor, "violet")
+			}
+		});
+	}
 
-    // Determine if this language is the top one for this day
-    const dayMap = dayTopLanguages[dayIndex];
-    let isTopBar = true;
-    for (let i = langIndex + 1; i < topLanguages.length; i++) {
-     if (dayMap.get(topLanguages[i])! > 0) {
-      isTopBar = false;
-      break;
-     }
-    }
+	/* -- the habit field ---------------------------------------------- */
+	const { active, elapsed, ratePercent } = career.days;
+	const habit: HabitField = {
+		title: cs.titles.activeDays,
+		unit: cs.units.habitCells(lifetimeWindow, career.asOf),
+		svg: habitFieldSvg(active, elapsed),
+		alt: cs.alt.habit({
+			elapsed: fmt(elapsed),
+			start: career.range.start,
+			end: career.range.end,
+			active: fmt(active),
+			ratePercent,
+			asOf: career.asOf
+		}),
+		line: cs.habit.line(fmt(active), fmt(elapsed), ratePercent),
+		smallPrint: cs.habit.smallPrint,
+		asOf: career.asOf,
+		annotation: {
+			text: cs.annotations.habitRate(ratePercent, career.range.start.slice(0, 4)),
+			ink: "amber"
+		}
+	};
 
-    return {
-     value,
-     name: lang?.name,
-     itemStyle: {
-      borderRadius: isTopBar && value > 0 ? [6, 6, 0, 0] : [0, 0, 0, 0]
-     }
-    };
-   })
-  };
- });
+	/* -- provenance ---------------------------------------------------- */
+	const provenance =
+		career.source === "live"
+			? [cs.provenance.live(career.asOf)]
+			: [
+					cs.provenance.snapshot(career.asOf),
+					cs.provenance.currentlyJuly2026(telemetry.windowJuly2026.dailyAverage.display)
+				];
 
- chart.setOption({
-  ...commonOptions,
-  title: {
-   ...commonOptions.title,
-   text: "Recent Language Activity"
-  },
-  legend: {
-   data: topLanguages,
-   textStyle: { color: "#f7f1ee", fontSize: 11 },
-   top: "bottom",
-   icon: "roundRect",
-   itemWidth: 12,
-   itemHeight: 12,
-   itemGap: 10,
-   padding: 10
-  },
-  color: chartColors,
-  xAxis: {
-   ...xAxisOpts,
-   data: dayLabels,
-   name: "Date",
-   axisLabel: {
-    ...xAxisOpts.axisLabel,
-    fontSize: 11,
-    margin: 15
-   }
-  },
-  yAxis: yAxisOpts,
-  series: [
-   ...series,
-   // Add average line across all days
-   {
-    name: "Daily Average",
-    type: "line",
-    markLine: {
-     silent: true,
-     symbol: "none",
-     label: {
-      formatter: `Daily Avg: ${formatHoursOnly(dailyAverage)}`,
-      position: "insideStartBottom",
-      backgroundColor: "rgba(0,0,0,0.6)",
-      padding: [3, 6],
-      borderRadius: 3,
-      color: "#fff",
-      fontSize: 10
-     },
-     lineStyle: {
-      color: "#f7f1ee",
-      type: "dashed",
-      width: 1,
-      opacity: 0.8
-     },
-     data: [{ yAxis: dailyAverage }]
-    }
-   }
-  ]
- });
-
- return chart.renderToSVGString();
+	return {
+		source: career.source,
+		asOf: career.asOf,
+		trackingStart: career.range.start,
+		charts,
+		habit,
+		provenance
+	};
 };
 
-const recentProj = () => {
- const chart: echarts.ECharts | null = echarts.init(null, null, chartOpts);
+const cache = new Map<Locale, Promise<ChartsBundle>>();
 
- // Get the top 5 projects across all days
- const allProjects = new Map<string, number>();
- recentStats.data.forEach((day) => {
-  day.projects?.forEach((proj) => {
-   if (!allProjects.has(proj.name)) {
-    allProjects.set(proj.name, 0);
-   }
-   allProjects.set(
-    proj.name,
-    allProjects.get(proj.name)! + Number(proj.decimal)
-   );
-  });
- });
-
- const topProjects = [...allProjects.entries()]
-  .sort((a, b) => b[1] - a[1])
-  .slice(0, 5)
-  .map(([name]) => name);
-
- // Prepare data for each day
- const dayTopProjects = recentStats.data.map((day) => {
-  const dayProjMap = new Map<string, number>();
-  topProjects.forEach((proj) => {
-   const projData = day.projects?.find((p) => p.name === proj);
-   dayProjMap.set(proj, projData ? Number(projData.decimal) : 0);
-  });
-  return dayProjMap;
- });
-
- // Get dates for x-axis
- const dayLabels = getLast7Days();
- const chartColors = getShuffledColors(topProjects.length);
-
- // Calculate total coding time per day for tooltip
- const dailyTotals = recentStats.data.map((day) =>
-  day.grand_total ? Number(day.grand_total.decimal) : 0
- );
-
- // Calculate daily average for the entire week
- const dailyAverage =
-  dailyTotals.reduce((sum, val) => sum + val, 0) / dailyTotals.length;
-
- // Prepare data series
- const series = topProjects.map((projName, projIndex) => {
-  return {
-   name: projName,
-   type: "bar",
-   stack: "total",
-   barWidth: "60%",
-   emphasis: {
-    focus: "series",
-    itemStyle: {
-     shadowBlur: 10,
-     shadowColor: "rgba(0,0,0,0.3)"
-    }
-   },
-   itemStyle: {
-    color: colors.gradients(chartColors[projIndex])
-   },
-   data: recentStats.data.map((day, dayIndex) => {
-    const proj = day.projects?.find((p) => p.name === projName);
-    const value = proj ? Number(proj.decimal) : 0;
-
-    // Determine if this project is the top one for this day
-    const dayMap = dayTopProjects[dayIndex];
-    let isTopBar = true;
-    for (let i = projIndex + 1; i < topProjects.length; i++) {
-     if (dayMap.get(topProjects[i])! > 0) {
-      isTopBar = false;
-      break;
-     }
-    }
-
-    return {
-     value,
-     name: proj?.name,
-     itemStyle: {
-      borderRadius: isTopBar && value > 0 ? [6, 6, 0, 0] : [0, 0, 0, 0]
-     }
-    };
-   })
-  };
- });
-
- chart.setOption({
-  ...commonOptions,
-  title: {
-   ...commonOptions.title,
-   text: "Recent Project Activity"
-  },
-  legend: {
-   data: topProjects,
-   textStyle: { color: "#f7f1ee", fontSize: 11 },
-   top: "bottom",
-   icon: "roundRect",
-   itemWidth: 12,
-   itemHeight: 12,
-   itemGap: 10,
-   padding: 10,
-   formatter: function (name: string) {
-    return name.length > 12 ? name.substring(0, 10) + "..." : name;
-   }
-  },
-  color: chartColors,
-  xAxis: {
-   ...xAxisOpts,
-   data: dayLabels,
-   name: "Date",
-   axisLabel: {
-    ...xAxisOpts.axisLabel,
-    fontSize: 11,
-    margin: 15
-   }
-  },
-  yAxis: yAxisOpts,
-  series: [
-   ...series,
-   // Add average line across all days
-   {
-    name: "Daily Average",
-    type: "line",
-    markLine: {
-     silent: true,
-     symbol: "none",
-     label: {
-      formatter: `Daily Avg: ${formatHoursOnly(dailyAverage)}`,
-      position: "insideStartBottom",
-      backgroundColor: "rgba(0,0,0,0.6)",
-      padding: [3, 6],
-      borderRadius: 3,
-      color: "#fff",
-      fontSize: 10
-     },
-     lineStyle: {
-      color: "#f7f1ee",
-      type: "dashed",
-      width: 1,
-      opacity: 0.8
-     },
-     data: [{ yAxis: dailyAverage }]
-    }
-   }
-  ]
- });
-
- return chart.renderToSVGString();
-};
-
-// Get formatted last 7 days for x-axis labels
-const getLast7Days = (): string[] => {
- const days = [];
- const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
- for (let i = 6; i >= 0; i--) {
-  const date = new Date();
-  date.setDate(date.getDate() - i);
-  days.push(dayNames[date.getDay()]);
- }
- return days;
+/** Memoized per locale: each locale's charts render once per build. */
+export default (locale: Locale): Promise<ChartsBundle> => {
+	let bundle = cache.get(locale);
+	if (!bundle) {
+		bundle = build(locale);
+		cache.set(locale, bundle);
+	}
+	return bundle;
 };

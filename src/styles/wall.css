@@ -1,0 +1,195 @@
+/* ============================================================
+   Der Rote Faden — wall foundation
+   Ground, tokens, thread machinery, shared pinboard utilities.
+   Scope: global. Component-specific styles live in components.
+   ============================================================ */
+
+:root {
+  color-scheme: light;
+
+  /* ground + surfaces */
+  --cork: oklch(87% 0.035 80);
+  --cork-deep: oklch(82% 0.045 75);
+  --paper: oklch(97.5% 0.008 90);
+  --paper-aged: oklch(94% 0.02 85);
+  --ink: oklch(25% 0.015 60);
+  --ink-soft: oklch(38% 0.015 60);
+
+  /* thread + pins — --thread is the only structural accent */
+  --thread: oklch(50% 0.19 22);
+  --brass: oklch(70% 0.09 85);
+
+  /* pride ink set (annotations + data; each >=4.5:1 on --paper as text) */
+  --ink-magenta: oklch(45% 0.19 350);
+  --ink-violet: oklch(42% 0.17 300);
+  --ink-teal: oklch(44% 0.09 200);
+  --ink-green: oklch(44% 0.12 150);
+  --ink-amber: oklch(48% 0.11 70);
+  --ink-blue: oklch(44% 0.15 260);
+
+  /* rhythm + depth — the one shadow of the world */
+  --baseline: 8px;
+  --pin-shadow: 0 2px 8px oklch(25% 0.015 60 / 0.15);
+
+  /* faces — one physical material each; never mix inside one artifact */
+  --font-display: "League Gothic", "Arial Narrow", sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", sans-serif;
+  --font-typed: "Courier Prime", "Courier New", monospace;
+  --font-hand: "Shantell Sans", "Segoe Print", cursive;
+}
+
+/* ---- ground ------------------------------------------------ */
+
+html {
+  background-color: var(--cork);
+  /* body's overflow-x: clip does not propagate to the viewport in
+     Chromium; without this, edge-bleeding stamps at mid widths make
+     the page horizontally scrollable */
+  overflow-x: clip;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  min-height: 100dvh;
+  background-color: var(--cork);
+  /* the one permitted texture: a single feTurbulence grain on the cork */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.74' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23grain)' opacity='0.05'/%3E%3C/svg%3E");
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.5; /* 24px on the 8px baseline */
+  overflow-x: clip;
+}
+
+/* One stacking context for the wall: thread layers use z-index: -1 to run
+   BEHIND the paper, and without this context the root would paint them
+   below the body's cork background instead (i.e. invisible). */
+main {
+  isolation: isolate;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--thread) 25%, var(--paper));
+}
+
+/* ---- focus: one ring, every interactive element ------------ */
+
+:focus-visible {
+  outline: 2px solid var(--thread);
+  outline-offset: 3px;
+}
+
+/* ---- skip link: a paper note that drops in on focus -------- */
+
+.skip-link {
+  position: fixed;
+  top: calc(var(--baseline) * 2);
+  left: calc(var(--baseline) * 2);
+  z-index: 60;
+  padding: var(--baseline) calc(var(--baseline) * 2);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-typed);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  box-shadow: var(--pin-shadow);
+  translate: 0 calc(-100% - var(--baseline) * 3);
+}
+
+.skip-link:focus-visible {
+  translate: 0 0;
+}
+
+/* ---- paper + pins ------------------------------------------ */
+
+.paper {
+  background: var(--paper);
+  box-shadow: var(--pin-shadow);
+}
+
+.brass-pin {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 30%,
+    color-mix(in oklab, var(--brass) 40%, white),
+    var(--brass) 58%,
+    color-mix(in oklab, var(--brass) 55%, black)
+  );
+  box-shadow: 0 1px 3px oklch(25% 0.015 60 / 0.35);
+}
+
+/* pinned artifacts: rotation steps of ±1.2deg via --tilt (-1 | 0 | 1);
+   micro-motion: the pin settles 150ms ease-out on hover */
+.pinned {
+  rotate: calc(var(--tilt, 0) * 1.2deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pinned {
+    transition: rotate 150ms ease-out;
+  }
+
+  .pinned:where(:hover, :focus-within) {
+    rotate: calc(var(--tilt, 0) * 0.35deg);
+  }
+}
+
+/* ---- the red thread ---------------------------------------- */
+/* Paths carry pathLength="1". Default state: fully drawn.
+   Where scroll-driven animation is supported (and motion welcome),
+   the thread draws itself as the wall scrolls. Everywhere else —
+   old engines, prefers-reduced-motion — the resolved state stands. */
+
+.thread-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .thread-path--draw {
+      stroke-dashoffset: 1;
+      animation: thread-draw linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+  }
+}
+
+@keyframes thread-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ---- hidden grid ------------------------------------------- */
+/* 12 columns under the collage; the grid organizes, never shows. */
+
+.wall-max {
+  width: 100%;
+  max-width: 78rem;
+  margin-inline: auto;
+  padding-inline: calc(var(--baseline) * 3);
+}
+
+.wall-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: calc(var(--baseline) * 3);
+  row-gap: calc(var(--baseline) * 8);
+}
+
+@media (max-width: 48rem) {
+  .wall-grid {
+    column-gap: calc(var(--baseline) * 2);
+  }
+}

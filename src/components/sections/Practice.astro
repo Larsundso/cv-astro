@@ -1,0 +1,213 @@
+---
+/**
+ * Practice — the AI-workflow record and the house rules, side by side.
+ *
+ * Subordinate scale by owner decision ("not what I want to be hired for
+ * exclusively"): the agent-workflow story is a quiet typed index card;
+ * the values statement is the louder artifact — a League Gothic flyer
+ * with the six pride inks working, not decorating.
+ *
+ * All copy comes verbatim from ~/data/wall (voice-law final).
+ */
+import HandNote from "~/components/wall/HandNote.astro";
+import PinCard from "~/components/wall/PinCard.astro";
+import { getWall, type Locale } from "~/data/i18n";
+
+interface Props {
+	class?: string;
+}
+
+const { class: className } = Astro.props;
+
+const locale = (Astro.currentLocale ?? "en") as Locale;
+const { aiPractice, contact, houseRules } = getWall(locale);
+
+const entries = aiPractice.entries.map((entry) => ({
+	title: entry.title,
+	lines: entry.lines,
+	annotation: "annotation" in entry ? entry.annotation : undefined
+}));
+
+/* The one permitted email becomes a working mailto where a rule carries it. */
+const rules = houseRules.rules.map((rule) => {
+	const at = rule.text.indexOf(contact.email);
+	return {
+		ink: rule.ink,
+		before: at === -1 ? rule.text : rule.text.slice(0, at),
+		email: at === -1 ? null : contact.email,
+		after: at === -1 ? "" : rule.text.slice(at + contact.email.length)
+	};
+});
+---
+
+<section class:list={["practice", "wall-max", className]} id="practice">
+	<div class="wall-grid practice__grid">
+		<div class="practice__typed-slot">
+			<PinCard as="article" variant="typed" rotate={1}>
+				<h2 class="practice__typed-title">{aiPractice.title}</h2>
+				<p>{aiPractice.intro}</p>
+				{
+					entries.map((entry) => (
+						<Fragment>
+							<h3>{entry.title}</h3>
+							{entry.lines.map((line) => (
+								<p>{line}</p>
+							))}
+							{entry.annotation && (
+								<div class="practice__margin">
+									<HandNote ink={entry.annotation.ink} as="p">
+										{entry.annotation.text}
+									</HandNote>
+								</div>
+							)}
+						</Fragment>
+					))
+				}
+			</PinCard>
+		</div>
+
+		<div class="practice__flyer-slot">
+			<PinCard as="article" variant="flyer" rotate={-1}>
+				<h2 class="practice__flyer-title">{houseRules.title}</h2>
+				<div class="practice__rule-line" aria-hidden="true"></div>
+				<ul class="practice__rules">
+					{
+						rules.map((rule) => (
+							<li style={`color: var(--ink-${rule.ink});`}>
+								{rule.before}{rule.email && <a href={`mailto:${rule.email}`}>{rule.email}</a>}{rule.after}
+							</li>
+						))
+					}
+				</ul>
+			</PinCard>
+			<div class="practice__note">
+				<HandNote ink="amber" as="p">{houseRules.note}</HandNote>
+			</div>
+		</div>
+	</div>
+</section>
+
+<style>
+	.practice {
+		padding-block: calc(var(--baseline) * 8);
+		scroll-margin-top: calc(var(--baseline) * 4);
+	}
+
+	.practice__grid {
+		align-items: start;
+	}
+
+	/* ---- the typed record: quiet on purpose --------------------- */
+	/* Styling anchors on the scoped slot wrapper — classes passed into
+	   PinCard do not carry this component's scope attribute. The card
+	   inherits font-size from the slot; line-height stays the variant's
+	   24px ruling. */
+
+	.practice__typed-slot {
+		grid-column: 1 / -1;
+		max-width: 42rem; /* keeps the Courier measure inside 75ch when stacked */
+		font-size: 0.875rem;
+	}
+
+	/* one line tall, lifted into the header band so the title sits
+	   directly on the card's red rule; net flow height is zero */
+	.practice__typed-slot h2 {
+		margin: calc(var(--baseline) * -4) 0 var(--baseline);
+		font-size: 1rem;
+		font-weight: 700;
+		white-space: nowrap;
+	}
+
+	.practice__typed-slot h3 {
+		margin: calc(var(--baseline) * 3) 0 0;
+		font-size: 0.875rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+	}
+
+	.practice__typed-slot p {
+		margin: 0;
+	}
+
+	.practice__margin {
+		padding-inline-start: calc(var(--baseline) * 2);
+	}
+
+	/* one ruled row per handwritten line keeps the 24px card rhythm;
+	   rotate paints the slant without disturbing layout */
+	.practice__margin :global(.hand-note) {
+		font-size: 0.9375rem;
+		line-height: calc(var(--baseline) * 3);
+		rotate: -1deg;
+	}
+
+	/* ---- the house-rules flyer: the louder artifact ------------- */
+
+	.practice__flyer-slot {
+		grid-column: 1 / -1;
+		width: 100%;
+		max-width: 36rem;
+		margin-inline-start: auto;
+	}
+
+	.practice__flyer-title {
+		font-size: clamp(2.5rem, 1.9rem + 2.6vw, 3.75rem);
+	}
+
+	.practice__rule-line {
+		width: 38%;
+		max-width: 10rem;
+		height: 4px;
+		margin-block-start: var(--baseline);
+		background: var(--thread);
+		rotate: -0.6deg;
+	}
+
+	.practice__rules {
+		list-style: none;
+		margin: calc(var(--baseline) * 3) 0 0;
+		padding: 0;
+		display: grid;
+		row-gap: calc(var(--baseline) * 2);
+	}
+
+	.practice__rules li {
+		font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.625rem);
+		line-height: 1.08;
+	}
+
+	.practice__rules a {
+		color: inherit;
+		text-decoration-line: underline;
+		text-decoration-thickness: 0.08em;
+		text-underline-offset: 0.16em;
+	}
+
+	.practice__note {
+		max-width: 24rem;
+		margin-block-start: calc(var(--baseline) * 2);
+		margin-inline-start: auto;
+		padding-inline: calc(var(--baseline) * 2);
+	}
+
+	.practice__note :global(.hand-note) {
+		font-size: 1rem;
+		rotate: -1.4deg;
+	}
+
+	/* ---- two artifacts side by side once the wall is wide ------- */
+
+	@media (min-width: 64rem) {
+		.practice__typed-slot {
+			grid-column: 1 / span 6;
+		}
+
+		.practice__flyer-slot {
+			grid-column: 8 / span 5;
+			max-width: none;
+			margin-inline-start: 0;
+			margin-block-start: calc(var(--baseline) * 10);
+		}
+	}
+</style>

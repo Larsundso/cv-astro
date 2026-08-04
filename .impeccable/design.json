@@ -1,0 +1,449 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-04T00:00:00.000Z",
+  "title": "Design System: Der Rote Faden",
+  "extensions": {
+    "colorMeta": {
+      "cork": {
+        "role": "neutral",
+        "displayName": "Cork",
+        "canonical": "oklch(87% 0.035 80)",
+        "tonalRamp": [
+          "oklch(15% 0.035 80)",
+          "oklch(26.429% 0.035 80)",
+          "oklch(37.857% 0.035 80)",
+          "oklch(49.286% 0.035 80)",
+          "oklch(60.714% 0.035 80)",
+          "oklch(72.143% 0.035 80)",
+          "oklch(83.571% 0.035 80)",
+          "oklch(95% 0.035 80)"
+        ]
+      },
+      "cork-deep": {
+        "role": "neutral",
+        "displayName": "Deep Cork",
+        "canonical": "oklch(82% 0.045 75)",
+        "tonalRamp": [
+          "oklch(15% 0.045 75)",
+          "oklch(26.429% 0.045 75)",
+          "oklch(37.857% 0.045 75)",
+          "oklch(49.286% 0.045 75)",
+          "oklch(60.714% 0.045 75)",
+          "oklch(72.143% 0.045 75)",
+          "oklch(83.571% 0.045 75)",
+          "oklch(95% 0.045 75)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "oklch(97.5% 0.008 90)",
+        "tonalRamp": [
+          "oklch(15% 0.008 90)",
+          "oklch(26.429% 0.008 90)",
+          "oklch(37.857% 0.008 90)",
+          "oklch(49.286% 0.008 90)",
+          "oklch(60.714% 0.008 90)",
+          "oklch(72.143% 0.008 90)",
+          "oklch(83.571% 0.008 90)",
+          "oklch(95% 0.008 90)"
+        ]
+      },
+      "paper-aged": {
+        "role": "neutral",
+        "displayName": "Aged Paper",
+        "canonical": "oklch(94% 0.02 85)",
+        "tonalRamp": [
+          "oklch(15% 0.02 85)",
+          "oklch(26.429% 0.02 85)",
+          "oklch(37.857% 0.02 85)",
+          "oklch(49.286% 0.02 85)",
+          "oklch(60.714% 0.02 85)",
+          "oklch(72.143% 0.02 85)",
+          "oklch(83.571% 0.02 85)",
+          "oklch(95% 0.02 85)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(25% 0.015 60)",
+        "tonalRamp": [
+          "oklch(15% 0.015 60)",
+          "oklch(26.429% 0.015 60)",
+          "oklch(37.857% 0.015 60)",
+          "oklch(49.286% 0.015 60)",
+          "oklch(60.714% 0.015 60)",
+          "oklch(72.143% 0.015 60)",
+          "oklch(83.571% 0.015 60)",
+          "oklch(95% 0.015 60)"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Soft Ink",
+        "canonical": "oklch(38% 0.015 60)",
+        "tonalRamp": [
+          "oklch(15% 0.015 60)",
+          "oklch(26.429% 0.015 60)",
+          "oklch(37.857% 0.015 60)",
+          "oklch(49.286% 0.015 60)",
+          "oklch(60.714% 0.015 60)",
+          "oklch(72.143% 0.015 60)",
+          "oklch(83.571% 0.015 60)",
+          "oklch(95% 0.015 60)"
+        ]
+      },
+      "thread": {
+        "role": "primary",
+        "displayName": "Crimson Thread",
+        "canonical": "oklch(50% 0.19 22)",
+        "tonalRamp": [
+          "oklch(15% 0.19 22)",
+          "oklch(26.429% 0.19 22)",
+          "oklch(37.857% 0.19 22)",
+          "oklch(49.286% 0.19 22)",
+          "oklch(60.714% 0.19 22)",
+          "oklch(72.143% 0.19 22)",
+          "oklch(83.571% 0.19 22)",
+          "oklch(95% 0.19 22)"
+        ]
+      },
+      "brass": {
+        "role": "tertiary",
+        "displayName": "Brass",
+        "canonical": "oklch(70% 0.09 85)",
+        "tonalRamp": [
+          "oklch(15% 0.09 85)",
+          "oklch(26.429% 0.09 85)",
+          "oklch(37.857% 0.09 85)",
+          "oklch(49.286% 0.09 85)",
+          "oklch(60.714% 0.09 85)",
+          "oklch(72.143% 0.09 85)",
+          "oklch(83.571% 0.09 85)",
+          "oklch(95% 0.09 85)"
+        ]
+      },
+      "ink-magenta": {
+        "role": "secondary",
+        "displayName": "Magenta Ink",
+        "canonical": "oklch(45% 0.19 350)",
+        "tonalRamp": [
+          "oklch(15% 0.19 350)",
+          "oklch(26.429% 0.19 350)",
+          "oklch(37.857% 0.19 350)",
+          "oklch(49.286% 0.19 350)",
+          "oklch(60.714% 0.19 350)",
+          "oklch(72.143% 0.19 350)",
+          "oklch(83.571% 0.19 350)",
+          "oklch(95% 0.19 350)"
+        ]
+      },
+      "ink-violet": {
+        "role": "secondary",
+        "displayName": "Violet Ink",
+        "canonical": "oklch(42% 0.17 300)",
+        "tonalRamp": [
+          "oklch(15% 0.17 300)",
+          "oklch(26.429% 0.17 300)",
+          "oklch(37.857% 0.17 300)",
+          "oklch(49.286% 0.17 300)",
+          "oklch(60.714% 0.17 300)",
+          "oklch(72.143% 0.17 300)",
+          "oklch(83.571% 0.17 300)",
+          "oklch(95% 0.17 300)"
+        ]
+      },
+      "ink-teal": {
+        "role": "secondary",
+        "displayName": "Teal Ink",
+        "canonical": "oklch(44% 0.09 200)",
+        "tonalRamp": [
+          "oklch(15% 0.09 200)",
+          "oklch(26.429% 0.09 200)",
+          "oklch(37.857% 0.09 200)",
+          "oklch(49.286% 0.09 200)",
+          "oklch(60.714% 0.09 200)",
+          "oklch(72.143% 0.09 200)",
+          "oklch(83.571% 0.09 200)",
+          "oklch(95% 0.09 200)"
+        ]
+      },
+      "ink-green": {
+        "role": "secondary",
+        "displayName": "Green Ink",
+        "canonical": "oklch(44% 0.12 150)",
+        "tonalRamp": [
+          "oklch(15% 0.12 150)",
+          "oklch(26.429% 0.12 150)",
+          "oklch(37.857% 0.12 150)",
+          "oklch(49.286% 0.12 150)",
+          "oklch(60.714% 0.12 150)",
+          "oklch(72.143% 0.12 150)",
+          "oklch(83.571% 0.12 150)",
+          "oklch(95% 0.12 150)"
+        ]
+      },
+      "ink-amber": {
+        "role": "secondary",
+        "displayName": "Amber Ink",
+        "canonical": "oklch(48% 0.11 70)",
+        "tonalRamp": [
+          "oklch(15% 0.11 70)",
+          "oklch(26.429% 0.11 70)",
+          "oklch(37.857% 0.11 70)",
+          "oklch(49.286% 0.11 70)",
+          "oklch(60.714% 0.11 70)",
+          "oklch(72.143% 0.11 70)",
+          "oklch(83.571% 0.11 70)",
+          "oklch(95% 0.11 70)"
+        ]
+      },
+      "ink-blue": {
+        "role": "secondary",
+        "displayName": "Blue Ink",
+        "canonical": "oklch(44% 0.15 260)",
+        "tonalRamp": [
+          "oklch(15% 0.15 260)",
+          "oklch(26.429% 0.15 260)",
+          "oklch(37.857% 0.15 260)",
+          "oklch(49.286% 0.15 260)",
+          "oklch(60.714% 0.15 260)",
+          "oklch(72.143% 0.15 260)",
+          "oklch(83.571% 0.15 260)",
+          "oklch(95% 0.15 260)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display (flyer press)",
+        "purpose": "League Gothic 400, uppercase, line-height 0.92-0.95. Flyer headlines and the title card only; house-rules statements set on poster stock in the pride inks."
+      },
+      "body": {
+        "displayName": "Body (office printer)",
+        "purpose": "Atkinson Hyperlegible. Print-out copy and telemetry sheets; figures in tabular-nums. Base 1rem / line-height 1.5 = 24px on the 8px baseline."
+      },
+      "typed": {
+        "displayName": "Typed (typewriter)",
+        "purpose": "Courier Prime on index cards with line-height exactly 24px so copy sits on the printed ruling; also buttons, channel labels, stamps, and the footer."
+      },
+      "hand": {
+        "displayName": "Hand (the owner's pen)",
+        "purpose": "Shantell Sans 500 in the six pride inks. Annotations, captions, and the greeting only — never body copy; always slightly rotated (-2 to +1.5 deg)."
+      }
+    },
+    "shadows": [
+      {
+        "name": "pin-shadow",
+        "value": "0 2px 8px oklch(25% 0.015 60 / 0.15)",
+        "purpose": "The one shadow of the world: every paper artifact at rest, hung on the cork."
+      },
+      {
+        "name": "pressed",
+        "value": "0 1px 4px oklch(25% 0.015 60 / 0.18)",
+        "purpose": "Hover/focus-within on interactive paper, paired with translate: 0 1px — the note presses toward the cork; shadows shrink, never grow."
+      },
+      {
+        "name": "pinned-hard",
+        "value": "0 1px 2px oklch(25% 0.015 60 / 0.2)",
+        "purpose": "Active press, paired with translate: 0 2px."
+      },
+      {
+        "name": "brass-cast",
+        "value": "0 1px 3px oklch(25% 0.015 60 / 0.35)",
+        "purpose": "The brass pin's own tight cast — hardware only."
+      }
+    ],
+    "motion": [
+      {
+        "name": "settle",
+        "value": "150ms ease-out",
+        "purpose": "The single micro-motion gesture: hover settles a pinned artifact's tilt from 1.2x to 0.35x its step and presses interactive paper toward the cork. Gated behind prefers-reduced-motion: no-preference."
+      },
+      {
+        "name": "thread-draw",
+        "value": "stroke-dashoffset 1 -> 0; animation-timeline: view(); animation-range tuned per segment (pathLength=\"1\")",
+        "purpose": "The crimson thread draws itself as the wall scrolls. The CSS default state is fully drawn — animation only rewinds it — so reduced motion, engines without animation-timeline, and no-JS all land on the designed resolved state. Gated behind @supports (animation-timeline: view())."
+      },
+      {
+        "name": "spine-grow",
+        "value": "scale 1 0 -> 1 1, transform-origin top; animation-timeline: view(); cover 0% -> 30-40%",
+        "purpose": "The straight spine segments (timeline, mid-page wall run) grow downward ahead of the reading edge."
+      },
+      {
+        "name": "stitch-wipe",
+        "value": "clip-path inset(0 0 100% 0) -> inset(-8px); animation-timeline: view(); cover 14% -> 24%",
+        "purpose": "Stretched connector SVGs reveal by clip wipe instead of dash draw: Chromium does not pathLength-normalize dasharray under vector-effect: non-scaling-stroke, so dash-drawn threads are only safe at 1:1 scale."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "md",
+        "value": "48rem"
+      },
+      {
+        "name": "lg",
+        "value": "64rem"
+      },
+      {
+        "name": "shell",
+        "value": "78rem"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "PinCard — typed index card",
+      "kind": "card",
+      "refersTo": "pin-card-typed",
+      "description": "The typewriter material: aged index card with a printed red header rule and blue 24px ruling the Courier copy sits on; brass pin, tilt step, 150ms hover settle.",
+      "html": "<article class=\"ds-pincard-typed\">\n  <span class=\"ds-pct-pin\" aria-hidden=\"true\"></span>\n  <h3>Raleo Digital GmbH — Full-Stack Developer</h3>\n  <p>Since 2025-07, fully remote. TypeScript across the stack.</p>\n</article>",
+      "css": ".ds-pincard-typed { position: relative; width: min(100%, 26rem); background-color: var(--paper-aged, oklch(94% 0.02 85)); color: var(--ink, oklch(25% 0.015 60)); box-shadow: var(--pin-shadow, 0 2px 8px oklch(25% 0.015 60 / 0.15)); padding: 48px 24px 24px; font-family: var(--font-typed, \"Courier Prime\", \"Courier New\", monospace); font-size: 0.9375rem; line-height: 24px; rotate: 1.2deg; transition: rotate 150ms ease-out; background-image: linear-gradient(180deg, transparent 40px, color-mix(in oklab, var(--thread, oklch(50% 0.19 22)) 30%, transparent) 40px, color-mix(in oklab, var(--thread, oklch(50% 0.19 22)) 30%, transparent) 42px, transparent 42px), repeating-linear-gradient(180deg, transparent 0 23px, color-mix(in oklab, var(--ink-blue, oklch(44% 0.15 260)) 20%, transparent) 23px 24px); } .ds-pincard-typed:hover { rotate: 0.35deg; } .ds-pincard-typed h3 { margin: 0; font-size: 1.0625rem; font-weight: 700; line-height: 24px; } .ds-pincard-typed p { margin: 24px 0 0; } .ds-pct-pin { position: absolute; top: -6px; left: 50%; translate: -50% 0; width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--brass, oklch(70% 0.09 85)) 40%, white), var(--brass, oklch(70% 0.09 85)) 58%, color-mix(in oklab, var(--brass, oklch(70% 0.09 85)) 55%, black)); box-shadow: 0 1px 3px oklch(25% 0.015 60 / 0.35); }"
+    },
+    {
+      "name": "PinCard — flyer",
+      "kind": "card",
+      "refersTo": "pin-card-flyer",
+      "description": "The poster material: League Gothic uppercase headline stock with a hand-drawn thread rule; house-rules statements are set on it in the pride inks. Nothing but headline material on the sheet.",
+      "html": "<article class=\"ds-pincard-flyer\">\n  <span class=\"ds-pcf-pin\" aria-hidden=\"true\"></span>\n  <h2>House Rules</h2>\n  <div class=\"ds-pcf-rule\" aria-hidden=\"true\"></div>\n  <p class=\"ds-pcf-line\">This is a queer-friendly space.</p>\n</article>",
+      "css": ".ds-pincard-flyer { position: relative; width: min(100%, 30rem); background-color: var(--paper, oklch(97.5% 0.008 90)); color: var(--ink, oklch(25% 0.015 60)); box-shadow: var(--pin-shadow, 0 2px 8px oklch(25% 0.015 60 / 0.15)); padding: 24px; font-family: var(--font-display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-weight: 400; text-transform: uppercase; line-height: 0.95; letter-spacing: 0.01em; rotate: -1.2deg; transition: rotate 150ms ease-out; } .ds-pincard-flyer:hover { rotate: -0.35deg; } .ds-pincard-flyer h2 { margin: 0; font-size: clamp(2.5rem, 5vw, 3.75rem); font-weight: 400; line-height: 0.92; } .ds-pcf-rule { width: 38%; max-width: 10rem; height: 4px; margin-top: 8px; background: var(--thread, oklch(50% 0.19 22)); rotate: -0.6deg; } .ds-pcf-line { margin: 24px 0 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.625rem); line-height: 1.08; color: var(--ink-magenta, oklch(45% 0.19 350)); } .ds-pcf-pin { position: absolute; top: -6px; left: 50%; translate: -50% 0; width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--brass, oklch(70% 0.09 85)) 40%, white), var(--brass, oklch(70% 0.09 85)) 58%, color-mix(in oklab, var(--brass, oklch(70% 0.09 85)) 55%, black)); box-shadow: 0 1px 3px oklch(25% 0.015 60 / 0.35); }"
+    },
+    {
+      "name": "HandNote on a paper slip",
+      "kind": "custom",
+      "refersTo": "hand-note",
+      "description": "A handwritten annotation in one of the six pride inks (Shantell Sans 500, slightly rotated). Freestanding notes ride a paper slip because green, violet, and blue do not clear 4.5:1 on raw cork.",
+      "html": "<p class=\"ds-handnote\">career and education, stitched in order — one history, one thread.</p>",
+      "css": ".ds-handnote { width: fit-content; max-width: 38ch; margin: 0; background: var(--paper, oklch(97.5% 0.008 90)); box-shadow: var(--pin-shadow, 0 2px 8px oklch(25% 0.015 60 / 0.15)); padding: 8px 12px; font-family: var(--font-hand, \"Shantell Sans\", \"Segoe Print\", cursive); font-weight: 500; font-size: 0.9375rem; line-height: 1.4; color: var(--ink-teal, oklch(44% 0.09 200)); rotate: -1.5deg; }"
+    },
+    {
+      "name": "PinButton",
+      "kind": "button",
+      "refersTo": "pin-button",
+      "description": "The interactive pinned note (anchor with href, button without): bold typed face on paper with a brass pin. Hover settles the tilt and presses the note toward the cork; active presses harder; focus gets the global thread ring.",
+      "html": "<a class=\"ds-pinbutton\" href=\"mailto:jobs@lars-dev.org\"><span class=\"ds-pb-pin\" aria-hidden=\"true\"></span>jobs@lars-dev.org</a>",
+      "css": ".ds-pinbutton { position: relative; display: inline-block; padding: 16px 24px; background: var(--paper, oklch(97.5% 0.008 90)); box-shadow: var(--pin-shadow, 0 2px 8px oklch(25% 0.015 60 / 0.15)); border: none; cursor: pointer; font-family: var(--font-typed, \"Courier Prime\", \"Courier New\", monospace); font-weight: 700; font-size: 1rem; line-height: 24px; color: var(--ink, oklch(25% 0.015 60)); text-align: center; text-decoration: none; rotate: 1.2deg; transition: rotate 150ms ease-out, box-shadow 150ms ease-out, translate 150ms ease-out; } .ds-pinbutton:hover { rotate: 0.35deg; box-shadow: 0 1px 4px oklch(25% 0.015 60 / 0.18); translate: 0 1px; } .ds-pinbutton:active { box-shadow: 0 1px 2px oklch(25% 0.015 60 / 0.2); translate: 0 2px; } .ds-pinbutton:focus-visible { outline: 2px solid var(--thread, oklch(50% 0.19 22)); outline-offset: 3px; } .ds-pb-pin { position: absolute; top: -6px; left: 50%; translate: -50% 0; width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--brass, oklch(70% 0.09 85)) 40%, white), var(--brass, oklch(70% 0.09 85)) 58%, color-mix(in oklab, var(--brass, oklch(70% 0.09 85)) 55%, black)); box-shadow: 0 1px 3px oklch(25% 0.015 60 / 0.35); }"
+    },
+    {
+      "name": "Stamp",
+      "kind": "custom",
+      "refersTo": "stamp",
+      "description": "A circular rubber stamp for dates and as-of marks: double ring and uppercase typed text in stamp ink (thread darkened one step toward ink so small type holds 4.5:1 on cork); hand-pressed, so it rotates freely.",
+      "html": "<span class=\"ds-stamp\"><span class=\"ds-stamp-sub\">as of</span><span class=\"ds-stamp-label\">2026-08-03</span></span>",
+      "css": ".ds-stamp { --ds-stamp-ink: color-mix(in oklab, var(--thread, oklch(50% 0.19 22)) 85%, var(--ink, oklch(25% 0.015 60))); position: relative; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: 6.5rem; aspect-ratio: 1; padding: 8px; border: 2px solid var(--ds-stamp-ink); border-radius: 50%; rotate: -7deg; color: var(--ds-stamp-ink); font-family: var(--font-typed, \"Courier Prime\", \"Courier New\", monospace); font-weight: 700; text-transform: uppercase; text-align: center; } .ds-stamp::before { content: \"\"; position: absolute; inset: 3px; border: 1px solid var(--ds-stamp-ink); border-radius: 50%; } .ds-stamp-label { font-size: 0.6875rem; letter-spacing: 0.06em; line-height: 1.2; white-space: nowrap; } .ds-stamp-sub { font-size: 0.625rem; letter-spacing: 0.14em; line-height: 1; }"
+    },
+    {
+      "name": "Polaroid",
+      "kind": "card",
+      "refersTo": "polaroid",
+      "description": "A pinned photo frame: paper mat, aged-paper photo well at 8:9, hand-face caption below. Carries the Ayako portrait and the three.js VR sketch in the build.",
+      "html": "<figure class=\"ds-polaroid\">\n  <span class=\"ds-pol-pin\" aria-hidden=\"true\"></span>\n  <div class=\"ds-polaroid-frame\"><svg viewBox=\"0 0 160 180\" role=\"img\" aria-label=\"placeholder sketch\"><path d=\"M 20 132 C 50 98, 70 110, 88 124 C 110 102, 132 114, 144 134\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><path d=\"M 112 40 C 126 36, 136 46, 133 59 C 130 71, 116 74, 107 66 C 98 58, 100 45, 112 40 Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\"/></svg></div>\n  <figcaption>Ayako — 2.4M+ users · 8,357 servers on top.gg, as of 2026-08-03</figcaption>\n</figure>",
+      "css": ".ds-polaroid { position: relative; width: min(100%, 18rem); margin: 0; background: var(--paper, oklch(97.5% 0.008 90)); box-shadow: var(--pin-shadow, 0 2px 8px oklch(25% 0.015 60 / 0.15)); padding: 12px 12px 16px; rotate: -1.2deg; transition: rotate 150ms ease-out; } .ds-polaroid:hover { rotate: -0.35deg; } .ds-polaroid-frame { background: var(--paper-aged, oklch(94% 0.02 85)); aspect-ratio: 8 / 9; overflow: hidden; color: var(--ink-soft, oklch(38% 0.015 60)); } .ds-polaroid-frame > svg { display: block; width: 100%; height: 100%; } .ds-polaroid figcaption { font-family: var(--font-hand, \"Shantell Sans\", \"Segoe Print\", cursive); font-weight: 500; font-size: 0.875rem; line-height: 1.35; text-align: center; color: var(--ink, oklch(25% 0.015 60)); margin-top: 12px; } .ds-pol-pin { position: absolute; top: -6px; left: 50%; translate: -50% 0; width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--brass, oklch(70% 0.09 85)) 40%, white), var(--brass, oklch(70% 0.09 85)) 58%, color-mix(in oklab, var(--brass, oklch(70% 0.09 85)) 55%, black)); box-shadow: 0 1px 3px oklch(25% 0.015 60 / 0.35); }"
+    },
+    {
+      "name": "Channel card",
+      "kind": "nav",
+      "refersTo": "pin-card-print",
+      "description": "A contact channel as a small pinned print slip where the whole card is the link: hand-inked icon (24px grid, stroke 1.75, currentColor, wavered paths), bold typed label, soft-ink value. Hover and focus press the slip into the cork.",
+      "html": "<a class=\"ds-channel\" href=\"https://github.com/Larsundso\">\n  <span class=\"ds-ch-pin\" aria-hidden=\"true\"></span>\n  <svg class=\"ds-channel-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M6.3 14.4C5.3 12.6 5.3 10.3 6.3 8.5C5.8 7 6 5.6 6.8 4.4C8 4.6 9 5.2 9.8 6C11.3 5.6 12.8 5.6 14.3 6C15.1 5.2 16.1 4.6 17.3 4.4C18.1 5.6 18.3 7.1 17.8 8.5C18.8 10.3 18.8 12.6 17.8 14.4C15.1 17.8 9 17.8 6.3 14.4Z\"/><path d=\"M9.1 16.8C9 18.1 8.3 19 7 19.4\"/></svg>\n  <span class=\"ds-channel-text\"><span class=\"ds-channel-label\">GitHub</span><span class=\"ds-channel-value\">Larsundso</span></span>\n</a>",
+      "css": ".ds-channel { position: relative; display: flex; align-items: center; gap: 12px; width: fit-content; min-width: 10rem; min-height: 44px; padding: 16px 20px; background: var(--paper, oklch(97.5% 0.008 90)); box-shadow: var(--pin-shadow, 0 2px 8px oklch(25% 0.015 60 / 0.15)); color: var(--ink, oklch(25% 0.015 60)); font-family: var(--font-typed, \"Courier Prime\", \"Courier New\", monospace); text-decoration: none; rotate: 1.2deg; transition: rotate 150ms ease-out, box-shadow 150ms ease-out, translate 150ms ease-out; } .ds-channel:hover, .ds-channel:focus-visible { rotate: 0.35deg; box-shadow: 0 1px 4px oklch(25% 0.015 60 / 0.18); translate: 0 1px; } .ds-channel:focus-visible { outline: 2px solid var(--thread, oklch(50% 0.19 22)); outline-offset: 3px; } .ds-channel-icon { flex: none; width: 1.75rem; height: 1.75rem; } .ds-channel-text { display: flex; flex-direction: column; gap: 2px; } .ds-channel-label { font-weight: 700; font-size: 0.9375rem; line-height: 16px; } .ds-channel-value { font-size: 0.875rem; line-height: 16px; color: var(--ink-soft, oklch(38% 0.015 60)); } .ds-ch-pin { position: absolute; top: -6px; left: 50%; translate: -50% 0; width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--brass, oklch(70% 0.09 85)) 40%, white), var(--brass, oklch(70% 0.09 85)) 58%, color-mix(in oklab, var(--brass, oklch(70% 0.09 85)) 55%, black)); box-shadow: 0 1px 3px oklch(25% 0.015 60 / 0.35); }"
+    },
+    {
+      "name": "Thread underline",
+      "kind": "custom",
+      "refersTo": "pin-card-print",
+      "description": "The accent link treatment on paper: bold ink text underlined in the crimson thread; hover thickens the underline or tips the text into thread color. The nav rests at a 30%-ink underline and hovers to this.",
+      "html": "<p class=\"ds-underline-demo\">See <a class=\"ds-thread-link\" href=\"https://github.com/Larsundso/DiscordBotDashboard\">the dashboard repository</a> for the build.</p>",
+      "css": ".ds-underline-demo { margin: 0; padding: 16px 20px; background: var(--paper, oklch(97.5% 0.008 90)); box-shadow: var(--pin-shadow, 0 2px 8px oklch(25% 0.015 60 / 0.15)); font-family: var(--font-body, \"Atkinson Hyperlegible\", \"Segoe UI\", sans-serif); font-size: 0.9375rem; line-height: 1.5; color: var(--ink, oklch(25% 0.015 60)); width: fit-content; } .ds-thread-link { color: var(--ink, oklch(25% 0.015 60)); font-weight: 700; text-decoration: underline; text-decoration-color: var(--thread, oklch(50% 0.19 22)); text-decoration-thickness: 2px; text-underline-offset: 3px; } .ds-thread-link:hover { color: var(--thread, oklch(50% 0.19 22)); text-decoration-thickness: 2.5px; } .ds-thread-link:focus-visible { outline: 2px solid var(--thread, oklch(50% 0.19 22)); outline-offset: 3px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Der Rote Faden",
+    "overview": "The site is a career pinned to a cork wall by its owner's hand. One crimson thread — *der rote Faden*, German for both a literal red thread and a story's through-line — enters at a stamped 12/2019 pin in the hero, stitches every artifact in chronological order down the whole page, and is cut in a loose knot on open cork just before the contact corner. Everything on screen is a physical object on that wall: typed index cards, flyer posters, clean print-outs, polaroids, handwritten margin notes, brass pins, circular rubber stamps. The world refuses the dark-neon developer-dashboard default and the neutral CV alike (the direction contract committed in `src/layouts/main.astro`).\n\nThe wall proves instead of asserting. Every figure on it carries its unit and its as-of date; standalone dates arrive as hand-pressed stamps; telemetry hangs as annotated chart print-outs with the data repeated in a folded table. The six pride inks are the owner's working colors — they write the margin notes and encode the chart series — and the house-rules flyer states in League Gothic that removing them makes the wall stop making sense. Two durable brand commitments live here: the handwritten Lottie greeting (drawn in pride inks) survives every redesign, and queer-friendliness is expressed openly as identity, not decoration.\n\nDensity is a curated collage: artifacts cluster, overlap, and tilt, but a hidden 12-column grid organizes every placement and the tilt comes in fixed ±1.2° steps. Motion is quiet and physical — the thread draws itself as the wall scrolls, pins settle in 150ms, and every animation has a designed resolved state that stands on its own wherever motion is unwelcome or unsupported.",
+    "keyCharacteristics": [
+      "Warm, light, paper-on-cork material world (`color-scheme: light` only; no dark theme).",
+      "One structural accent — the crimson thread — plus six rationed pride inks doing real work (annotation + data series), never decoration.",
+      "Four typefaces, one per physical material; faces never mix inside a single artifact.",
+      "Hidden 12-column grid under a tilted collage; rotation in ±1.2° steps, neighbors never share a tilt.",
+      "One shadow, one grain texture; depth is physical stacking (thread behind paper, pins above it), never glow.",
+      "Scroll-drawn thread and 150ms settle micro-motion, each with a fully-drawn/resolved fallback state.",
+      "Every figure set with unit + as-of date; stamps date the wall itself."
+    ],
+    "rules": [
+      {
+        "name": "The One Thread Rule",
+        "body": "`--thread` is the only structural accent. It may be thread, stamp ink, focus ring, underline, or headline rule — never a large fill, and never joined by a second red.",
+        "section": "colors"
+      },
+      {
+        "name": "The Working Ink Rule",
+        "body": "The six pride inks are load-bearing: they annotate the wall and encode the data series, and the house-rules flyer says so in type (\"remove them and the wall stops making sense\"). An ink that is neither writing a note nor naming a series has no business on the wall.",
+        "section": "colors"
+      },
+      {
+        "name": "The Paper Slip Rule",
+        "body": "Handwritten ink goes on paper, not raw cork. Every pride ink clears 4.5:1 on `--paper`; green, violet, and blue do not clear raw cork, so freestanding notes ride small paper slips with the pin shadow.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Material Rule",
+        "body": "Every artifact is one physical material. A flyer is League Gothic only, an index card Courier Prime only, a print-out Atkinson Hyperlegible only, an annotation Shantell Sans only. Faces never mix inside one artifact — the greeting card is all hand material, including its Lottie.",
+        "section": "typography"
+      },
+      {
+        "name": "The Ruled Card Rule",
+        "body": "Typed index cards print their own ruling — a red header rule at 40px and blue lines every 24px — and the typed face's 24px line-height sits the copy exactly on those lines. Break the rhythm and the card reads as a forgery.",
+        "section": "typography"
+      },
+      {
+        "name": "The Unit-and-Date Rule",
+        "body": "Every figure is set with its unit and its as-of date (\"2.4M+ users on 8,357 servers, as of 2026-08-03\"; \"3,019.9 h\"). Standalone dates are stamped, with \"as of\" as the stamp's sub-line. A bare number is not a fact on this wall.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Shadow Rule",
+        "body": "Every artifact hangs on the same pin shadow. Interaction presses paper toward the cork — shadows shrink on hover, they never grow, and nothing glows.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Behind-the-Paper Rule",
+        "body": "The thread runs behind the paper and never crosses printed text. It surfaces only where cork shows; where an artifact must sit over it (the flagship IHK card), the thread demonstratively dips beneath and re-emerges.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Resolved State Rule",
+        "body": "Every animation is a progressive enhancement over a designed resolved state — the thread fully drawn, the greeting hand-set, tilts already applied. Reduced motion, missing `animation-timeline` support, or failed JS must land on a state that was designed, not degraded.",
+        "section": "components"
+      },
+      {
+        "name": "The 150ms Settle Rule",
+        "body": "Micro-motion is one gesture: 150ms ease-out. Hover settles a pinned artifact's tilt toward 0.35× and presses it toward the cork. Nothing bounces, springs, or runs longer than 150ms except the scroll-driven thread.",
+        "section": "components"
+      },
+      {
+        "name": "The Taut Thread Rule",
+        "body": "The thread is under tension: dead-straight runs pin to pin, and brass pins appear only on cards (owner decisions, 2026-08-04). The timeline has no spine — each row runs one straight connector from its card pin to the next card pin (stretched corner-to-corner SVG, dasharray disabled for Chromium). Hero paths come from src/components/wall/taut.ts with a ~7px wrap at each pin. Section-seam corners tuck behind paper; the only slack is the cut end's knot.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do pin every new artifact properly: paper or aged-paper ground, the single pin shadow, a brass pin bridging the top edge, and a tilt step from {−1, 0, 1} — neighbors never share a tilt.",
+      "Do set every figure with its unit and as-of date, and stamp standalone dates (\"as of\" sub + ISO date). A number without provenance doesn't go on the wall.",
+      "Do keep handwritten pride ink on paper — put freestanding notes on paper slips; green, violet, and blue do not clear 4.5:1 on raw cork.",
+      "Do design the resolved state first and gate motion behind `@supports (animation-timeline: view())` and `prefers-reduced-motion: no-preference`; the CSS default state is the finished one.",
+      "Do draw new icons in the house grammar: 24px viewBox, stroke 1.75, `currentColor`, round caps and joins, a deliberate waver in every path.",
+      "Do keep the wall's German artifacts German with `lang=\"de\"` — \"Werdegang\", \"2010 – heute\", the HEUTE stamp — the market literacy is part of the design."
+    ],
+    "donts": [
+      "Don't use glass, blur, glow, gradient text, or dark surfaces — the world explicitly refused the dark-neon dashboard; the only gradients alive are the brass sphere and the printed card rulings.",
+      "Don't add kickers or eyebrow labels above headings. A flyer carries its headline, a hand-drawn thread rule, and at most one dateline.",
+      "Don't mix faces inside one artifact — no Courier on a flyer, no League Gothic on an index card, no hand face as body copy.",
+      "Don't put facts on the house-rules flyer: it carries values only; every measured claim lives on the quiet typed record card beside it.",
+      "Don't move the free-forever promise off Ayako's cluster — it is Ayako's own flyer, quoted, with the license line on the v3 card, never a site-wide banner.",
+      "Don't let the AI-workflow story outscale the human record: it stays a subordinate typed index card; the values flyer stays the louder artifact.",
+      "Don't let the thread cross printed text or sit above paper — it runs behind and surfaces in cork gaps only.",
+      "Don't introduce a second red or spend `--thread` on fills; it is thread, stamp ink, focus ring, and underline — its scarcity is the structure."
+    ]
+  }
+}

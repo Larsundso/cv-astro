@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 64" width="56" height="64" role="img" aria-label="R">
+  <!-- Raleo Digital GmbH — initials fallback ("R", ink on transparent; the
+       letterhead chip supplies the paper ground). No official logo asset
+       exists; replace with the real mark if one is ever provided. -->
+  <g fill="none" stroke="#27201a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 18 12 V 52" />
+    <path d="M 18 15 H 31 C 39.5 15 44 19.5 44 25.5 C 44 31.5 39.5 36 31 36 H 18" />
+    <path d="M 31 36 L 44 52" />
+  </g>
+</svg>

@@ -1,0 +1,468 @@
+---
+/**
+ * Hero — the first-viewport wall cluster.
+ *
+ * The thread's 12/2019 origin pin, the Ayako polaroid, the handwritten
+ * Lottie greeting, the typed intro card, the hand-annotated telemetry
+ * print-out, and the pinned contact note — stitched by the crimson
+ * thread in chronological order. On narrow viewports the cluster stacks
+ * into one curated column and the thread keeps running.
+ *
+ * Telemetry lines render live WakaTime figures when WAKA_KEY is set at
+ * build time; otherwise the checked-in snapshot copy from wall.ts stands
+ * verbatim. Sentence shapes are identical in both cases (voice law:
+ * every figure carries unit + as-of date).
+ */
+import getTotalTime from "~/components/scripts/getTotalTime";
+import HandNote from "~/components/wall/HandNote.astro";
+import PinButton from "~/components/wall/PinButton.astro";
+import PinCard from "~/components/wall/PinCard.astro";
+import Polaroid from "~/components/wall/Polaroid.astro";
+import Stamp from "~/components/wall/Stamp.astro";
+import Thread from "~/components/wall/Thread.astro";
+import { tautPath } from "~/components/wall/taut";
+import { getWall, type Locale } from "~/data/i18n";
+import Greeting from "./hero/Greeting.astro";
+
+const locale = (Astro.currentLocale ?? "en") as Locale;
+const { hero, chartStrings } = getWall(locale);
+const ht = chartStrings.heroTelemetry;
+
+const stats = await getTotalTime();
+/* Figures keep en-US grouping in every locale (wall figure style). */
+const nf = (n: number) => n.toLocaleString("en-US");
+
+const telemetryLines: string[] =
+	stats.source === "live"
+		? [
+				ht.total(stats.total.text, stats.asOf),
+				ht.activeDays({
+					active: nf(stats.days.active),
+					elapsed: nf(stats.days.elapsed),
+					ratePercent: stats.days.ratePercent,
+					start: stats.range.start,
+					end: stats.range.end
+				}),
+				ht.dailyAverage(stats.dailyAverage.text)
+			]
+		: [...hero.telemetryCard.lines];
+
+const sourceLine = ht.sourceLine(
+	hero.telemetryCard.sourceNote,
+	stats.source === "live" ? ht.modeLive : ht.modeSnapshot
+);
+
+/* The thread, desktop: origin pin → polaroid → greeting → intro card →
+   telemetry print-out → contact note → exits at the board's bottom edge
+   at x ≈ 67 % (802/1200), where the next section picks it up.
+   TAUT: straight runs pin to pin; direction changes only as a small
+   wrap around each pin (tautPath). Coordinates live in the viewBox
+   space and stretch with the board (preserveAspectRatio="none") —
+   straight segments survive that stretch exactly. */
+const THREAD_DESKTOP = {
+	width: 1200,
+	height: 880,
+	path: tautPath([
+		[141, 78],
+		[155, 147],
+		[551, 281],
+		[997, 171],
+		[451, 654],
+		[944, 701],
+		[802, 880]
+	]),
+	nodes: [
+		{ x: 141, y: 78 },
+		{ x: 155, y: 147 },
+		{ x: 551, y: 281 },
+		{ x: 997, y: 171 },
+		{ x: 451, y: 654 },
+		{ x: 944, y: 701 }
+	]
+};
+
+/* The thread, stacked column: a taut near-vertical stitch down the
+   center, from behind the 12/2019 stamp to the bottom edge — straight
+   runs between the cards' pin stations, tiny wraps at each. The column's
+   cards span the full width, so the thread runs BEHIND the paper
+   (z-index, see styles) and surfaces in the cork gaps between artifacts. */
+const THREAD_MOBILE = {
+	width: 400,
+	height: 1600,
+	path: tautPath(
+		[
+			[200, 55],
+			[200, 120],
+			[196, 289],
+			[205, 757],
+			[189, 1193],
+			[201, 1502],
+			[200, 1600]
+		],
+		6
+	)
+};
+---
+
+<section class="hero">
+	<div class="hero__board wall-max">
+		<div class="hero__thread hero__thread--desktop" aria-hidden="true">
+			<Thread
+				path={THREAD_DESKTOP.path}
+				width={THREAD_DESKTOP.width}
+				height={THREAD_DESKTOP.height}
+				nodes={THREAD_DESKTOP.nodes}
+			/>
+		</div>
+		<div class="hero__thread hero__thread--mobile" aria-hidden="true">
+			<Thread
+				path={THREAD_MOBILE.path}
+				width={THREAD_MOBILE.width}
+				height={THREAD_MOBILE.height}
+			/>
+		</div>
+
+		<div class="hero__grid wall-grid">
+			<!-- 12/2019 — where the thread starts -->
+			<div class="hero__origin">
+				<Stamp label={hero.threadStart.stamp} rotate={-8} />
+				<span class="brass-pin hero__origin-pin" aria-hidden="true"></span>
+				<div class="hero__origin-note">
+					<HandNote ink="green">{hero.threadStart.label}</HandNote>
+				</div>
+			</div>
+
+			<!-- the handwritten greeting, centerpiece -->
+			<div class="hero__greeting paper pinned" style="--tilt:0">
+				<span class="brass-pin hero__greeting-pin" aria-hidden="true"></span>
+				<Greeting greeting={hero.greeting} subline={hero.greetingSubline} />
+			</div>
+
+			<!-- Ayako polaroid -->
+			<div class="hero__polaroid-slot">
+				<Polaroid caption={hero.polaroid.caption} rotate={-1}>
+					<img
+						src={hero.polaroid.image}
+						alt={hero.polaroid.alt}
+						width="800"
+						height="800"
+						loading="eager"
+						decoding="async"
+					/>
+				</Polaroid>
+				<div class="hero__polaroid-note">
+					<HandNote ink={hero.polaroid.annotation.ink}>{hero.polaroid.annotation.text}</HandNote>
+				</div>
+			</div>
+
+			<!-- typed intro card: who / what / where -->
+			<div class="hero__intro-slot">
+				<PinCard variant="typed" rotate={1}>
+					<p class="hero__intro-lead">{hero.intro[0]}</p>
+					<p>{hero.intro[1]}</p>
+					<p>{hero.location}</p>
+					<p class="hero__intro-langs">{hero.languages}</p>
+				</PinCard>
+			</div>
+
+			<!-- hand-annotated telemetry print-out -->
+			<div class="hero__telemetry-slot">
+				<PinCard variant="print" rotate={-1} as="article">
+					<h2 class="hero__telemetry-title">{hero.telemetryCard.title}</h2>
+					<ul class="hero__telemetry-lines" role="list">
+						{telemetryLines.map((line) => <li>{line}</li>)}
+					</ul>
+					<p class="hero__telemetry-source">{sourceLine}</p>
+				</PinCard>
+				<div class="hero__telemetry-note">
+					<HandNote ink={hero.telemetryCard.annotation.ink}>
+						{hero.telemetryCard.annotation.text}
+					</HandNote>
+				</div>
+			</div>
+
+			<!-- the pinned primary action -->
+			<div class="hero__action">
+				<PinButton href={hero.primaryAction.href} rotate={1}>
+					{hero.primaryAction.label}
+				</PinButton>
+				<div class="hero__action-note">
+					<HandNote ink={hero.primaryAction.annotation.ink}>
+						{hero.primaryAction.annotation.text}
+					</HandNote>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<style>
+	.hero {
+		padding: calc(var(--baseline) * 3) 0 calc(var(--baseline) * 10);
+		overflow-x: clip;
+	}
+
+	.hero__board {
+		position: relative;
+	}
+
+	/* ---- the thread through the cluster ------------------------ */
+	/* Behind the paper on every breakpoint: a pinned thread runs under
+	   overlapping sheets and surfaces in the cork gaps — it must never
+	   cross printed text. The tilted cards' transforms stack them above. */
+
+	.hero__thread {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		/* below every card, note, and pin: the taut thread surfaces only
+		   on bare cork (same layering as the section connectors) */
+		z-index: -1;
+	}
+
+	.hero__thread :global(svg) {
+		width: 100%;
+		height: 100%;
+	}
+
+	.hero__thread--mobile {
+		display: none;
+	}
+
+	/* ---- the cluster on the hidden 12-col grid ----------------- */
+
+	.hero__grid {
+		position: relative;
+		align-items: start;
+		row-gap: calc(var(--baseline) * 4);
+	}
+
+	/* origin: stamp, pin, margin note */
+	.hero__origin {
+		grid-column: 1 / 9;
+		grid-row: 1;
+		display: flex;
+		align-items: flex-start;
+		gap: calc(var(--baseline) * 3);
+		--stamp-size: 5.75rem;
+	}
+
+	.hero__origin-pin {
+		flex: none;
+		margin-top: calc(var(--baseline) * 6);
+	}
+
+	.hero__origin-note {
+		max-width: 18rem;
+		margin-top: calc(var(--baseline) * 5);
+		rotate: -1.5deg;
+		/* paper slip: these notes sit in the thread's path */
+		background: var(--paper);
+		box-shadow: var(--pin-shadow);
+		padding: calc(var(--baseline) * 0.75) calc(var(--baseline) * 1.5);
+	}
+
+	/* greeting card */
+	.hero__greeting {
+		grid-column: 4 / 9;
+		grid-row: 2;
+		align-self: center;
+		position: relative;
+		padding: calc(var(--baseline) * 5) calc(var(--baseline) * 4) calc(var(--baseline) * 4);
+	}
+
+	.hero__greeting-pin {
+		position: absolute;
+		top: calc(var(--baseline) * -0.75);
+		left: 50%;
+		translate: -50% 0;
+	}
+
+	/* polaroid */
+	.hero__polaroid-slot {
+		grid-column: 1 / 4;
+		grid-row: 2;
+	}
+
+	.hero__polaroid-note {
+		max-width: 16rem;
+		margin: calc(var(--baseline) * 2) 0 0 calc(var(--baseline) * 1);
+		rotate: -2deg;
+		/* paper slip: these notes sit in the thread's path */
+		background: var(--paper);
+		box-shadow: var(--pin-shadow);
+		padding: calc(var(--baseline) * 0.75) calc(var(--baseline) * 1.5);
+	}
+
+	/* typed intro card */
+	.hero__intro-slot {
+		grid-column: 9 / 13;
+		grid-row: 2;
+		margin-top: calc(var(--baseline) * 3);
+	}
+
+	.hero__intro-slot :global(.pin-card) p {
+		margin: 0 0 calc(var(--baseline) * 3);
+		font-size: 0.9375rem;
+	}
+
+	.hero__intro-slot :global(.pin-card) p:last-child {
+		margin-bottom: 0;
+	}
+
+	.hero__intro-lead {
+		font-weight: 700;
+	}
+
+	.hero__intro-langs {
+		color: var(--ink-soft);
+	}
+
+	/* telemetry print-out */
+	.hero__telemetry-slot {
+		grid-column: 3 / 8;
+		grid-row: 3;
+		position: relative;
+	}
+
+	.hero__telemetry-title {
+		margin: 0 0 calc(var(--baseline) * 2);
+		font-size: 1.125rem;
+		line-height: calc(var(--baseline) * 3);
+	}
+
+	.hero__telemetry-lines {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.hero__telemetry-lines li {
+		margin-bottom: var(--baseline);
+		font-size: 0.9375rem;
+	}
+
+	.hero__telemetry-lines li:last-child {
+		margin-bottom: 0;
+	}
+
+	.hero__telemetry-source {
+		margin: calc(var(--baseline) * 2) 0 0;
+		font-size: 0.8125rem;
+		color: var(--ink-soft);
+	}
+
+	.hero__telemetry-note {
+		position: absolute;
+		right: calc(var(--baseline) * -3);
+		bottom: calc(var(--baseline) * -4);
+		max-width: 15rem;
+		rotate: 1.5deg;
+	}
+
+	/* primary action */
+	.hero__action {
+		grid-column: 9 / 12;
+		grid-row: 3;
+		margin-top: calc(var(--baseline) * 3);
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: calc(var(--baseline) * 2);
+	}
+
+	.hero__action-note {
+		max-width: 15rem;
+		margin-left: calc(var(--baseline) * 3);
+		rotate: 1.5deg;
+		/* the thread's exit run passes behind this note: a paper slip
+		   under the handwriting keeps ink off yarn */
+		background: var(--paper);
+		box-shadow: var(--pin-shadow);
+		padding: calc(var(--baseline) * 0.75) calc(var(--baseline) * 1.5);
+	}
+
+	/* handwritten margin notes: one size across the cluster */
+	.hero__origin-note :global(.hand-note),
+	.hero__polaroid-note :global(.hand-note),
+	.hero__telemetry-note :global(.hand-note),
+	.hero__action-note :global(.hand-note) {
+		font-size: 0.9375rem;
+	}
+
+	/* ---- stacked column ---------------------------------------- */
+
+	@media (max-width: 63.9375rem) {
+		.hero {
+			padding-top: calc(var(--baseline) * 4);
+		}
+
+		.hero__thread--desktop {
+			display: none;
+		}
+
+		/* behind the paper: the full-width cards cover the thread, which
+		   surfaces in the cork gaps between artifacts */
+		.hero__thread--mobile {
+			display: block;
+			z-index: auto;
+		}
+
+		.hero__grid {
+			display: flex;
+			flex-direction: column;
+			align-items: stretch;
+			gap: calc(var(--baseline) * 6);
+		}
+
+		/* origin drops onto the thread's center line */
+		.hero__origin {
+			flex-direction: column;
+			align-items: center;
+			gap: var(--baseline);
+			--stamp-size: 5rem;
+		}
+
+		.hero__origin-pin {
+			margin-top: 0;
+		}
+
+		.hero__origin-note {
+			margin-top: 0;
+			text-align: center;
+		}
+
+		.hero__intro-slot {
+			margin-top: 0;
+			align-self: center;
+			width: min(100%, 26rem);
+		}
+
+		.hero__greeting {
+			align-self: center;
+			width: min(100%, 34rem);
+			padding: calc(var(--baseline) * 4) calc(var(--baseline) * 3) calc(var(--baseline) * 3);
+		}
+
+		.hero__polaroid-slot {
+			align-self: center;
+			width: min(100%, 20rem);
+		}
+
+		.hero__telemetry-slot {
+			align-self: center;
+			width: min(100%, 30rem);
+		}
+
+		.hero__telemetry-note {
+			position: static;
+			margin: calc(var(--baseline) * 2) 0 0 calc(var(--baseline) * 2);
+		}
+
+		.hero__action {
+			margin-top: 0;
+			align-items: center;
+			align-self: center;
+		}
+	}
+</style>

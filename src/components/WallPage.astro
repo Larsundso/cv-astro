@@ -1,0 +1,449 @@
+---
+/**
+ * WallPage — the pinboard wall, assembled once for every locale.
+ * Rendered by src/pages/index.astro (en, "/") and src/pages/de/index.astro
+ * (de, "/de/"); copy resolves through getWall(Astro.currentLocale).
+ *
+ * Hero → Werdegang → Projects → Telemetry → Practice → Contact in one
+ * column, stitched by the crimson thread: it starts at the hero's 12/2019
+ * pin, hands over to the timeline spine, runs BEHIND the project,
+ * telemetry, and practice artifacts, and ends in a loose knot on open
+ * cork before the contact cluster. The HEUTE stamp lives on the
+ * timeline's last row — the thread's chronological end.
+ *
+ * Thread handoffs (fixed by the section contracts):
+ * — the hero exits its board's bottom edge at x = 802/1200 of the 78rem
+ *   shell (≥64rem) resp. at 50 % of it (stacked column);
+ * — the timeline spine sits at the shell center (≥48rem) resp. 48px from
+ *   the viewport's left edge (<48rem); it enters at the section's top
+ *   edge and exits at the bottom of its last row.
+ *
+ * Draw machinery: stretched connector SVGs disable stroke-dasharray and
+ * reveal via a scroll-driven clip wipe instead of the dash draw —
+ * Chromium does not pathLength-normalize dasharray under
+ * vector-effect: non-scaling-stroke, so dash-drawn threads are only safe
+ * at 1:1 scale (see Timeline.astro). Fixed-size pieces (the mid-state
+ * connector, the end knot) keep the native dash draw. Reduced motion and
+ * engines without animation-timeline get the fully drawn resolved state.
+ */
+import Contact from "~/components/sections/Contact.astro";
+import Hero from "~/components/sections/Hero.astro";
+import Practice from "~/components/sections/Practice.astro";
+import Projects from "~/components/sections/Projects.astro";
+import Telemetry from "~/components/sections/Telemetry.astro";
+import Timeline from "~/components/sections/Timeline.astro";
+import LangTab from "~/components/wall/LangTab.astro";
+import PinCard from "~/components/wall/PinCard.astro";
+import Thread from "~/components/wall/Thread.astro";
+import { getWall, type Locale } from "~/data/i18n";
+import Layout from "~/layouts/main.astro";
+
+const locale = (Astro.currentLocale ?? "en") as Locale;
+const { meta, ui } = getWall(locale);
+
+/* hero → timeline connectors, one per breakpoint state (see <style>).
+   wide/narrow stretch between two responsive anchors: the box's corners
+   ARE the endpoints, so any width keeps the junctions registered.
+   TAUT: a connector spans two pins with nothing between, so under
+   tension it is one dead-straight run — no curvature at all. The
+   direction changes at its ends belong to the pins in the neighboring
+   sections (the hero's last pin above, the spine's relay pin below). */
+const JOIN_WIDE = {
+	width: 202,
+	height: 224,
+	path: "M 202 0 L 0 224"
+};
+const JOIN_MID = {
+	width: 48,
+	height: 224,
+	path: "M 24 0 L 24 224"
+};
+const JOIN_NARROW = {
+	width: 200,
+	height: 224,
+	path: "M 200 0 L 0 224"
+};
+
+/* the loose end: a knot and a flicked-out tail, fixed size (1:1 scale →
+   native dash draw). Entry runs dead straight so it overlaps the
+   wall-run spine seamlessly; the node dot marks the cut end. */
+const STITCH_END = {
+	width: 160,
+	height: 128,
+	path:
+		"M 80 0 L 80 34 C 80 44 76 50 79 58 C 99 64 104 86 84 90 C 66 93.5 58 76 76 66 C 94 76 110 94 123 111",
+	nodes: [{ x: 124, y: 112 }]
+};
+---
+
+<Layout title={meta.title} description={meta.description} locale={locale}>
+	<!-- the wall's title card: flyer poster, top right, doubling as the index;
+	     the language tab hangs beside it, pinned with its own mini-pin -->
+	<div class="wall-head wall-max" slot="header">
+		<div class="wall-head__card">
+			<PinCard variant="flyer" rotate={1}>
+				<p class="wall-head__title" lang="de">Der Rote Faden</p>
+				<svg class="wall-head__rule" viewBox="0 0 150 8" aria-hidden="true">
+					<path
+						d="M 3 6 C 40 2 70 9 146 4"
+						fill="none"
+						stroke="var(--thread)"
+						stroke-width="2.4"
+						stroke-linecap="round"></path>
+				</svg>
+				<nav aria-label={ui.navAria}>
+					<ul role="list">
+						<li><a href="#werdegang" lang="de">{ui.nav.werdegang}</a></li>
+						<li><a href="#projects">{ui.nav.projects}</a></li>
+						<li><a href="#telemetry">{ui.nav.telemetry}</a></li>
+						<li><a href="#practice">{ui.nav.practice}</a></li>
+						<li><a href="#contact">{ui.nav.contact}</a></li>
+					</ul>
+				</nav>
+			</PinCard>
+		</div>
+		<LangTab
+			class="wall-head__tab"
+			rotate={-1}
+			label={ui.langSwitch.label}
+			href={ui.langSwitch.href}
+			hreflang={ui.langSwitch.hreflang}
+			ariaLabel={ui.langSwitch.aria}
+		/>
+	</div>
+
+	<Hero />
+
+	<!-- hero board → timeline spine -->
+	<div class="stitch-join" aria-hidden="true">
+		<div class="stitch-join__wide">
+			<Thread
+				path={JOIN_WIDE.path}
+				width={JOIN_WIDE.width}
+				height={JOIN_WIDE.height}
+				draw={false}
+			/>
+		</div>
+		<div class="stitch-join__mid">
+			<Thread path={JOIN_MID.path} width={JOIN_MID.width} height={JOIN_MID.height} />
+		</div>
+		<div class="stitch-join__narrow">
+			<Thread
+				path={JOIN_NARROW.path}
+				width={JOIN_NARROW.width}
+				height={JOIN_NARROW.height}
+				draw={false}
+			/>
+		</div>
+	</div>
+
+	<Timeline />
+
+	<!-- past HEUTE the thread keeps running behind the paper, surfacing
+	     in the cork gaps, until it is cut before the contact cluster -->
+	<div class="wall-run">
+		<span class="wall-run__line" aria-hidden="true"></span>
+		<Projects />
+		<Telemetry />
+		<Practice />
+	</div>
+
+	<div class="stitch-end" aria-hidden="true">
+		<Thread
+			path={STITCH_END.path}
+			width={STITCH_END.width}
+			height={STITCH_END.height}
+			nodes={STITCH_END.nodes}
+		/>
+	</div>
+
+	<Contact />
+
+	<!-- the contact section signs the wall (© stamp); keep the footer quiet -->
+	<Fragment slot="footer" />
+</Layout>
+
+<style is:global>
+	/* anchor targets breathe below the viewport edge when navigated to */
+	#projects,
+	#contact {
+		scroll-margin-top: calc(var(--baseline) * 4);
+	}
+
+	#werdegang {
+		scroll-margin-top: calc(var(--baseline) * 6);
+	}
+</style>
+
+<style>
+	/* ---- title card + index -------------------------------------- */
+
+	.wall-head {
+		display: flex;
+		justify-content: flex-end;
+		align-items: flex-start;
+		flex-wrap: wrap;
+		column-gap: calc(var(--baseline) * 2);
+		row-gap: var(--baseline);
+		padding-block-start: calc(var(--baseline) * 2);
+	}
+
+	.wall-head__card {
+		width: fit-content;
+		max-width: 100%;
+	}
+
+	/* the language tab: pinned beside the title card, dropped a step so
+	   it reads as its own chit; wraps under the card when the wall is
+	   too narrow for the pair — still inside the first viewport */
+	.wall-head :global(.wall-head__tab) {
+		margin-block-start: var(--baseline);
+	}
+
+	.wall-head__title {
+		margin: 0;
+		font-size: clamp(2rem, 4vw, 2.75rem);
+		line-height: 0.92;
+	}
+
+	.wall-head__rule {
+		display: block;
+		width: 8.5rem;
+		margin-block: calc(var(--baseline) * 0.75) var(--baseline);
+	}
+
+	.wall-head nav ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-wrap: wrap;
+		column-gap: calc(var(--baseline) * 3);
+	}
+
+	.wall-head nav a {
+		display: inline-block;
+		padding-block: calc(var(--baseline) * 1.25);
+		font-size: 1.375rem;
+		line-height: 1;
+		letter-spacing: 0.045em;
+		color: var(--ink);
+		text-decoration: underline;
+		text-decoration-thickness: 1.5px;
+		text-decoration-color: color-mix(in oklab, var(--ink) 30%, transparent);
+		text-underline-offset: 4px;
+	}
+
+	.wall-head nav a:hover {
+		text-decoration-color: var(--thread);
+		text-decoration-thickness: 2.5px;
+	}
+
+	@media (max-width: 63.9375rem) {
+		.wall-head {
+			justify-content: center;
+		}
+	}
+
+	/* ---- hero board → timeline spine ------------------------------ */
+	/* Pulled up by the hero's bottom padding (baseline × 10) so the top
+	   edge sits exactly on the hero board's bottom edge, where its
+	   thread ends. Shares the hero board's shell (78rem, centered) so
+	   viewBox fractions and board fractions coincide. */
+
+	.stitch-join {
+		position: relative;
+		width: 100%;
+		max-width: 78rem;
+		height: 224px;
+		margin-top: calc(var(--baseline) * -10);
+		margin-inline: auto;
+		pointer-events: none;
+		/* behind the paper: the taut connector overlaps the hero's bottom
+		   edge, and the thread never crosses printed ink */
+		z-index: -1;
+	}
+
+	.stitch-join > div {
+		position: absolute;
+		top: 0;
+		height: 100%;
+	}
+
+	.stitch-join :global(svg) {
+		width: 100%;
+		height: 100%;
+	}
+
+	/* ≥64rem: hero exits at 802/1200 of the shell, spine sits at 50 % */
+	.stitch-join__wide {
+		display: none;
+		/* lands on the first timeline card's pin: 50% - 76px */
+		left: calc(50% - 76px);
+		width: calc(16.8333% + 76px);
+	}
+
+	/* 48–64rem: stacked hero exits center, spine sits center — 1:1 box */
+	.stitch-join__mid {
+		display: none;
+		/* vertical drop onto the first card's pin x */
+		left: calc(50% - 76px - 24px);
+		width: 48px;
+	}
+
+	/* <48rem: stacked hero exits center, spine sits 48px from the left */
+	.stitch-join__narrow {
+		/* lands on the mobile pin column at x = 64px */
+		left: 64px;
+		width: calc(50% - 64px);
+	}
+
+	@media (min-width: 48rem) {
+		.stitch-join__narrow {
+			display: none;
+		}
+
+		.stitch-join__mid {
+			display: block;
+		}
+	}
+
+	@media (min-width: 64rem) {
+		.stitch-join__mid {
+			display: none;
+		}
+
+		.stitch-join__wide {
+			display: block;
+		}
+	}
+
+	/* stretched boxes: disable the dash (Chromium dash-normalization bug
+	   under non-scaling-stroke) and wipe-reveal instead */
+	.stitch-join__wide :global(.thread-path),
+	.stitch-join__narrow :global(.thread-path) {
+		stroke-dasharray: none;
+	}
+
+	/* handoff pacing: the hero thread (foundation default cover 0–100 %)
+	   would finish long after the join below it has revealed — the tip
+	   would appear to jump the gap. Chain the ranges instead: the hero
+	   completes by cover 50 %, the join starts at 14 % and reveals at
+	   ~2× scroll speed, the timeline spine picks up right behind it. */
+	:global(.hero__thread .thread-path--draw) {
+		animation-range: cover 0% cover 50%;
+	}
+
+	@supports (animation-timeline: view()) {
+		@media (prefers-reduced-motion: no-preference) {
+			.stitch-join__wide,
+			.stitch-join__narrow {
+				clip-path: inset(0 0 100% 0);
+				animation: stitch-wipe linear both;
+				animation-timeline: view();
+				animation-range: cover 14% cover 24%;
+			}
+		}
+	}
+
+	@keyframes stitch-wipe {
+		to {
+			clip-path: inset(-8px);
+		}
+	}
+
+	/* the 1:1 piece keeps the native dash draw, same pacing */
+	.stitch-join__mid :global(.thread-path--draw) {
+		animation-range: cover 14% cover 24%;
+	}
+
+	/* ---- the long run: thread behind the paper -------------------- */
+	/* Continues the timeline spine at the same x. z-index -1 keeps it
+	   under every artifact and every line of type — it surfaces only
+	   where cork shows. */
+
+	.wall-run {
+		--spine-x: 48px;
+		position: relative;
+		/* own stacking context: the z-index -1 line paints above the cork
+		   (body background) but under every artifact and line of type
+		   inside the run — without this it would sink beneath the body's
+		   background, since html carries a background of its own */
+		isolation: isolate;
+	}
+
+	.wall-run__line {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: calc(var(--spine-x) - 1.25px);
+		width: 2.5px;
+		border-radius: 2px;
+		background: var(--thread);
+		z-index: -1;
+		pointer-events: none;
+	}
+
+	@supports (animation-timeline: view()) {
+		@media (prefers-reduced-motion: no-preference) {
+			.wall-run__line {
+				transform-origin: top;
+				animation: wall-line-grow linear both;
+				animation-timeline: view();
+				/* starts only after the timeline's last row has finished
+				   drawing above it; still outruns the reading edge (~3×) */
+				animation-range: cover 5% cover 30%;
+			}
+		}
+	}
+
+	@keyframes wall-line-grow {
+		from {
+			scale: 1 0;
+		}
+
+		to {
+			scale: 1 1;
+		}
+	}
+
+	/* ---- the cut end ---------------------------------------------- */
+	/* Overlaps the run by baseline × 4: the entry segment is dead
+	   straight at the spine x, so the two strands register invisibly. */
+
+	.stitch-end {
+		--spine-x: 48px;
+		position: relative;
+		height: 128px;
+		pointer-events: none;
+	}
+
+	@media (min-width: 48rem) {
+		.stitch-end {
+			/* nestle into the practice section's bottom padding; the
+			   straight entry overlaps the run line seamlessly. Stacked
+			   layouts skip this — the practice annotation sits low on
+			   the cork there and the knot would cross it. */
+			margin-top: calc(var(--baseline) * -4);
+		}
+	}
+
+	.stitch-end :global(svg) {
+		position: absolute;
+		top: 0;
+		left: calc(var(--spine-x) - 80px);
+		width: 160px;
+		height: 128px;
+	}
+
+	.stitch-end :global(.thread-path--draw) {
+		animation-range: cover 0% cover 45%;
+	}
+
+	@media (min-width: 48rem) {
+		.wall-run,
+		.stitch-end {
+			--spine-x: 50%;
+		}
+	}
+</style>

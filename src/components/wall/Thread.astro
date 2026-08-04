@@ -1,0 +1,62 @@
+---
+/**
+ * Thread — the crimson thread, der rote Faden.
+ * Takes an SVG path spec in its own coordinate space (width × height).
+ * Where scroll-driven animation is supported the thread draws itself
+ * as it scrolls through the viewport; everywhere else — including
+ * prefers-reduced-motion — it stands fully drawn.
+ * Decorative: hidden from assistive tech.
+ */
+interface Props {
+	/** SVG path data in the viewBox coordinate space */
+	path: string;
+	/** viewBox width */
+	width: number;
+	/** viewBox height */
+	height: number;
+	/** thread dots where the path meets a pin */
+	nodes?: { x: number; y: number }[];
+	/** scroll-drawn (default); false = always fully drawn */
+	draw?: boolean;
+	strokeWidth?: number;
+	preserveAspectRatio?: string;
+	class?: string;
+}
+
+const {
+	path,
+	width,
+	height,
+	nodes = [],
+	draw = true,
+	strokeWidth = 2.5,
+	preserveAspectRatio = "none",
+	class: className
+} = Astro.props;
+---
+
+<svg
+	class:list={["thread", className]}
+	viewBox={`0 0 ${width} ${height}`}
+	preserveAspectRatio={preserveAspectRatio}
+	aria-hidden="true"
+	fill="none"
+>
+	<path
+		class:list={["thread-path", draw && "thread-path--draw"]}
+		d={path}
+		pathLength={1}
+		vector-effect="non-scaling-stroke"
+		stroke="var(--thread)"
+		stroke-width={strokeWidth}
+		stroke-linecap="round"
+	/>
+	{nodes.map((n) => <circle cx={n.x} cy={n.y} r={3.5} fill="var(--thread)" />)}
+</svg>
+
+<style>
+	.thread {
+		display: block;
+		pointer-events: none;
+	}
+</style>

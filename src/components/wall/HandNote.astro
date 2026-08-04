@@ -1,0 +1,30 @@
+---
+/**
+ * HandNote — a handwritten annotation in one of the six pride inks.
+ * Shantell Sans only; annotations and margin notes, never body copy.
+ */
+type Ink = "magenta" | "violet" | "teal" | "green" | "amber" | "blue";
+
+interface Props {
+	ink?: Ink;
+	/** element to render, e.g. "p", "span", "figcaption" */
+	as?: string;
+	class?: string;
+}
+
+const { ink = "magenta", as = "p", class: className } = Astro.props;
+const Tag = as;
+---
+
+<Tag class:list={["hand-note", className]} style={`color:var(--ink-${ink});`}>
+	<slot />
+</Tag>
+
+<style>
+	.hand-note {
+		margin: 0;
+		font-family: var(--font-hand);
+		font-weight: 500;
+		line-height: 1.4;
+	}
+</style>

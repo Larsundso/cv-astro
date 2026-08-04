@@ -1,0 +1,696 @@
+---
+/**
+ * Timeline — Der Rote Faden itself.
+ * Career and education as ONE chronological wall path: the crimson thread
+ * runs down a hidden spine, stitching pinned index cards from 2010 to HEUTE.
+ * Career entries come from wall.ts `timeline`; education entries join the
+ * same thread as smaller cards. The two 2022-09 education records
+ * (apprenticeship, vocational school) are already covered verbatim by the
+ * apprenticeship and final-project career cards, so they contribute their
+ * org logos to those cards instead of duplicating claims.
+ * The IHK final-project card carries flagship weight: wide, centered on the
+ * thread, with performance figures and tech scope pulled from the data layer.
+ */
+import fs from "node:fs";
+import path from "node:path";
+import HandNote from "~/components/wall/HandNote.astro";
+import PinCard from "~/components/wall/PinCard.astro";
+import Stamp from "~/components/wall/Stamp.astro";
+import Thread from "~/components/wall/Thread.astro";
+import { getWall, type Locale } from "~/data/i18n";
+import { ihk } from "~/data/snapshot";
+import type { EducationEntry, TimelineEntry } from "~/data/wall";
+
+const locale = (Astro.currentLocale ?? "en") as Locale;
+const { education, employment, projects, timeline, sectionStrings, ui } = getWall(locale);
+const ts = sectionStrings.timeline;
+
+/* ---- assets: render org logos only where the file exists ---------- */
+
+/* Resolved from the project root (cwd), not import.meta.url: during
+   `astro build` this module runs from the bundled chunk in dist/, where
+   a module-relative ../../../public/ no longer exists and every logo
+   would silently vanish from the production build. */
+const publicDir = path.resolve(process.cwd(), "public");
+const assetExists = (publicPath: string): boolean => {
+	try {
+		return fs.existsSync(path.join(publicDir, publicPath.replace(/^\//, "")));
+	} catch {
+		return false;
+	}
+};
+
+/* ---- merge career + education into one chronological path --------- */
+
+const FLAGSHIP_ID = "ihk-final-project-2025";
+
+/**
+ * Education entries whose facts already appear verbatim on the
+ * apprenticeship-2022 and ihk-final-project-2025 career cards
+ * (training company, vocational school, track/DQR, final project).
+ * They appear on the wall as logos on those cards, not as duplicate cards.
+ */
+const MERGED_EDUCATION_IDS = new Set(["apprenticeship", "est"]);
+
+const columbus = employment.find((e) => e.id === "columbus");
+const raleo = employment.find((e) => e.id === "raleo");
+const est = education.find((e) => e.id === "est");
+
+const careerLogoSources: Record<string, (string | null | undefined)[]> = {
+	"apprenticeship-2022": [columbus?.logo, est?.logo],
+	/* raleo-initials.svg does not exist yet; appears automatically once generated */
+	"raleo-2025": [raleo?.logo]
+};
+
+const existingLogos = (candidates: (string | null | undefined)[] | undefined): string[] =>
+	(candidates ?? []).filter((c): c is string => typeof c === "string" && assetExists(c));
+
+type Row =
+	| { kind: "career"; sort: string; entry: TimelineEntry; logos: string[]; flagship: boolean }
+	| { kind: "education"; sort: string; entry: EducationEntry; logos: string[] };
+
+const rows: Row[] = [
+	...timeline.map((entry) => ({
+		kind: "career" as const,
+		sort: entry.sort,
+		entry,
+		logos: existingLogos(careerLogoSources[entry.id]),
+		flagship: entry.id === FLAGSHIP_ID
+	})),
+	...education
+		.filter((entry) => !MERGED_EDUCATION_IDS.has(entry.id))
+		.map((entry) => ({
+			kind: "education" as const,
+			sort: entry.start,
+			entry,
+			logos: existingLogos([entry.logo])
+		}))
+].sort((a, b) => a.sort.localeCompare(b.sort));
+
+/* ---- layout: alternate sides and tilt around the spine ------------ */
+
+type Side = "left" | "right" | "wide";
+
+/** Hand-pressed stamp angles, deterministic per row. */
+const STAMP_ROTATIONS = [-5, 4, -3, 6, -4, 3, -6, 4, -3, 5];
+
+let flip = false;
+const layout = rows.map((row, i) => {
+	const flagship = row.kind === "career" && row.flagship;
+	const side: Side = flagship ? "wide" : flip ? "right" : "left";
+	if (!flagship) flip = !flip;
+	const rotate: -1 | 0 | 1 = flagship ? 0 : side === "left" ? -1 : 1;
+	return { row, side, rotate, stampRotate: STAMP_ROTATIONS[i % STAMP_ROTATIONS.length] ?? 0 };
+});
+
+/* ---- dates ---------------------------------------------------------- */
+
+const year = (isoish: string) => isoish.slice(0, 4);
+const eduStampLabel = (e: EducationEntry) =>
+	e.end && year(e.end) !== year(e.start) ? `${year(e.start)}–${year(e.end)}` : year(e.start);
+const eduDates = (e: EducationEntry) => (e.end ? `${e.start} – ${e.end}` : ts.since(e.start));
+
+/* ---- flagship extras: perf + scope from the data layer ------------- */
+
+const dashboard = projects.find((p) => p.id === "discord-bot-dashboard");
+const perf = ihk.finalProject.performance;
+const perfLine = ts.perfLine(
+	`${perf.initialLoad} · ${perf.serverSwitch} · ${perf.cacheHitRate} · ${perf.fps}`
+);
+const repoLink = dashboard?.links[0];
+
+/* ---- thread geometry ------------------------------------------------ */
+/* CARD TO CARD (owner decision, 2026-08-04): the thread runs in ONE
+   straight line from each card's brass pin to the next card's pin — no
+   spine, no bare corners; every direction change happens exactly at a
+   pin, hidden under its head. Each row emits its OUTGOING connector: an
+   absolutely positioned strip spanning the two pin x-positions
+   (desktop: 50%±76px; the wide flagship uses the left pin), whose SVG
+   draws a corner-to-corner line. Corner-to-corner endpoints survive the
+   strip's responsive stretch exactly (preserveAspectRatio="none",
+   non-scaling stroke), so the line stays registered on both pins at any
+   width. Stretched SVGs cannot dash-draw reliably in Chromium, so
+   connectors render fully drawn (draw={false}).
+   Mobile: every pin sits at x=64px, so connectors are plain vertical
+   2.5px divs; the exit still needs an SVG to reach the wall-run spine.
+   The last row exits toward the wall-run line (50% desktop / 48px
+   mobile) — the single junction on the wall not covered by a pin. */
+
+type PinX = "L" | "R";
+const pinX = (side: Side): PinX => (side === "right" ? "R" : "L");
+
+const links = layout.map(({ side }, i) => {
+	const from = pinX(side);
+	const next = layout[i + 1];
+	return {
+		from,
+		to: next ? pinX(next.side) : null,
+		isLast: !next
+	};
+});
+---
+
+<section class="rf-timeline" aria-labelledby="werdegang">
+	<div class="wall-max">
+		<header class="rf-head">
+			<span class="rf-line rf-line--full" aria-hidden="true"></span>
+			<div class="rf-headwrap">
+				<PinCard variant="flyer" rotate={-1}>
+					<h2 id="werdegang" lang="de">{ui.nav.werdegang}</h2>
+					<svg class="rf-headrule" viewBox="0 0 150 8" aria-hidden="true">
+						<path
+							d="M 3 6 C 40 2 70 9 146 4"
+							fill="none"
+							stroke="var(--thread)"
+							stroke-width="2.4"
+							stroke-linecap="round"></path>
+					</svg>
+					<p class="rf-headdates" lang="de">2010 – heute</p>
+				</PinCard>
+			</div>
+			<div class="rf-scrap rf-headscrap pinned" style="--tilt:1;">
+				<HandNote ink="teal">{ts.headNote}</HandNote>
+			</div>
+		</header>
+
+		<ol class="rf-rows" role="list">
+			{
+				layout.map(({ row, side, rotate, stampRotate }, i) => {
+					const edu = row.kind === "education";
+					const flagship = row.kind === "career" && row.flagship;
+					const annotation = row.kind === "career" ? row.entry.annotation : undefined;
+					const link = links[i];
+					return (
+						<li
+							id={row.entry.id}
+							class:list={[
+								"rf-row",
+								`rf-row--${side}`,
+								edu && "rf-row--edu",
+								flagship && "rf-row--flagship"
+							]}
+						>
+							{/* outgoing thread: straight to the next card's pin */}
+							{!link.isLast && link.from !== link.to && (
+								<div class="rf-stitch rf-stitch--span" aria-hidden="true">
+									<Thread
+										path={link.from === "L" ? "M 0 0 L 100 100" : "M 100 0 L 0 100"}
+										width={100}
+										height={100}
+										draw={false}
+									/>
+								</div>
+							)}
+							{!link.isLast && link.from === link.to && (
+								<span
+									class:list={["rf-stitch", "rf-stitch--vert", `rf-stitch--vert-${link.from.toLowerCase()}`]}
+									aria-hidden="true"
+								/>
+							)}
+							{!link.isLast && <span class="rf-stitch rf-stitch--m" aria-hidden="true" />}
+							{link.isLast && (
+								<>
+									<div
+										class:list={["rf-stitch", "rf-stitch--exit", `rf-stitch--exit-${link.from.toLowerCase()}`]}
+										aria-hidden="true"
+									>
+										<Thread
+											path={link.from === "L" ? "M 0 0 L 100 100" : "M 100 0 L 0 100"}
+											width={100}
+											height={100}
+											draw={false}
+										/>
+									</div>
+									<div class="rf-stitch rf-stitch--exit-m" aria-hidden="true">
+										<Thread path="M 100 0 L 0 100" width={100} height={100} draw={false} />
+									</div>
+								</>
+							)}
+							<span class="brass-pin rf-pin" aria-hidden="true" />
+							<div class="rf-cardwrap">
+								<span class="rf-stampwrap">
+									<Stamp
+										label={row.kind === "career" ? row.entry.dateLabel : eduStampLabel(row.entry)}
+										sub={flagship ? "IHK" : undefined}
+										rotate={stampRotate}
+									/>
+								</span>
+								<PinCard as="article" variant="typed" rotate={rotate} pin={false}>
+									{row.logos.length > 0 && (
+										<div class="rf-logos" aria-hidden="true">
+											{row.logos.map((logo) => (
+												<span class="rf-logo">
+													<img src={logo} alt="" loading="lazy" />
+												</span>
+											))}
+										</div>
+									)}
+									{row.kind === "career" ? (
+										<>
+											<h3>{row.entry.title}</h3>
+											{row.entry.body.map((paragraph) => (
+												<p>{paragraph}</p>
+											))}
+											{flagship && (
+												<>
+													<p>{perfLine}</p>
+													{dashboard && (
+														<p>
+															{ts.stackLabel} {dashboard.stack.join(" · ")}.
+														</p>
+													)}
+													{repoLink && (
+														<p>
+															<a class="rf-link" href={repoLink.href}>
+																{repoLink.label}
+															</a>
+														</p>
+													)}
+												</>
+											)}
+										</>
+									) : (
+										<>
+											<h3>{row.entry.institution}</h3>
+											<p class="rf-dates">{eduDates(row.entry)}</p>
+											{row.entry.detail && <p>{row.entry.detail}</p>}
+										</>
+									)}
+								</PinCard>
+								{annotation && (
+									<div class="rf-scrap pinned" style={`--tilt:${-rotate};`}>
+										<HandNote ink={annotation.ink}>{annotation.text}</HandNote>
+									</div>
+								)}
+							</div>
+						</li>
+					);
+				})
+			}
+		</ol>
+	</div>
+</section>
+
+<style>
+	/* ---- the thread: straight card-to-card connectors ---------------- */
+	/* Pin centers: y = 44px from row top (pin top 37px + 7px radius);
+	   x = 64px on mobile, 50%∓76px on desktop. Connectors span pin to
+	   pin: top: 44px into bottom: -44px reaches exactly the NEXT row's
+	   pin center (rows stack without gaps). The next row's card paints
+	   above the overhang (tree order), so lines dive under paper. */
+
+	.rf-stitch {
+		position: absolute;
+		top: 44px;
+		bottom: -44px;
+		z-index: 3;
+		pointer-events: none;
+	}
+
+	.rf-stitch :global(svg) {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	/* stretched viewBoxes: Chromium mis-normalizes dasharray under
+	   non-scaling-stroke, so the connectors drop the dash entirely and
+	   render fully drawn (same rule as the section joins) */
+	.rf-stitch :global(.thread-path) {
+		stroke-dasharray: none;
+	}
+
+	/* mobile: all pins share x = 64px — plain vertical thread */
+	.rf-stitch--m {
+		left: calc(64px - 1.25px);
+		width: 2.5px;
+		border-radius: 2px;
+		background: var(--thread);
+	}
+
+	/* mobile exit: diagonal from the pin (x 64) to the wall-run spine (x 48) */
+	.rf-stitch--exit-m {
+		left: 48px;
+		right: calc(100% - 64px);
+		bottom: -80px;
+	}
+
+	/* desktop variants activate at 48rem (see media block below) */
+	.rf-stitch--span,
+	.rf-stitch--vert,
+	.rf-stitch--exit {
+		display: none;
+	}
+
+	/* the header's entry line: drops vertically from the section top,
+	   through the header, straight into the FIRST card's pin — the
+	   stitch-join above lands on the same x, so entry has no corner */
+	.rf-line {
+		position: absolute;
+		top: 0;
+		bottom: -44px;
+		left: calc(64px - 1.25px);
+		width: 2.5px;
+		border-radius: 2px;
+		background: var(--thread);
+		z-index: 3;
+		pointer-events: none;
+	}
+
+	@supports (animation-timeline: view()) {
+		@media (prefers-reduced-motion: no-preference) {
+			.rf-line {
+				transform-origin: top;
+				animation: rf-line-grow linear both;
+				animation-timeline: view();
+				animation-range: cover 0% cover 40%;
+			}
+		}
+	}
+
+	@keyframes rf-line-grow {
+		from {
+			scale: 1 0;
+		}
+
+		to {
+			scale: 1 1;
+		}
+	}
+
+	/* ---- header ------------------------------------------------------ */
+
+	.rf-head {
+		position: relative;
+		padding-block: calc(var(--baseline) * 4);
+	}
+
+	.rf-headwrap {
+		position: relative;
+		z-index: 1;
+		width: fit-content;
+		margin-left: calc(var(--baseline) * 5);
+	}
+
+	.rf-head h2 {
+		font-size: clamp(2.75rem, 6vw, 4.5rem);
+	}
+
+	.rf-headrule {
+		display: block;
+		width: 9rem;
+		margin-top: calc(var(--baseline) * 0.5);
+	}
+
+	.rf-headdates {
+		margin: calc(var(--baseline)) 0 0;
+		font-size: 1.25rem;
+		letter-spacing: 0.08em;
+	}
+
+	.rf-headscrap {
+		margin-top: calc(var(--baseline) * 2);
+		margin-left: calc(var(--baseline) * 8);
+	}
+
+	/* ---- rows -------------------------------------------------------- */
+
+	.rf-rows {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	.rf-row {
+		position: relative;
+		padding-block: calc(var(--baseline) * 4);
+	}
+
+	.rf-pin {
+		position: absolute;
+		z-index: 4;
+		top: 37px;
+		left: 57px;
+	}
+
+	.rf-cardwrap {
+		position: relative;
+		z-index: 1;
+		margin-left: calc(var(--baseline) * 5);
+	}
+
+	/* ---- stamps ------------------------------------------------------ */
+
+	.rf-stampwrap {
+		--stamp-size: 5rem;
+		position: absolute;
+		z-index: 2;
+		top: -14px;
+		right: -4px;
+	}
+
+	/* ---- cards: typed material on the 24px ruling -------------------- */
+
+	.rf-cardwrap h3 {
+		margin: 0;
+		font-size: 1.0625rem;
+		font-weight: 700;
+		line-height: calc(var(--baseline) * 3);
+		/* keep titles clear of the corner stamp while it sits on the card */
+		padding-right: 3.5rem;
+	}
+
+	.rf-row--flagship .rf-cardwrap h3 {
+		font-size: 1.1875rem;
+	}
+
+	.rf-cardwrap p {
+		margin: 0;
+		font-size: 0.9375rem;
+		line-height: calc(var(--baseline) * 3);
+	}
+
+	.rf-cardwrap h3 + p,
+	.rf-cardwrap p + p {
+		margin-top: calc(var(--baseline) * 3);
+	}
+
+	.rf-cardwrap .rf-dates {
+		margin-top: 0;
+	}
+
+	.rf-link {
+		color: var(--ink);
+		font-weight: 700;
+		text-decoration: underline;
+		text-decoration-color: var(--thread);
+		text-decoration-thickness: 1.5px;
+		text-underline-offset: 3px;
+	}
+
+	.rf-link:hover {
+		text-decoration-thickness: 2.5px;
+	}
+
+	/* ---- letterhead logos (decorative; orgs are named in the type) --- */
+
+	.rf-logos {
+		position: absolute;
+		top: 6px;
+		left: 50%;
+		translate: -50% 0;
+		display: flex;
+		gap: 6px;
+		z-index: 2;
+	}
+
+	.rf-logo {
+		display: inline-flex;
+		align-items: center;
+		background: var(--paper);
+		border: 1px solid color-mix(in oklab, var(--ink) 18%, transparent);
+		padding: 2px 5px;
+	}
+
+	.rf-logo img {
+		display: block;
+		height: 24px;
+		width: auto;
+		max-width: 84px;
+		object-fit: contain;
+	}
+
+	/* ---- handwritten scraps (paper, so every ink holds 4.5:1) -------- */
+
+	.rf-scrap {
+		width: fit-content;
+		max-width: min(100%, 26rem);
+		background: var(--paper);
+		box-shadow: var(--pin-shadow);
+		padding: var(--baseline) calc(var(--baseline) * 1.5);
+		font-size: 0.875rem;
+	}
+
+	.rf-cardwrap .rf-scrap {
+		margin-top: calc(var(--baseline) * -1);
+		margin-left: calc(var(--baseline) * 3);
+	}
+
+	/* ---- desktop: cards alternate around the 15rem spine ------------- */
+
+	@media (min-width: 48rem) {
+		/* pin centers sit at 50% - 76px (left, wide) and 50% + 76px (right) */
+		.rf-stitch--m,
+		.rf-stitch--exit-m {
+			display: none;
+		}
+
+		.rf-stitch--span {
+			display: block;
+			left: calc(50% - 76px);
+			right: calc(50% - 76px);
+		}
+
+		.rf-stitch--vert {
+			display: block;
+			width: 2.5px;
+			border-radius: 2px;
+			background: var(--thread);
+		}
+
+		.rf-stitch--vert-l {
+			left: calc(50% - 76px - 1.25px);
+		}
+
+		.rf-stitch--vert-r {
+			left: calc(50% + 76px - 1.25px);
+		}
+
+		/* exit: from the last card's pin to the wall-run spine at 50% */
+		.rf-stitch--exit {
+			display: block;
+			bottom: -80px;
+		}
+
+		.rf-stitch--exit-l {
+			left: calc(50% - 76px);
+			right: 50%;
+		}
+
+		.rf-stitch--exit-r {
+			left: 50%;
+			right: calc(50% - 76px);
+		}
+
+		/* the entry line lands on the first card's pin x (a LEFT row) */
+		.rf-line {
+			left: calc(50% - 76px - 1.25px);
+		}
+
+		.rf-head,
+		.rf-row {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) 15rem minmax(0, 1fr);
+		}
+
+		.rf-headwrap {
+			grid-column: 1 / 3;
+			justify-self: end;
+			margin: 0 12rem 0 0;
+		}
+
+		.rf-headscrap {
+			grid-column: 3 / 4;
+			justify-self: start;
+			align-self: end;
+			margin: 0 0 calc(var(--baseline) * -1) 1rem;
+		}
+
+		.rf-cardwrap {
+			margin-left: 0;
+		}
+
+		.rf-row--left .rf-cardwrap {
+			grid-column: 1 / 3;
+			justify-self: end;
+			margin-right: 10rem;
+			width: min(calc(100% - 10rem), 34rem);
+		}
+
+		.rf-row--right .rf-cardwrap {
+			grid-column: 2 / 4;
+			justify-self: start;
+			margin-left: 10rem;
+			width: min(calc(100% - 10rem), 34rem);
+		}
+
+		.rf-row--edu .rf-cardwrap {
+			width: min(calc(100% - 10rem), 22rem);
+		}
+
+		.rf-row--wide .rf-cardwrap {
+			grid-column: 1 / 4;
+			justify-self: center;
+			width: min(100%, 46rem);
+			margin: 0;
+		}
+
+		.rf-row--left .rf-pin,
+		.rf-row--wide .rf-pin {
+			left: calc(50% - 83px);
+		}
+
+		.rf-row--right .rf-pin {
+			left: calc(50% + 69px);
+		}
+
+		.rf-cardwrap h3 {
+			padding-right: 0;
+		}
+
+		.rf-row--flagship .rf-cardwrap h3 {
+			padding-right: 6rem;
+		}
+
+		.rf-stampwrap {
+			--stamp-size: 6rem;
+			top: -1.75rem;
+		}
+
+		.rf-row--left .rf-stampwrap {
+			left: -3rem;
+			right: auto;
+		}
+
+		/* left rows carry their stamp on the LEFT corner: swap the title's
+		   clearance to that side so the ring never crosses the type */
+		.rf-row--left .rf-cardwrap h3 {
+			padding-left: 3.25rem;
+			padding-right: 0;
+		}
+
+		.rf-row--right .rf-stampwrap {
+			right: -3rem;
+		}
+
+		.rf-row--wide .rf-stampwrap {
+			--stamp-size: 7.5rem;
+			right: 2rem;
+			top: -1.75rem;
+		}
+
+		/* scraps lean toward the spine on the card's inner edge */
+		.rf-row--left .rf-cardwrap .rf-scrap {
+			margin-left: auto;
+			margin-right: calc(var(--baseline) * -3);
+		}
+
+		.rf-row--right .rf-cardwrap .rf-scrap {
+			margin-left: calc(var(--baseline) * -3);
+		}
+
+		.rf-row--wide .rf-cardwrap .rf-scrap {
+			margin-left: 55%;
+		}
+	}
+</style>

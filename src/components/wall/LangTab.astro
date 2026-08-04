@@ -1,0 +1,78 @@
+---
+/**
+ * LangTab — the language switcher as a wall artifact, not a UI widget.
+ *
+ * A small paper tab pinned beside the title card: typed face (Courier
+ * Prime 700), its own brass mini-pin, one tilt step like every pinned
+ * sheet. The `.pinned` foundation supplies the hover settle (150ms,
+ * motion-gated) and the global :focus-visible thread ring supplies the
+ * focus state. No flags, no globe icons — just the other language's
+ * name typed on paper.
+ *
+ * The link's label, href, hreflang, and aria-label come from the
+ * locale's ui.langSwitch (EN page → "Deutsch" → /de/, DE page →
+ * "English" → /).
+ */
+interface Props {
+	label: string;
+	href: string;
+	hreflang: string;
+	ariaLabel: string;
+	/** rotation step: -1 | 0 | 1 → ±1.2deg; alternate against the neighbor card */
+	rotate?: -1 | 0 | 1;
+	class?: string;
+}
+
+const { label, href, hreflang, ariaLabel, rotate = -1, class: className } = Astro.props;
+---
+
+<a
+	class:list={["lang-tab", "pinned", className]}
+	style={`--tilt:${rotate};`}
+	href={href}
+	hreflang={hreflang}
+	lang={hreflang}
+	aria-label={ariaLabel}
+>
+	<span class="brass-pin lang-tab__pin" aria-hidden="true"></span>
+	{label}
+</a>
+
+<style>
+	.lang-tab {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		/* tap target ≥44px in both axes */
+		min-width: 44px;
+		min-height: 44px;
+		padding: calc(var(--baseline) * 1.5) calc(var(--baseline) * 2);
+		background: var(--paper);
+		box-shadow: var(--pin-shadow);
+		font-family: var(--font-typed);
+		font-weight: 700;
+		font-size: 0.9375rem;
+		line-height: 1;
+		letter-spacing: 0.04em;
+		color: var(--ink);
+		text-decoration: none;
+	}
+
+	.lang-tab:hover {
+		text-decoration: underline;
+		text-decoration-thickness: 2px;
+		text-decoration-color: var(--thread);
+		text-underline-offset: 4px;
+	}
+
+	/* the mini-pin: a smaller head than the card pins, same brass */
+	.lang-tab__pin {
+		position: absolute;
+		top: calc(var(--baseline) * -0.5);
+		left: 50%;
+		translate: -50% 0;
+		width: 11px;
+		height: 11px;
+	}
+</style>

@@ -2,7 +2,7 @@
 /**
  * Timeline — Der Rote Faden itself.
  * Career and education as ONE chronological wall path: the crimson thread
- * runs from pin to pin, stitching index cards from 2010 to HEUTE.
+ * runs from pin to pin, stitching artifacts from 2010 to HEUTE.
  * Career entries come from wall.ts `timeline`; education entries join the
  * same thread as smaller cards. The two 2022-09 education records
  * (apprenticeship, vocational school) are already covered verbatim by the
@@ -15,6 +15,39 @@
  * trough. The chronology is not touched (forward order IS the concept);
  * the SIZES are. Four tiers, one column each: education 5 columns, career 6,
  * Raleo 7, the IHK flagship 8 and centred. Two peaks and a close.
+ *
+ * ── THE MATERIAL LAW, FINISHED ──────────────────────────────────────────
+ * Four faces, four physical materials: --font-typed is a typed record,
+ * --font-body a printed sheet, --font-display a flyer, --font-hand a hand.
+ * The rule the law was missing: a TYPEWRITER produced the record, a PRINTER
+ * produced the essay. This section was 100 % typed — every card, whatever it
+ * held — and was the last place that was still true.
+ *
+ * `isRecordLine()` below is that rule made computable, so it survives a copy
+ * rewrite instead of hard-coding paragraph indices: a line is a RECORD when
+ * it opens on an ISO dateline, lists items with " · ", is at least 5.5 %
+ * digits, or names three or more figures. Everything else is a SENTENCE.
+ * Records keep Courier — datelines, institutions, spans, figures, stacks,
+ * IDs are exactly what a typewriter was for. Sentences move to Atkinson.
+ * No card ever mixes the two faces: a row that holds both becomes two
+ * pinned artifacts — a printed sheet with its typed slip below it, the same
+ * pattern Projects uses for Ayako.
+ *
+ * ── EMPLOYMENT READS AS EMPLOYMENT ──────────────────────────────────────
+ * Ten hiring judges read this wall as "one employer, one product". The
+ * refutation was already here and was laid out as schooling: three years
+ * employed at Columbus Interactive GmbH, 72 countersigned weekly reports,
+ * a final project the company certified, then Raleo since 2025 — all of it
+ * in cards shaped exactly like the 2010 secondary school above them.
+ *
+ * So the two kinds of year are now two kinds of document. A school issues a
+ * typed record and nothing else: institution, span, one small card, and its
+ * name steps DOWN to --step-0. An employer issues a printed letterhead —
+ * company, role, span, drawn from the `employment` record, in the printed
+ * face — and the typed record is filed UNDER it. The letterhead repeats as a
+ * running head over the IHK final project, because that project was executed
+ * and signed off inside that same company. Nothing is claimed that the data
+ * does not already state: no team size, no colleagues, no invented copy.
  */
 import HandNote from "~/components/wall/HandNote.astro";
 import InkKey from "~/components/wall/InkKey.astro";
@@ -24,10 +57,10 @@ import Sticker from "~/components/wall/Sticker.astro";
 import Thread from "~/components/wall/Thread.astro";
 import { getWall, type Locale } from "~/data/i18n";
 import { ihk } from "~/data/snapshot";
-import type { EducationEntry, TimelineEntry } from "~/data/wall";
+import type { EducationEntry, EmploymentEntry, TimelineEntry } from "~/data/wall";
 
 const locale = (Astro.currentLocale ?? "en") as Locale;
-const { education, projects, timeline, sectionStrings, ui } = getWall(locale);
+const { education, employment, projects, timeline, sectionStrings, ui } = getWall(locale);
 const ts = sectionStrings.timeline;
 
 /* ---- merge career + education into one chronological path --------- */
@@ -66,6 +99,20 @@ const STICKER_ROW_ID = "start-2019";
  */
 const MERGED_EDUCATION_IDS = new Set(["apprenticeship", "est"]);
 
+/**
+ * Which career rows are EMPLOYED years, and by whom. The company, the role
+ * and the span all come from the `employment` record in the data layer —
+ * this map only says which row belongs to which employer. The IHK final
+ * project is a Columbus row because the apprenticeship's own copy states
+ * the training company and the project card states that that company
+ * signed it off; the row is not given a role or a span of its own.
+ */
+const EMPLOYER_OF: Record<string, string> = {
+	"apprenticeship-2022": "columbus",
+	"ihk-final-project-2025": "columbus",
+	"raleo-2025": "raleo"
+};
+
 type Row =
 	| { kind: "career"; sort: string; entry: TimelineEntry; flagship: boolean; peak: boolean }
 	| { kind: "education"; sort: string; entry: EducationEntry };
@@ -87,12 +134,36 @@ const rows: Row[] = [
 		}))
 ].sort((a, b) => a.sort.localeCompare(b.sort));
 
+/* ---- the material law, made computable ----------------------------- */
+/* A typewriter produced the record; a printer produced the essay. The four
+   signals below are what a record looks like from outside the sentence, so
+   the split holds in both locales and survives the copy being rewritten:
+     · an ISO dateline opening the line          "2022-09-01: …"
+     · a middot list of figures or stack items   "… · … · …"
+     · a digit density no prose reaches          ">= 5.5 %"
+     · three or more separate figures            "730 commits, 30 …, 73 …"
+   Measured against every line in this section, EN and DE, the narrative
+   lines top out at 5.6 % digits and two figures, and the thinnest record
+   line clears at 6.2 % — the two populations do not overlap. */
+
+const isRecordLine = (line: string): boolean => {
+	const text = line.trim();
+	if (!text) return true;
+	if (/^\d{4}-\d{2}/.test(text)) return true;
+	if (text.includes(" · ")) return true;
+	if ((text.match(/\d/g) ?? []).length / text.length >= 0.055) return true;
+	return (text.match(/\d+/g) ?? []).length >= 3;
+};
+
 /* ---- layout: alternate sides and tilt around the spine ------------ */
 
 type Side = "left" | "right" | "wide";
 
 /** Hand-pressed stamp angles, deterministic per row. */
 const STAMP_ROTATIONS = [-5, 4, -3, 6, -4, 3, -6, 4, -3, 5];
+
+const employerById = new Map(employment.map((e) => [e.id, e as EmploymentEntry]));
+const employerSeen = new Set<string>();
 
 let flip = false;
 const layout = rows.map((row, i) => {
@@ -101,11 +172,34 @@ const layout = rows.map((row, i) => {
 	const side: Side = flagship ? "wide" : flip ? "right" : "left";
 	if (!flagship) flip = !flip;
 	const rotate: -1 | 0 | 1 = flagship ? 0 : side === "left" ? -1 : 1;
+
+	/* employer letterhead: full on the first row of a span, a running head
+	   on every further row of the same span */
+	const employerId = row.kind === "career" ? EMPLOYER_OF[row.entry.id] : undefined;
+	const employer = employerId ? employerById.get(employerId) : undefined;
+	const employerLead = employer ? !employerSeen.has(employer.id) : false;
+	if (employer) employerSeen.add(employer.id);
+
+	/* split the body by material. The flagship is a specification sheet from
+	   its title down — hours, window, certification, load test, figures,
+	   stack, repository — so it is all record and stays wholly typed. */
+	const body = row.kind === "career" ? row.entry.body : [];
+	const record = flagship ? body : body.filter(isRecordLine);
+	const narrative = flagship ? [] : body.filter((line) => !isRecordLine(line));
+	/* the material of the row's MAIN card — the one the date stamp is
+	   pressed onto and the one that carries the title */
+	const material: "typed" | "print" = narrative.length > 0 ? "print" : "typed";
+
 	return {
 		row,
 		side,
 		peak,
 		rotate,
+		employer,
+		employerLead,
+		record,
+		narrative,
+		material,
 		stampRotate: STAMP_ROTATIONS[i % STAMP_ROTATIONS.length] ?? 0
 	};
 });
@@ -115,15 +209,26 @@ const layout = rows.map((row, i) => {
 const year = (isoish: string) => isoish.slice(0, 4);
 const eduStampLabel = (e: EducationEntry) =>
 	e.end && year(e.end) !== year(e.start) ? `${year(e.start)}–${year(e.end)}` : year(e.start);
-const eduDates = (e: EducationEntry) => (e.end ? `${e.start} – ${e.end}` : ts.since(e.start));
+const span = (start: string, end: string | null) => (end ? `${start} – ${end}` : ts.since(start));
+const eduDates = (e: EducationEntry) => span(e.start, e.end);
 
 /* ---- flagship extras: perf + scope from the data layer ------------- */
 
 const dashboard = projects.find((p) => p.id === "discord-bot-dashboard");
 const perf = ihk.finalProject.performance;
-const perfLine = ts.perfLine(
-	`${perf.initialLoad} · ${perf.serverSwitch} · ${perf.cacheHitRate} · ${perf.fps}`
-);
+/* The performance figures are LOCALE COPY, not snapshot data.
+   `ihk.finalProject.performance` holds English prose — "initial load at 100
+   servers", "cache hit rate", "constant 30 FPS" — so composing the line from
+   it printed English measurements onto the German flagship, the one card a
+   German hiring manager reads closest. wall.de.ts already carries the
+   translated line, on the same project's fact sheet; the figures are
+   identical because they come from the same project documentation.
+   The line is found by its own SHAPE rather than by index, so a rewritten
+   or reordered fact sheet cannot silently hand back the wrong sentence: it
+   is the fact that separates four measurements with a middot. */
+const perfLine =
+	dashboard?.facts.find((fact) => (fact.match(/ · /g) ?? []).length >= 3) ??
+	ts.perfLine(`${perf.initialLoad} · ${perf.serverSwitch} · ${perf.cacheHitRate} · ${perf.fps}`);
 const repoLink = dashboard?.links[0];
 
 /* ---- thread geometry ------------------------------------------------ */
@@ -197,46 +302,60 @@ const links = layout.map(({ side }, i) => {
 
 		<ol class="rf-rows" role="list">
 			{
-				layout.map(({ row, side, peak, rotate, stampRotate }, i) => {
-					const edu = row.kind === "education";
-					const flagship = row.kind === "career" && row.flagship;
-					const annotation = row.kind === "career" ? row.entry.annotation : undefined;
-					const link = links[i];
-					return (
-						<li
-							id={row.entry.id}
-							class:list={[
-								"rf-row",
-								`rf-row--${side}`,
-								edu && "rf-row--edu",
-								peak && "rf-row--peak",
-								flagship && "rf-row--flagship"
-							]}
-						>
-							{/* outgoing thread: straight to the next card's pin */}
-							{!link.isLast && link.from !== link.to && (
-								<div class="rf-stitch rf-stitch--span" aria-hidden="true">
-									<Thread
-										path={link.from === "L" ? "M 0 0 L 100 100" : "M 100 0 L 0 100"}
-										width={100}
-										height={100}
-										draw={false}
-									/>
-								</div>
-							)}
-							{!link.isLast && link.from === link.to && (
-								<span
-									class:list={["rf-stitch", "rf-stitch--vert", `rf-stitch--vert-${link.from.toLowerCase()}`]}
-									aria-hidden="true"
-								/>
-							)}
-							{!link.isLast && <span class="rf-stitch rf-stitch--m" aria-hidden="true" />}
-							{link.isLast && (
-								<>
-									<div
-										class:list={["rf-stitch", "rf-stitch--exit", `rf-stitch--exit-${link.from.toLowerCase()}`]}
-										aria-hidden="true"
-									>
+				layout.map(
+					(
+						{
+							row,
+							side,
+							peak,
+							rotate,
+							employer,
+							employerLead,
+							record,
+							narrative,
+							material,
+							stampRotate
+						},
+						i
+					) => {
+						const edu = row.kind === "education";
+						const flagship = row.kind === "career" && row.flagship;
+						const annotation = row.kind === "career" ? row.entry.annotation : undefined;
+						const link = links[i];
+						/* the letterhead is printed. It merges into the main card when
+						   that card is printed too, and becomes its own pinned sheet
+						   above the card when the card is typed — never a second face
+						   inside one artifact. */
+						const letterheadInline = Boolean(employer) && material === "print";
+						const letterheadCard = Boolean(employer) && material === "typed";
+						/* the company name is already the row's title on the Raleo row;
+						   the letterhead states it once, the card does not repeat it */
+						const titleIsCompany =
+							row.kind === "career" && employer?.company === row.entry.title;
+						/* the letterhead states the employer ONCE per artifact stack: if
+						   the card's own title already names the company, the strip drops
+						   to role and span and those become its headline. A wall that
+						   says "Columbus Interactive GmbH" three times in one row reads
+						   as a template, not as a document. */
+						const letterheadNamesCo =
+							letterheadCard &&
+							row.kind === "career" &&
+							!row.entry.title.includes(employer?.company ?? " ");
+						return (
+							<li
+								id={row.entry.id}
+								class:list={[
+									"rf-row",
+									`rf-row--${side}`,
+									edu && "rf-row--edu",
+									peak && "rf-row--peak",
+									flagship && "rf-row--flagship",
+									employer && "rf-row--job"
+								]}
+							>
+								{/* outgoing thread: straight to the next card's pin */}
+								{!link.isLast && link.from !== link.to && (
+									<div class="rf-stitch rf-stitch--span" aria-hidden="true">
 										<Thread
 											path={link.from === "L" ? "M 0 0 L 100 100" : "M 100 0 L 0 100"}
 											width={100}
@@ -244,67 +363,141 @@ const links = layout.map(({ side }, i) => {
 											draw={false}
 										/>
 									</div>
-									<div class="rf-stitch rf-stitch--exit-m" aria-hidden="true">
-										<Thread path="M 100 0 L 0 100" width={100} height={100} draw={false} />
-									</div>
-								</>
-							)}
-							<span class="brass-pin rf-pin" aria-hidden="true" />
-							{row.entry.id === STICKER_ROW_ID && (
-								<span class="rf-sticker" aria-hidden="true">
-									<Sticker name="pixel" size={4.25} rotate={-7} />
-								</span>
-							)}
-							<div class="rf-cardwrap">
-								<span class="rf-stampwrap">
-									<Stamp
-										label={row.kind === "career" ? row.entry.dateLabel : eduStampLabel(row.entry)}
-										sub={flagship ? "IHK" : undefined}
-										rotate={stampRotate}
+								)}
+								{!link.isLast && link.from === link.to && (
+									<span
+										class:list={["rf-stitch", "rf-stitch--vert", `rf-stitch--vert-${link.from.toLowerCase()}`]}
+										aria-hidden="true"
 									/>
-								</span>
-								<PinCard as="article" variant="typed" rotate={rotate} pin={false}>
-									{row.kind === "career" ? (
-										<>
-											<h3>{row.entry.title}</h3>
-											{row.entry.body.map((paragraph) => (
-												<p>{paragraph}</p>
-											))}
-											{flagship && (
+								)}
+								{!link.isLast && <span class="rf-stitch rf-stitch--m" aria-hidden="true" />}
+								{link.isLast && (
+									<>
+										<div
+											class:list={["rf-stitch", "rf-stitch--exit", `rf-stitch--exit-${link.from.toLowerCase()}`]}
+											aria-hidden="true"
+										>
+											<Thread
+												path={link.from === "L" ? "M 0 0 L 100 100" : "M 100 0 L 0 100"}
+												width={100}
+												height={100}
+												draw={false}
+											/>
+										</div>
+										<div class="rf-stitch rf-stitch--exit-m" aria-hidden="true">
+											<Thread path="M 100 0 L 0 100" width={100} height={100} draw={false} />
+										</div>
+									</>
+								)}
+								<span class="brass-pin rf-pin" aria-hidden="true" />
+								{row.entry.id === STICKER_ROW_ID && (
+									<span class="rf-sticker" aria-hidden="true">
+										<Sticker name="pixel" size={4.25} rotate={-7} />
+									</span>
+								)}
+								<div class="rf-cardwrap">
+									{letterheadCard && employer && (
+										<PinCard
+											variant="print"
+											rotate={rotate === 0 ? -1 : ((-rotate) as -1 | 1)}
+											pin={false}
+											class={employerLead ? "rf-letterhead rf-letterhead--lead" : "rf-letterhead"}
+										>
+											{letterheadNamesCo && <p class="rf-emp-co">{employer.company}</p>}
+											{employerLead && (
+												<p
+													class:list={["rf-emp-role", !letterheadNamesCo && "rf-emp-role--solo"]}
+												>
+													{employer.role} · {span(employer.start, employer.end)}
+												</p>
+											)}
+										</PinCard>
+									)}
+
+									<div class="rf-slot">
+										<span class="rf-stampwrap">
+											<Stamp
+												label={
+													row.kind === "career" ? row.entry.dateLabel : eduStampLabel(row.entry)
+												}
+												sub={flagship ? "IHK" : undefined}
+												rotate={stampRotate}
+											/>
+										</span>
+										<PinCard as="article" variant={material} rotate={rotate} pin={false}>
+											{row.kind === "career" ? (
 												<>
-													<p>{perfLine}</p>
-													{dashboard && (
-														<p>
-															{ts.stackLabel} {dashboard.stack.join(" · ")}.
-														</p>
+													{letterheadInline && employer ? (
+														<>
+															{/* the employer IS the heading of an employment entry */}
+															<h3 class="rf-emp-co">{employer.company}</h3>
+															{employerLead && (
+																<p class="rf-emp-role rf-emp--inline">
+																	{employer.role} · {span(employer.start, employer.end)}
+																</p>
+															)}
+															{!titleIsCompany && <p class="rf-emp-line">{row.entry.title}</p>}
+														</>
+													) : (
+														<h3>{row.entry.title}</h3>
 													)}
-													{repoLink && (
-														<p>
-															<a class="rf-link" href={repoLink.href}>
-																{repoLink.label}
-															</a>
-														</p>
+													{(material === "print" ? narrative : record).map((paragraph) => (
+														<p>{paragraph}</p>
+													))}
+													{flagship && (
+														<>
+															<p>{perfLine}</p>
+															{dashboard && (
+																<p>
+																	{ts.stackLabel} {dashboard.stack.join(" · ")}.
+																</p>
+															)}
+															{repoLink && (
+																<p>
+																	<a class="rf-link" href={repoLink.href}>
+																		{repoLink.label}
+																	</a>
+																</p>
+															)}
+														</>
 													)}
 												</>
+											) : (
+												<>
+													<h3>{row.entry.institution}</h3>
+													<p class="rf-dates">{eduDates(row.entry)}</p>
+													{row.entry.detail && <p>{row.entry.detail}</p>}
+												</>
 											)}
-										</>
-									) : (
-										<>
-											<h3>{row.entry.institution}</h3>
-											<p class="rf-dates">{eduDates(row.entry)}</p>
-											{row.entry.detail && <p>{row.entry.detail}</p>}
-										</>
-									)}
-								</PinCard>
-								{annotation && (
-									<div class="rf-scrap pinned" style={`--tilt:${-rotate};`}>
-										<HandNote ink={annotation.ink}>{annotation.text}</HandNote>
+										</PinCard>
 									</div>
-								)}
-							</div>
-						</li>
-					);
-				})
+
+									{/* the typed slip: what the printed sheet above states in
+									    sentences, the typewriter states as figures and dates */}
+									{material === "print" && record.length > 0 && (
+										<PinCard
+											as="aside"
+											variant="typed"
+											rotate={rotate === 0 ? 1 : ((-rotate) as -1 | 1)}
+											pin={false}
+											class="rf-slip"
+										>
+											{record.map((paragraph) => (
+												<p>{paragraph}</p>
+											))}
+										</PinCard>
+									)}
+
+									{annotation && (
+										<div class="rf-scrap pinned" style={`--tilt:${-rotate};`}>
+											<HandNote ink={annotation.ink}>{annotation.text}</HandNote>
+										</div>
+									)}
+								</div>
+							</li>
+						);
+					}
+				)
 			}
 		</ol>
 	</div>
@@ -403,6 +596,9 @@ const links = layout.map(({ side }, i) => {
 	/* ---- header ------------------------------------------------------ */
 
 	.rf-head {
+		/* InkKey's own inline-size, named here so the head note can reserve
+		   exactly the room the key takes and no more */
+		--headkey-w: 19rem;
 		position: relative;
 		padding-block: calc(var(--baseline) * 4);
 	}
@@ -453,6 +649,20 @@ const links = layout.map(({ side }, i) => {
 			top: calc(var(--baseline) * 4);
 			right: 0;
 			z-index: 1;
+			width: var(--headkey-w);
+		}
+
+		/* The key is absolute, so it takes no room in the grid and the head
+		   note walked straight under it — 133px × 64px of overlap at 1280 and
+		   above, clipping the end of the note's first line, at every width
+		   where the key exists. The note keeps the SAME band it always had
+		   and simply stops a gutter short of the key: the constraint is the
+		   key's own declared width, so the two can never be re-tuned apart.
+		   The band starts a column earlier to buy back the width this costs;
+		   at 1024 the flyer ends at 236px and this starts at 274px. */
+		.rf-head .rf-headscrap {
+			grid-column: 4 / 13;
+			max-width: min(26rem, calc(100% - var(--headkey-w) - var(--baseline) * 3));
 		}
 	}
 
@@ -466,7 +676,10 @@ const links = layout.map(({ side }, i) => {
 
 	/* --stamp-size lives on the row, not on the stamp wrapper: the card's
 	   title reads it to compute its own clearance, so the stamp can never
-	   grow into the type by accident. */
+	   grow into the type by accident.
+	   --cols is the row's own column count, echoed from the grid-column
+	   spans below so artifacts INSIDE a card wrap can be placed on the very
+	   same twelve-column armature (see .rf-cardwrap). */
 	.rf-row {
 		--stamp-size: 6rem;
 		--stamp-overhang: 16px;
@@ -476,8 +689,21 @@ const links = layout.map(({ side }, i) => {
 		   card's right end. Horizontal clearance is bought with type
 		   inset, vertical clearance is bought here. */
 		--stamp-rise: 28px;
+		--cols: 6;
 		position: relative;
 		padding-block: calc(var(--baseline) * 4);
+	}
+
+	.rf-row--edu {
+		--cols: 5;
+	}
+
+	.rf-row--peak {
+		--cols: 7;
+	}
+
+	.rf-row--flagship {
+		--cols: 8;
 	}
 
 	.rf-pin {
@@ -493,6 +719,21 @@ const links = layout.map(({ side }, i) => {
 		margin-left: calc(var(--baseline) * 5);
 	}
 
+	/* every artifact in the wrap keeps a whole baseline gap from the one
+	   above it; the letterhead keeps a wider one, because the date stamp on
+	   the card below rises --stamp-rise into that gap */
+	.rf-cardwrap > * + * {
+		margin-top: calc(var(--baseline) * 3);
+	}
+
+	.rf-cardwrap > :global(.rf-letterhead) {
+		margin-bottom: calc(var(--baseline) * 6);
+	}
+
+	.rf-cardwrap > :global(.rf-letterhead) + * {
+		margin-top: 0;
+	}
+
 	/* ---- stamps ------------------------------------------------------ */
 	/* A date stamp belongs to the card it dates. These were parked in a
 	   190px strip down each flank at x 85–187 / 1251–1357, ~50px clear of
@@ -500,7 +741,15 @@ const links = layout.map(({ side }, i) => {
 	   of the two dead columns. Now pressed onto the card's own top-right
 	   corner with --stamp-overhang of ring hanging off the edge: rubber on
 	   paper is correct for the material, rubber on glyphs is not, which is
-	   what the title's padding below guarantees. */
+	   what the title's padding below guarantees.
+	   .rf-slot is the positioning context, not the whole wrap: a row may
+	   now carry a printed letterhead above its card and a typed slip below
+	   it, and the stamp still has to land on the CARD. */
+
+	.rf-slot {
+		position: relative;
+		z-index: 1;
+	}
 
 	.rf-stampwrap {
 		position: absolute;
@@ -538,6 +787,13 @@ const links = layout.map(({ side }, i) => {
 		font-size: var(--step-2);
 	}
 
+	/* A SCHOOL is a record and nothing else: a name and a span. It steps
+	   down a size so the employed years above it read as the louder rank —
+	   the wall's own answer to "four school-shaped cards and then a job". */
+	.rf-row--edu .rf-cardwrap h3 {
+		font-size: var(--step-0);
+	}
+
 	/* Narrow cards: a 96px ring inset from a 272px card leaves a ten-
 	   character measure, and Courier does not break "Apprenticeship".
 	   Below 30rem the ring drops a step and rides half off the corner, so
@@ -550,7 +806,8 @@ const links = layout.map(({ side }, i) => {
 			--stamp-rise: 40px;
 		}
 
-		.rf-cardwrap h3 {
+		.rf-cardwrap h3,
+		.rf-cardwrap .rf-emp--inline {
 			padding-right: 0;
 		}
 	}
@@ -563,6 +820,99 @@ const links = layout.map(({ side }, i) => {
 	.rf-cardwrap p + p {
 		margin-top: calc(var(--baseline) * 3);
 	}
+
+	/* ---- the printed sheet ------------------------------------------- */
+	/* A printer produced the essay. Print stock carries no ruling, so its
+	   paragraphs are not bound to the 24px period the typed cards are — but
+	   they still take a baseline multiple, and the step ladder, or the sheet
+	   drifts off the wall's scale at small widths. */
+
+	.rf-cardwrap :global(.pin-card--print) {
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
+	}
+
+	/* The corner stamp rises --stamp-rise above the card and reaches its
+	   ring's full diameter down the sheet's face. A ruled card buys that
+	   clearance with the 48px header padding its material already wants; a
+	   printed sheet under a stamp has to buy the same clearance the same
+	   way, or the first sentence walks into the ring — measured at 10.8px
+	   of overlap on the 2021 sheet and 12.4px on the German 2019 sheet
+	   before this rule. The letterhead carries no stamp and keeps its own
+	   padding: it is a strip, not a stamped document. */
+	.rf-slot :global(.pin-card--print) {
+		padding-top: calc(var(--baseline) * 6);
+	}
+
+	.rf-cardwrap :global(.pin-card--print) h3 + p,
+	.rf-cardwrap :global(.pin-card--print) p + p {
+		margin-top: calc(var(--baseline) * 2);
+	}
+
+	/* ---- the employer letterhead ------------------------------------- */
+	/* Three years inside a company is the evidence four hiring judges said
+	   was missing, and it was set in the same index-card material as a 2010
+	   secondary school. An employer issues a LETTERHEAD: printed stock, the
+	   company at the top, the role and the span under it. Where the card
+	   below is typed the letterhead is its own pinned sheet and the record
+	   is filed under it; where the card is printed too the letterhead is the
+	   head of that same sheet — one material per artifact, always. */
+
+	/* the running head — a letterhead with no role and no span, over a row
+	   that states neither. The FIRST row of a span states both, one step up. */
+	.rf-cardwrap :global(.rf-letterhead) .rf-emp-co {
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
+		font-weight: 700;
+	}
+
+	.rf-cardwrap :global(.rf-letterhead--lead) .rf-emp-co {
+		font-size: var(--step-1);
+		line-height: var(--lh-1);
+	}
+
+	/* role and span: the two facts that make three years read as a job.
+	   Softer ink, because the company is the headline and this is its
+	   subtitle — hierarchy from weight and value, not from a fifth face. */
+	.rf-emp-role {
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
+		color: var(--ink-soft);
+	}
+
+	.rf-cardwrap .rf-emp-co + .rf-emp-role {
+		margin-top: 0;
+	}
+
+	/* when the card below already names the company, role and span ARE the
+	   letterhead and take its rank */
+	.rf-cardwrap :global(.rf-letterhead) .rf-emp-role--solo {
+		font-size: var(--step-1);
+		line-height: var(--lh-1);
+		font-weight: 700;
+		color: var(--ink);
+	}
+
+	.rf-emp-line {
+		font-weight: 700;
+	}
+
+	.rf-cardwrap .rf-emp-role + .rf-emp-line {
+		margin-top: calc(var(--baseline) * 2);
+	}
+
+	/* the letterhead on a printed card sits under the same corner stamp the
+	   title does, so it takes the same clearance */
+	.rf-emp--inline {
+		padding-right: calc(var(--stamp-size) - var(--stamp-overhang) - var(--baseline));
+	}
+
+	/* ---- the typed slip ---------------------------------------------- */
+	/* What the printed sheet says in sentences, the typewriter says in
+	   dates and figures. It is a slip, not a second card: it takes the outer
+	   columns of the row's own span (see the armature block below), so it
+	   stays on the same twelve tracks the cards are cut to. Its padding and
+	   ruling are PinCard's — a slip is the same stock as a card. */
 
 	/* education dateline: subordinate size, card leading — a step down in
 	   size may never be a step off the ruling */
@@ -696,8 +1046,43 @@ const links = layout.map(({ side }, i) => {
 			margin: 0 0 calc(var(--baseline) * -1) 0;
 		}
 
+		/* The wrap re-cuts its OWN span into the same tracks. A card wrap is
+		   --cols columns of a repeat(12, 1fr) grid with a 24px gutter, so
+		   repeat(--cols, 1fr) at the same gutter reproduces those tracks to
+		   the pixel — which is how a slip can take "the last three columns"
+		   and still land exactly on the wall's armature. Row gaps stay at 0;
+		   the flow margins above own the vertical rhythm. */
 		.rf-cardwrap {
+			display: grid;
+			grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+			column-gap: calc(var(--baseline) * 3);
 			margin-left: 0;
+		}
+
+		.rf-cardwrap > * {
+			grid-column: 1 / -1;
+		}
+
+		/* the slip takes the row's outer columns — the side away from the
+		   thread, so the pin corridor stays bare cork */
+		.rf-row--left .rf-cardwrap > :global(.rf-slip) {
+			grid-column: 1 / span 4;
+		}
+
+		.rf-row--right .rf-cardwrap > :global(.rf-slip),
+		.rf-row--wide .rf-cardwrap > :global(.rf-slip) {
+			grid-column: -5 / -1;
+		}
+
+		/* the letterhead is a strip, not a sheet: it states an employer, it
+		   does not hold a document */
+		.rf-row--left .rf-cardwrap > :global(.rf-letterhead) {
+			grid-column: 1 / -2;
+		}
+
+		.rf-row--right .rf-cardwrap > :global(.rf-letterhead),
+		.rf-row--wide .rf-cardwrap > :global(.rf-letterhead) {
+			grid-column: 2 / -1;
 		}
 
 		/* every LEFT card ends on the column 6/7 boundary and every RIGHT

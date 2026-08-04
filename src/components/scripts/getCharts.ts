@@ -127,7 +127,12 @@ const FINDINGS: Record<Locale, FindingCopy> = {
 	en: {
 		ayakoTitle: "One project family outweighs all the rest",
 		ayakoNote: "mine end to end — and bigger than every other project put together",
-		languagesTitle: (name) => `${name} is where the hours went`,
+		/* Outcome, not effort. "…is where the hours went" was the last
+		   headline on the wall that measured expenditure rather than result —
+		   three blind judges attacked precisely that framing. Same figure,
+		   same denominator, same provenance; it now names what the language
+		   BUILT rather than what it consumed. */
+		languagesTitle: (name) => `The product is written in ${name}`,
 		languagesNote: (share, of) => `one language, ${share} of the top ${of}`,
 		habitTitle: (daysInTen, sinceYear) =>
 			`Coded on ${daysInTen} days out of 10 since ${sinceYear}`,
@@ -139,7 +144,8 @@ const FINDINGS: Record<Locale, FindingCopy> = {
 	de: {
 		ayakoTitle: "Eine Projektfamilie wiegt schwerer als alle anderen",
 		ayakoNote: "von vorn bis hinten meins — und größer als alle anderen Projekte zusammen",
-		languagesTitle: (name) => `In ${name} stecken die Stunden`,
+		/* siehe en: das Ergebnis benennen, nicht den Aufwand */
+		languagesTitle: (name) => `Das Produkt ist in ${name} geschrieben`,
 		languagesNote: (share, of) => `eine Sprache, ${share} der Top ${of}`,
 		habitTitle: (daysInTen, sinceYear) =>
 			`An ${daysInTen} von 10 Tagen programmiert, seit ${sinceYear}`,

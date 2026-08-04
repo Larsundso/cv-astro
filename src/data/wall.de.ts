@@ -128,10 +128,11 @@ export const hero = {
 	/** Hand-annotated telemetry print-out. */
 	telemetryCard: {
 		title: "Erfasst, nicht geschätzt",
+		/* siehe wall.ts: das Ergebnis zuerst, die Stunden als Beleg darunter */
 		lines: [
-			`${hm(telemetry.lifetime.total.seconds)} erfasste Programmierzeit, Stand ${SNAPSHOT_AS_OF}.`,
-			`${n(telemetry.lifetime.activeDays.active)} von ${n(telemetry.lifetime.activeDays.elapsed)} Tagen aktiv — ${n(telemetry.lifetime.activeDays.ratePercent)} %, ${telemetry.trackingStart} bis ${telemetry.trackingEnd}.`,
-			`Tagesdurchschnitt über den Gesamtzeitraum: ${hm(telemetry.lifetime.dailyAverage.seconds)}.`
+			`Seit ${ayako.inProductionSince} im Produktivbetrieb — über ${ayako.generations} Generationen und ${ayako.discordLibraries} Discord-Bibliotheken hinweg.`,
+			`${hm(telemetry.lifetime.total.seconds)} erfasste Programmierzeit dahinter, Stand ${SNAPSHOT_AS_OF}.`,
+			`${n(telemetry.lifetime.activeDays.active)} von ${n(telemetry.lifetime.activeDays.elapsed)} Tagen aktiv — ${n(telemetry.lifetime.activeDays.ratePercent)} %, ${telemetry.trackingStart} bis ${telemetry.trackingEnd}.`
 		],
 		sourceNote: "WakaTime API",
 		annotation: {
@@ -185,10 +186,10 @@ export const timeline: TimelineEntry[] = [
 		id: "apprenticeship-2022",
 		dateLabel: "09/2022",
 		sort: "2022-09",
-		title: "Ausbildung",
+		title: "Drei Jahre bei der Columbus Interactive GmbH",
 		body: [
-			`${ihk.apprenticeship.start}: ${ihk.profession} (IHK, Fachrichtung Anwendungsentwicklung, DQR-Niveau 4) bei ${ihk.trainingCompany}.`,
-			`Berufsschule: Elektronikschule Tettnang. ${ihk.weeklyReports} gegengezeichnete wöchentliche Ausbildungsnachweise, Nr. 0–71. Abschlussprüfung: ${ihk.apprenticeship.examCycle}.`
+			`${ihk.apprenticeship.start}: drei Jahre angestellt bei ${ihk.trainingCompany}, in Ausbildung zum ${ihk.profession} (IHK, Fachrichtung Anwendungsentwicklung, DQR-Niveau 4).`,
+			`${ihk.weeklyReports} gegengezeichnete wöchentliche Ausbildungsnachweise, Nr. 0–71 — jeder einzelne von jemand anderem gelesen und unterschrieben. Berufsschule: Elektronikschule Tettnang. Abschlussprüfung: ${ihk.apprenticeship.examCycle}.`
 		]
 	},
 	{
@@ -197,8 +198,8 @@ export const timeline: TimelineEntry[] = [
 		sort: "2025-05",
 		title: `IHK-Abschlussprojekt: »${ihk.finalProject.title}«`,
 		body: [
-			`${ihk.finalProject.hours} h, ${ihk.finalProject.window.start} bis ${ihk.finalProject.window.end} — vom Ausbildungsbetrieb als »selbstständig ausgeführt« abgezeichnet, unterschrieben am 2025-06-01.`,
-			`Lasttest mit ${n(ihk.finalProject.loadTestServers)} simulierten Discord-Servern.`
+			`Der Ausbildungsbetrieb hat die Arbeit beurteilt: als »selbstständig ausgeführt« abgezeichnet, unterschrieben am 2025-06-01. ${ihk.finalProject.hours} h, ${ihk.finalProject.window.start} bis ${ihk.finalProject.window.end}.`,
+			`Unter Last gemessen: ${n(ihk.finalProject.loadTestServers)} simulierte Discord-Server.`
 		],
 		annotation: { text: "80 h ist die Obergrenze, die die IHK für das Projekt setzt", ink: "teal" }
 	},
@@ -208,7 +209,7 @@ export const timeline: TimelineEntry[] = [
 		sort: "2025-06",
 		title: "Raleo Digital GmbH",
 		body: [
-			"Seit 2025: Full-Stack-Entwickler bei der Raleo Digital GmbH (raleo.de), einem Online-Marktplatz für Heizungen, Wärmepumpen und Photovoltaik. Vollständig remote."
+			"Seit 2025: Full-Stack-Entwickler bei der Raleo Digital GmbH (raleo.de), einem Online-Marktplatz für Heizungen, Wärmepumpen und Photovoltaik. Vollständig remote — das zweite Unternehmen an diesem Faden."
 		]
 	},
 	{
@@ -637,7 +638,7 @@ export const employment: EmploymentEntry[] = [
 		role: "Auszubildender Fachinformatiker für Anwendungsentwicklung",
 		start: "2022-09",
 		end: "2025",
-		note: "Ravensburg. Ausbildungsbetrieb im dualen IHK-System; Abschlussprüfung Sommer 2025.",
+		note: `Ravensburg. Drei Jahre angestellt im dualen IHK-System; ${ihk.weeklyReports} gegengezeichnete wöchentliche Ausbildungsnachweise; Abschlussprüfung ${ihk.apprenticeship.examCycle}.`,
 		logo: "/CI.webp"
 	}
 ];
@@ -712,8 +713,10 @@ export const sectionStrings = {
 	/** Stamp sub-line above an as-of date, e.g. "Stand / 2026-08-03". */
 	asOfStamp: "Stand",
 	timeline: {
-		/** Handwritten scrap beside the Werdegang flyer. */
-		headNote: "Beruf und Ausbildung, der Reihe nach aufgefädelt — eine Geschichte, ein Faden.",
+		/** Handschriftlicher Zettel neben dem Werdegang-Flyer. Er zählt die
+		 *  Arbeitgeber, denn wer sie nicht zählt, liest diesen Abschnitt als
+		 *  eine Stelle und ein Zeugnis. */
+		headNote: "zwei Arbeitgeber seit 2022 — Beruf und Ausbildung, der Reihe nach aufgefädelt.",
 		/** Education card date line while ongoing, e.g. "seit 2022-09". */
 		since: (start: string) => `seit ${start}`,
 		/** Flagship card: prefix of the stack line. */
@@ -750,14 +753,23 @@ export const sectionStrings = {
 const asOfSuffix = (window: string, asOf: string): string =>
 	window.includes(asOf) ? "" : ` · Stand ${asOf}`;
 
+/* Die Überschriften nennen das ERGEBNIS, für das die Stunden draufgingen;
+ * die Stunden belegen es in der Zeile darunter. Eine Überschrift, die ihre
+ * eigene Achse benennt („Top-5-Projekte“), macht aus dem Blatt eine
+ * Aussage über Fleiß — genau die Lesart, die diese Wand nicht will.
+ * Interessant ist, was herauskam: ein Produkt, seit 2019 im
+ * Produktivbetrieb, über sieben Generationen und drei Discord-Bibliotheken. */
+
 export const chartStrings = {
 	titles: {
-		topProjects: (count: number) => `Top-${count}-Projekte`,
-		ayakoFamily: "Ayako-Projektfamilie",
-		topLanguages: (count: number) => `Top-${count}-Sprachen`,
-		weekByProject: "Die letzten 7 Tage nach Projekt",
-		weekByLanguage: "Die letzten 7 Tage nach Sprache",
-		activeDays: "Aktive Tage"
+		topProjects: (count: number) =>
+			`Produktarbeit seit ${ayako.inProductionSince} — die Top ${count} nach erfassten Stunden`,
+		ayakoFamily: `Ein Produkt, ${ayako.generations} Generationen, seit ${ayako.inProductionSince} im Produktivbetrieb`,
+		topLanguages: (count: number) =>
+			`Eine Sprachfamilie trägt das Produkt — Top ${count} nach erfassten Stunden`,
+		weekByProject: "Woran gerade gebaut wird — nach Projekt",
+		weekByLanguage: "Woran gerade gebaut wird — nach Sprache",
+		activeDays: "Tage, an denen Code entstanden ist"
 	},
 	/** Unit + window lines (voice law). */
 	units: {
@@ -844,17 +856,24 @@ export const chartStrings = {
 		languagesDerived: (asOf: string) =>
 			`* Anteil abgeleitet aus den veröffentlichten Stunden und dem Gesamtwert, Stand ${asOf}.`
 	},
-	/** Handwritten margin notes quoting the headline figure. */
+	/** Handschriftliche Randnotizen: jede trägt die FOLGE, die das Blatt
+	 *  nicht zeichnen kann — eine Notiz, die den Balken daneben wiederholt,
+	 *  ist Dekoration; der Balken beschriftet sich selbst. */
 	annotations: {
-		projectLeads: (name: string, time: string) => `${name} führt — ${time}`,
-		ayakoShare: (percent: number) => `${percent} % der gesamten erfassten Zeit: Ayako`,
-		languageTop: (name: string, time: string) => `${name}: ${time}`,
+		/* Lässt die Spitzenzeile bewusst weg: bei einem Live-Abruf ist das
+		   irgendein Repo mit den meisten Stunden — die Ergänzung, auf die es
+		   ankommt, ist, was daraus läuft, und das zeigt kein Balken hier. */
+		projectLeads: (_name: string, _time: string) =>
+			`Auf dem, was in diesen Stunden entstand, laufen ${servers} Server`,
+		ayakoShare: (percent: number) =>
+			`${users} Nutzer, ${servers} Server — und ${n(percent)} % der Aufzeichnung`,
+		languageTop: (name: string, time: string) => `Das Produkt läuft auf ${name} — ${time} davon`,
 		weekTotal: (total: string, leadName: string) =>
-			`${total} diese Woche — vor allem ${leadName}`,
+			`An ${leadName} wird weiter gebaut — ${total} davon diese Woche`,
 		weekDaily: (average: string, leadName: string) =>
-			`${average} pro Tag — vor allem ${leadName}`,
+			`Die Änderungen landen weiter in ${leadName} — ${average} pro Tag`,
 		habitRate: (ratePercent: number, sinceYear: string) =>
-			`${ratePercent} % aller Tage seit ${sinceYear}`
+			`An ${n(ratePercent)} % aller Tage seit ${sinceYear} ist Code entstanden`
 	},
 	habit: {
 		line: (active: string, elapsed: string, ratePercent: string) =>
@@ -878,7 +897,12 @@ export const chartStrings = {
 	},
 	/** Telemetry section chrome around the charts (Telemetry.astro). */
 	telemetrySection: {
-		trackedSince: (date: string) => `Erfasst seit ${date}`,
+		/* Die Unterzeile des Abschnitts: zuerst das, was aus den Stunden
+		   wurde, dann der Messzeitraum. Ein Telemetrie-Abschnitt, der mit
+		   „erfasst seit …“ beginnt, redet über Fleiß, bevor er gesagt hat,
+		   wofür der Fleiß war. */
+		trackedSince: (date: string) =>
+			`Seit ${ayako.inProductionSince} im Produktivbetrieb · erfasst seit ${date}`,
 		sourceHeading: "Quelle",
 		dataAsTable: "Daten als Tabelle"
 	},

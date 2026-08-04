@@ -2,11 +2,22 @@
 /**
  * Hero — the first-viewport wall cluster.
  *
- * The thread's 12/2019 origin pin, the Ayako polaroid, the handwritten
- * Lottie greeting, the typed intro card, the hand-annotated telemetry
- * print-out, and the pinned contact note — stitched by the crimson
- * thread in chronological order. On narrow viewports the cluster stacks
- * into one curated column and the thread keeps running.
+ * The thread's 12/2019 origin pin, the typed record card, the handwritten
+ * Lottie greeting, the hand-annotated telemetry print-out, the Ayako
+ * polaroid, and the pinned contact button — stitched by the crimson
+ * thread. On narrow viewports the cluster stacks into one curated column
+ * and the thread keeps running.
+ *
+ * COMPOSITION (owner decision, 2026-08-04): the wall leads with the
+ * MEASURED CLAIM, not with the artwork. Band 1 is the stamp plus the
+ * typed record across the shell, whose first typed line is the bot, its
+ * users, its servers and the year it went to production; band 2 is the
+ * signature, the evidence print-out, the polaroid as a pinned exhibit at
+ * the right, and the contact button. Reading order: claim → evidence →
+ * exhibit → action. The whole cluster closes above the fold at
+ * 1440 × 900 (board 690px tall), so every one of those four lands in the
+ * first viewport. The polaroid stays a first-viewport artifact at a
+ * legible 15rem — this is a change of RANK, never a demotion.
  *
  * Telemetry lines render live WakaTime figures when WAKA_KEY is set at
  * build time; otherwise the checked-in snapshot copy from wall.ts stands
@@ -52,32 +63,39 @@ const sourceLine = ht.sourceLine(
 	stats.source === "live" ? ht.modeLive : ht.modeSnapshot
 );
 
-/* The thread, desktop: origin pin → polaroid → greeting → intro card →
-   telemetry print-out → contact note → exits at the board's bottom edge
-   at x ≈ 67 % (802/1200), where the next section picks it up.
+/* The thread, desktop: 12/2019 origin pin → the typed record card (the
+   claim, top band) → the signature → the contact button under it → the
+   evidence print-out → the Ayako polaroid at the right edge → exits at
+   the board's bottom edge at x ≈ 67 % (802/1200), where the next section
+   picks it up. The polaroid is the last station on purpose: the join
+   below runs down-LEFT, so the hero's last run has to arrive from the
+   right or the seam kinks on bare cork.
    TAUT: straight runs pin to pin; direction changes only as a small
    wrap around each pin (tautPath). Coordinates live in the viewBox
    space and stretch with the board (preserveAspectRatio="none") —
-   straight segments survive that stretch exactly. */
+   straight segments survive that stretch exactly. Every vertex is a
+   measured pin centre at 1440 × 900 (board 1248 × 690), exact at every
+   width where the 78rem shell is full: re-measure and retune whenever an
+   artifact moves. */
 const THREAD_DESKTOP = {
 	width: 1200,
 	height: 880,
 	path: tautPath([
-		[141, 78],
-		[155, 147],
-		[551, 281],
-		[997, 171],
-		[451, 654],
-		[944, 701],
+		[134, 70],
+		[799, 4],
+		[208, 338],
+		[208, 724],
+		[647, 379],
+		[1041, 338],
 		[802, 880]
 	]),
 	nodes: [
-		{ x: 141, y: 78 },
-		{ x: 155, y: 147 },
-		{ x: 551, y: 281 },
-		{ x: 997, y: 171 },
-		{ x: 451, y: 654 },
-		{ x: 944, y: 701 }
+		{ x: 134, y: 70 },
+		{ x: 799, y: 4 },
+		{ x: 208, y: 338 },
+		{ x: 208, y: 724 },
+		{ x: 647, y: 379 },
+		{ x: 1041, y: 338 }
 	]
 };
 
@@ -85,18 +103,20 @@ const THREAD_DESKTOP = {
    center, from behind the 12/2019 stamp to the bottom edge — straight
    runs between the cards' pin stations, tiny wraps at each. The column's
    cards span the full width, so the thread runs BEHIND the paper
-   (z-index, see styles) and surfaces in the cork gaps between artifacts. */
+   (z-index, see styles) and surfaces in the cork gaps between artifacts.
+   Stations, in the column's own order: signature → record → evidence →
+   polaroid → action (measured at 390 × 844). */
 const THREAD_MOBILE = {
 	width: 400,
 	height: 1600,
 	path: tautPath(
 		[
-			[200, 55],
-			[200, 120],
-			[196, 289],
-			[205, 757],
-			[189, 1193],
-			[201, 1502],
+			[200, 58],
+			[200, 163],
+			[205, 326],
+			[197, 717],
+			[200, 1028],
+			[201, 1495],
 			[200, 1600]
 		],
 		6
@@ -143,14 +163,15 @@ const THREAD_MOBILE = {
 			     line two (the newline is joined here so the data keeps two
 			     clean strings; see .hero__polaroid-slot styles) -->
 			<div class="hero__polaroid-slot">
-				<Polaroid caption={`${hero.polaroid.label}\n${hero.polaroid.caption}`} rotate={-1}>
+				<Polaroid caption={`${hero.polaroid.label}\n${hero.polaroid.caption}`} rotate={0}>
 					<img
 						src={hero.polaroid.image}
 						alt={hero.polaroid.alt}
-						width="800"
-						height="800"
+						width="640"
+						height="640"
 						loading="eager"
-						decoding="async"
+						fetchpriority="high"
+						decoding="sync"
 					/>
 				</Polaroid>
 				<div class="hero__polaroid-note">
@@ -158,11 +179,16 @@ const THREAD_MOBILE = {
 				</div>
 			</div>
 
-			<!-- typed intro card: who / what / where -->
+			<!-- typed record card: what / who / where. It leads the cluster,
+			     so the MEASURED claim (intro[1]: the bot, its users, its
+			     servers, the year it went to production) is typed on the
+			     card's first rules and the employment record follows on the
+			     next ones. Both strings stay verbatim from the data layer —
+			     only which one the card opens with changed. -->
 			<div class="hero__intro-slot">
 				<PinCard variant="typed" rotate={1}>
-					<p class="hero__intro-lead">{hero.intro[0]}</p>
-					<p>{hero.intro[1]}</p>
+					<p class="hero__intro-lead">{hero.intro[1]}</p>
+					<p>{hero.intro[0]}</p>
 					<p>{hero.location}</p>
 					<p class="hero__intro-langs">{hero.languages}</p>
 				</PinCard>
@@ -233,20 +259,28 @@ const THREAD_MOBILE = {
 	}
 
 	/* ---- the cluster on the hidden 12-col grid ----------------- */
+	/* TWO BANDS, and the record leads (owner decision, 2026-08-04).
+	   Band 1: the 12/2019 stamp, then the typed record card across the
+	   rest of the shell — the measured claim is the first printed thing
+	   in the viewport. Band 2: the signature, the evidence print-out,
+	   and the Ayako polaroid as the pinned exhibit at the right edge,
+	   with the contact button under the signature. The cluster is tuned
+	   to close ABOVE the 900px fold at 1440 wide: claim → evidence →
+	   exhibit → action all land in the first viewport. */
 
 	.hero__grid {
 		position: relative;
 		align-items: start;
-		row-gap: calc(var(--baseline) * 4);
+		row-gap: calc(var(--baseline) * 3);
 	}
 
 	/* origin: stamp, pin, margin note */
 	.hero__origin {
-		grid-column: 1 / 9;
+		grid-column: 1 / 5;
 		grid-row: 1;
 		display: flex;
 		align-items: flex-start;
-		gap: calc(var(--baseline) * 3);
+		gap: calc(var(--baseline) * 2);
 		--stamp-size: 5.75rem;
 	}
 
@@ -255,9 +289,11 @@ const THREAD_MOBILE = {
 		margin-top: calc(var(--baseline) * 6);
 	}
 
+	/* dropped a step below the pin so the thread's first run to the
+	   record card passes ABOVE the slip instead of under it */
 	.hero__origin-note {
-		max-width: 18rem;
-		margin-top: calc(var(--baseline) * 5);
+		max-width: 16rem;
+		margin-top: calc(var(--baseline) * 7);
 		rotate: -1.5deg;
 		/* paper slip: these notes sit in the thread's path */
 		background: var(--paper);
@@ -265,11 +301,11 @@ const THREAD_MOBILE = {
 		padding: calc(var(--baseline) * 0.75) calc(var(--baseline) * 1.5);
 	}
 
-	/* greeting card */
+	/* greeting card: band 2, left — the signature under the record */
 	.hero__greeting {
-		grid-column: 4 / 9;
+		grid-column: 1 / 5;
 		grid-row: 2;
-		align-self: center;
+		align-self: start;
 		position: relative;
 		padding: calc(var(--baseline) * 5) calc(var(--baseline) * 4) calc(var(--baseline) * 4);
 	}
@@ -281,10 +317,33 @@ const THREAD_MOBILE = {
 		translate: -50% 0;
 	}
 
-	/* polaroid */
+	/* The dateline under the greeting is not a second hand. The card's
+	   hand IS the signature (drawn ink, or the hand-set resolved state),
+	   so the line beneath it drops to the cluster's annotation size —
+	   at 1rem it read as its own voice next to a different handwriting,
+	   which is what made the first viewport look like five families.
+	   Face and material are unchanged: the sheet stays all hand. */
+	.hero__greeting :global(.hero-greeting__subline) {
+		font-size: 0.875rem;
+	}
+
+	/* polaroid: the product exhibit, pinned at the wall's right in band 2.
+	   It is deliberately the smallest sheet in the cluster now — the
+	   artwork is Ayako's avatar, an exhibit for the record above it, not
+	   the hero image. 15rem is a floor as much as a size: the character
+	   must stay legible in the first viewport (216px of picture at 1440,
+	   never below ~200), so it shrinks no further. */
 	.hero__polaroid-slot {
-		grid-column: 1 / 4;
+		grid-column: 10 / 13;
 		grid-row: 2;
+		/* centred in its columns, not flush to the shell edge: the pin
+		   then sits at a fixed FRACTION of the board at every width, so
+		   the thread's last corner keeps landing on it while the shell
+		   narrows — and it still sits far enough right that the run
+		   leaves the board in the direction the section join continues */
+		justify-self: center;
+		width: 15rem;
+		max-width: 100%;
 	}
 
 	/* the caption is an exhibit label: the product's name and what it is
@@ -308,23 +367,27 @@ const THREAD_MOBILE = {
 		padding: calc(var(--baseline) * 0.75) calc(var(--baseline) * 1.5);
 	}
 
-	/* typed intro card */
+	/* typed record card: band 1, across the shell beside the stamp */
 	.hero__intro-slot {
-		grid-column: 9 / 13;
-		grid-row: 2;
-		margin-top: calc(var(--baseline) * 3);
+		grid-column: 5 / 13;
+		grid-row: 1;
+		margin-top: 0;
 	}
 
+	/* Typed on consecutive rules, the way a card actually gets typed:
+	   the record is ONE block under the claim, not four floating
+	   paragraphs. This is what buys the cluster the vertical room to
+	   close above the fold. */
 	.hero__intro-slot :global(.pin-card) p {
-		margin: 0 0 calc(var(--baseline) * 3);
+		margin: 0;
 		font-size: 0.9375rem;
 	}
 
-	.hero__intro-slot :global(.pin-card) p:last-child {
-		margin-bottom: 0;
-	}
-
-	.hero__intro-lead {
+	/* the claim: the card's first line, one step up the typed band and
+	   given the only blank rule on the sheet */
+	.hero__intro-slot :global(.pin-card) p.hero__intro-lead {
+		margin-bottom: calc(var(--baseline) * 3);
+		font-size: 1rem;
 		font-weight: 700;
 	}
 
@@ -332,16 +395,27 @@ const THREAD_MOBILE = {
 		color: var(--ink-soft);
 	}
 
-	/* telemetry print-out */
+	/* telemetry print-out: band 2, center — the evidence sits directly
+	   under the claim it proves and is the widest sheet in its band */
 	.hero__telemetry-slot {
-		grid-column: 3 / 8;
-		grid-row: 3;
+		grid-column: 5 / 10;
+		grid-row: 2;
+		/* hung a step lower than its neighbours: three sheets pinned dead
+		   level would be a table, and the stagger opens the cork the
+		   thread crosses between them */
+		margin-top: calc(var(--baseline) * 4);
 		position: relative;
 	}
 
+	/* The evidence sheet is the loudest print on the wall: this is the
+	   claim the reader is meant to land on, so the print face leads the
+	   size ladder (flyer 2.75rem › signature ~2.25rem › THIS › typed
+	   record 0.9375–1rem › hand 0.875rem). Four faces, four bands — the
+	   collision was three of them sitting at the same 15–18px. */
 	.hero__telemetry-title {
 		margin: 0 0 calc(var(--baseline) * 2);
-		font-size: 1.125rem;
+		font-size: 1.375rem;
+		font-weight: 700;
 		line-height: calc(var(--baseline) * 3);
 	}
 
@@ -351,9 +425,12 @@ const THREAD_MOBILE = {
 		list-style: none;
 	}
 
+	/* the figures sit a step above card copy — and stay on the 24px
+	   baseline, which 1.5 × 1.0625rem would not */
 	.hero__telemetry-lines li {
 		margin-bottom: var(--baseline);
-		font-size: 0.9375rem;
+		font-size: 1.0625rem;
+		line-height: calc(var(--baseline) * 3);
 	}
 
 	.hero__telemetry-lines li:last-child {
@@ -366,22 +443,31 @@ const THREAD_MOBILE = {
 		color: var(--ink-soft);
 	}
 
+	/* the annotation hangs off the print-out's bottom edge, held clear of
+	   both the polaroid's column and the thread's run down to the board's
+	   bottom edge — this slip has no paper under it, so no yarn may
+	   cross it */
 	.hero__telemetry-note {
 		position: absolute;
-		right: calc(var(--baseline) * -3);
+		right: calc(var(--baseline) * 5);
 		bottom: calc(var(--baseline) * -4);
 		max-width: 15rem;
 		rotate: 1.5deg;
 	}
 
-	/* primary action */
+	/* primary action: band 2, under the signature — the last stop.
+	   Centred in its column on purpose: the button's pin then sits at the
+	   column's centre whatever the label says, so the thread's last
+	   corner lands on it in every locale (the German label is ~19px
+	   wider than the English one). */
 	.hero__action {
-		grid-column: 9 / 12;
-		grid-row: 3;
-		margin-top: calc(var(--baseline) * 3);
+		grid-column: 1 / 5;
+		grid-row: 2;
+		align-self: end;
+		margin-top: 0;
 		display: flex;
 		flex-direction: column;
-		align-items: flex-start;
+		align-items: center;
 		gap: calc(var(--baseline) * 2);
 	}
 
@@ -396,12 +482,15 @@ const THREAD_MOBILE = {
 		padding: calc(var(--baseline) * 0.75) calc(var(--baseline) * 1.5);
 	}
 
-	/* handwritten margin notes: one size across the cluster */
+	/* Handwritten margin notes: ONE hand at ONE size across the cluster,
+	   matched to the polaroid's caption (0.875rem) so every hand-set line
+	   in the first viewport is the same pen. Marginalia sits below the
+	   printed record, never level with it. */
 	.hero__origin-note :global(.hand-note),
 	.hero__polaroid-note :global(.hand-note),
 	.hero__telemetry-note :global(.hand-note),
 	.hero__action-note :global(.hand-note) {
-		font-size: 0.9375rem;
+		font-size: 0.875rem;
 	}
 
 	/* ---- stacked column ---------------------------------------- */
@@ -429,8 +518,17 @@ const THREAD_MOBILE = {
 			gap: calc(var(--baseline) * 6);
 		}
 
+		/* The stacked column reads in the same order as the wall does:
+		   stamp → signature → the typed record (the claim) → the evidence
+		   print-out → the Ayako exhibit → the action (the `order` on each
+		   artifact below). Visual order only — the DOM order, and with it
+		   the reading order for assistive tech, is untouched, and nothing
+		   in the reordered artifacts is focusable, so tab order cannot
+		   desync from what is on screen. */
+
 		/* origin drops onto the thread's center line */
 		.hero__origin {
+			order: 1;
 			flex-direction: column;
 			align-items: center;
 			gap: var(--baseline);
@@ -447,23 +545,30 @@ const THREAD_MOBILE = {
 		}
 
 		.hero__intro-slot {
+			order: 3;
 			margin-top: 0;
 			align-self: center;
 			width: min(100%, 26rem);
 		}
 
 		.hero__greeting {
+			order: 2;
 			align-self: center;
 			width: min(100%, 34rem);
 			padding: calc(var(--baseline) * 4) calc(var(--baseline) * 3) calc(var(--baseline) * 3);
 		}
 
+		/* the exhibit keeps its full 20rem here: nothing competes with it
+		   in a one-column viewport, and it now comes after the evidence */
 		.hero__polaroid-slot {
+			order: 5;
 			align-self: center;
 			width: min(100%, 20rem);
 		}
 
 		.hero__telemetry-slot {
+			order: 4;
+			margin-top: 0;
 			align-self: center;
 			width: min(100%, 30rem);
 		}
@@ -474,8 +579,8 @@ const THREAD_MOBILE = {
 		}
 
 		.hero__action {
+			order: 6;
 			margin-top: 0;
-			align-items: center;
 			align-self: center;
 		}
 	}

@@ -11,6 +11,7 @@ import HandNote from "~/components/wall/HandNote.astro";
 import PinButton from "~/components/wall/PinButton.astro";
 import PinCard from "~/components/wall/PinCard.astro";
 import Stamp from "~/components/wall/Stamp.astro";
+import Sticker from "~/components/wall/Sticker.astro";
 import { getWall, type Locale } from "~/data/i18n";
 
 const locale = (Astro.currentLocale ?? "en") as Locale;
@@ -31,6 +32,12 @@ const year = new Date().getFullYear();
 <section id="contact" class="contact" aria-labelledby="contact-heading">
 	<div class="wall-max">
 		<div class="wall-grid contact-grid">
+			<!-- cork marginalia: the empty band right of the title flyer
+			     (see <style>); nothing is pinned there at any width -->
+			<div class="contact-sticker">
+				<Sticker name="wave" size={5} rotate={7} />
+			</div>
+
 			<div class="contact-head">
 				<PinCard variant="flyer" rotate={1} class="contact-title-card">
 					<h2 id="contact-heading">{contact.title}</h2>
@@ -102,6 +109,33 @@ const year = new Date().getFullYear();
 <style>
 	.contact {
 		padding-block: calc(var(--baseline) * 12) calc(var(--baseline) * 8);
+	}
+
+	.contact-grid {
+		position: relative; /* containing block for the cork sticker only */
+	}
+
+	/* ---- a sticker in the cork band beside the title ---- */
+	/* The title flyer takes five of twelve columns and sits hard left,
+	   so the rest of that row is bare cork — no pin, no figure, no
+	   thread (the run is cut above this section). Absolute in every
+	   state it is shown, so it never becomes a grid item.
+	   Below 64rem the row gap is fixed while the centered mailto block
+	   widens into this band, and by 48rem the flyer centers into it —
+	   measured clearance drops to ~20px, so the sticker goes away
+	   entirely rather than crowd the address. */
+
+	.contact-sticker {
+		display: none;
+		position: absolute;
+		top: 2.5rem;
+		right: 7rem;
+	}
+
+	@media (min-width: 64rem) {
+		.contact-sticker {
+			display: block;
+		}
 	}
 
 	/* ---- heading: a flyer pinned above the corner ---- */

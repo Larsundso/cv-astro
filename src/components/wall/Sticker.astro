@@ -1,0 +1,63 @@
+---
+/**
+ * Sticker — a small piece of Ayako artwork stuck to the cork.
+ *
+ * The wall's own artefacts are paper; these are the things a person
+ * actually sticks between them — a die-cut sticker of the character the
+ * owner has drawn, published and shipped for six years. They are
+ * decoration in the honest sense: they carry no claim, sit in the cork
+ * gaps rather than over any sheet, and never occupy a slot where
+ * evidence belongs.
+ *
+ * Material rules: no paper frame (a sticker has none), no pin (it is
+ * stuck, not pinned), a slightly stronger tilt than the sheets, and the
+ * same soft contact shadow so it belongs to the same light. Decorative
+ * by definition — always aria-hidden.
+ *
+ * Artwork: github.com/ayakobot/Website-CDN (the owner's own repository),
+ * trimmed to its ink and re-encoded at sticker scale.
+ */
+export type StickerName = "note" | "peek" | "wave" | "sip" | "love" | "pixel";
+
+interface Props {
+	name: StickerName;
+	/** rendered width in rem; keep small — these are marginalia */
+	size?: number;
+	/** free rotation in degrees; stickers are pressed on by hand */
+	rotate?: number;
+	class?: string;
+}
+
+const { name, size = 4, rotate = -6, class: className } = Astro.props;
+---
+
+<img
+	class:list={["sticker", className]}
+	style={`--sticker-size:${size}rem; --sticker-rot:${rotate}deg;`}
+	src={`/ayako/${name}.webp`}
+	alt=""
+	aria-hidden="true"
+	width="160"
+	height="160"
+	loading="lazy"
+	decoding="async"
+/>
+
+<style>
+	.sticker {
+		display: block;
+		width: var(--sticker-size);
+		height: auto;
+		rotate: var(--sticker-rot);
+		/* stuck to the cork: contact shadow, no paper, no pin */
+		filter: drop-shadow(0 2px 3px oklch(25% 0.015 60 / 0.28));
+		pointer-events: none;
+		user-select: none;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.sticker {
+			transition: rotate 150ms ease-out;
+		}
+	}
+</style>

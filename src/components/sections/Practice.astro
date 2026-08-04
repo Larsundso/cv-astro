@@ -11,6 +11,7 @@
  */
 import HandNote from "~/components/wall/HandNote.astro";
 import PinCard from "~/components/wall/PinCard.astro";
+import Sticker from "~/components/wall/Sticker.astro";
 import { getWall, type Locale } from "~/data/i18n";
 
 interface Props {
@@ -64,6 +65,11 @@ const rules = houseRules.rules.map((rule) => {
 					))
 				}
 			</PinCard>
+			<!-- cork marginalia: only shown where the two-column split
+			     leaves a genuinely empty right-hand gutter (see <style>) -->
+			<div class="practice__sticker">
+				<Sticker name="sip" size={4.5} rotate={-8} />
+			</div>
 		</div>
 
 		<div class="practice__flyer-slot">
@@ -104,6 +110,7 @@ const rules = houseRules.rules.map((rule) => {
 	   24px ruling. */
 
 	.practice__typed-slot {
+		position: relative; /* containing block for the cork sticker only */
 		grid-column: 1 / -1;
 		max-width: 42rem; /* keeps the Courier measure inside 75ch when stacked */
 		font-size: 0.875rem;
@@ -196,9 +203,31 @@ const rules = houseRules.rules.map((rule) => {
 		rotate: -1.4deg;
 	}
 
+	/* ---- a sticker in the cork gutter --------------------------- */
+	/* Stuck in the bare cork right of the typed record's lower half:
+	   past the flyer column's end, clear of the thread that runs down
+	   the grid's center gap, and far enough below the house-rules note
+	   that it annotates nothing. Only exists in the two-column state —
+	   stacked, that gutter is not cork, it is the next artifact. */
+
+	.practice__sticker {
+		display: none;
+	}
+
 	/* ---- two artifacts side by side once the wall is wide ------- */
 
 	@media (min-width: 64rem) {
+		.practice__sticker {
+			display: block;
+			position: absolute;
+			top: 62%;
+			left: calc(100% + 4.5rem);
+			/* the offset puts the box past its containing block's right
+			   edge, so shrink-to-fit would resolve to 0 and collapse the
+			   image through the global img{max-width:100%} */
+			width: max-content;
+		}
+
 		.practice__typed-slot {
 			grid-column: 1 / span 6;
 		}

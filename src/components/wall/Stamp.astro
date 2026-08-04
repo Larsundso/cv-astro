@@ -1,0 +1,65 @@
+---
+/**
+ * Stamp — a small circular rubber stamp for dates and as-of marks.
+ * Crimson stamp ink, darkened a step so small type holds 4.5:1 on cork.
+ * sub sits above label: <Stamp sub="as of" label="2026-08-03" />
+ */
+interface Props {
+	label: string;
+	sub?: string;
+	/** free rotation in degrees; stamps are hand-pressed */
+	rotate?: number;
+	class?: string;
+}
+
+const { label, sub, rotate = 0, class: className } = Astro.props;
+---
+
+<span class:list={["stamp", className]} style={`--stamp-rot:${rotate}deg;`}>
+	{sub && <span class="stamp__sub">{sub}</span>}
+	<span class="stamp__label">{label}</span>
+</span>
+
+<style>
+	.stamp {
+		--stamp-ink: color-mix(in oklab, var(--thread) 85%, var(--ink));
+		position: relative;
+		display: inline-flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 2px;
+		width: var(--stamp-size, 6.5rem);
+		aspect-ratio: 1;
+		padding: var(--baseline);
+		border: 2px solid var(--stamp-ink);
+		border-radius: 50%;
+		rotate: var(--stamp-rot, 0deg);
+		color: var(--stamp-ink);
+		font-family: var(--font-typed);
+		font-weight: 700;
+		text-transform: uppercase;
+		text-align: center;
+	}
+
+	.stamp::before {
+		content: "";
+		position: absolute;
+		inset: 3px;
+		border: 1px solid var(--stamp-ink);
+		border-radius: 50%;
+	}
+
+	.stamp__label {
+		font-size: 0.6875rem;
+		letter-spacing: 0.06em;
+		line-height: 1.2;
+		white-space: nowrap;
+	}
+
+	.stamp__sub {
+		font-size: 0.625rem;
+		letter-spacing: 0.14em;
+		line-height: 1;
+	}
+</style>

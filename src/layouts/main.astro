@@ -1,215 +1,271 @@
 ---
-// Add Astro imports
-import { ViewTransitions } from 'astro:transitions';
-import AnimatedBackground from '~/components/generic/AnimatedBackground.astro';
-const siteUrl = Astro.url.toString();
+import { getWall, type Locale } from "~/data/i18n";
+import "~/styles/wall.css";
+
+interface Props {
+	title?: string;
+	description?: string;
+	/** Page locale; falls back to Astro.currentLocale, then "en". */
+	locale?: Locale;
+}
+
+const locale: Locale = Astro.props.locale ?? ((Astro.currentLocale ?? "en") as Locale);
+const wall = getWall(locale);
+const ui = wall.ui;
+
+const { title = wall.meta.title, description = wall.meta.description } = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, "https://lars-dev.org").toString();
+const year = new Date().getFullYear();
+
+const ogLocale = locale === "de" ? "de_DE" : "en_US";
+const ogLocaleAlternate = locale === "de" ? "en_US" : "de_DE";
+const inLanguage = locale === "de" ? "de-DE" : "en-US";
+
+const personSchema = {
+	"@context": "https://schema.org",
+	"@type": "Person",
+	name: "Lars Boese",
+	alternateName: "Larsundso",
+	url: "https://lars-dev.org",
+	email: "mailto:jobs@lars-dev.org",
+	jobTitle: "Full-Stack Developer",
+	description:
+		"Builds and operates Ayako, a Discord bot with 2.4M+ users on 8,357 servers (as of 2026-08-03), solo and in production since 2019. Full-stack developer at Raleo Digital GmbH, fully remote.",
+	worksFor: {
+		"@type": "Organization",
+		name: "Raleo Digital GmbH",
+		url: "https://raleo.de"
+	},
+	alumniOf: {
+		"@type": "Organization",
+		name: "Columbus Interactive GmbH",
+		description:
+			"Apprenticeship: Fachinformatiker für Anwendungsentwicklung (IHK, German dual system), 2022 to the Sommer 2025 exam cycle."
+	},
+	homeLocation: {
+		"@type": "Place",
+		address: {
+			"@type": "PostalAddress",
+			addressRegion: "Bodensee-Oberschwaben, Baden-Württemberg",
+			addressCountry: "DE"
+		}
+	},
+	knowsLanguage: ["de", "en"],
+	knowsAbout: [
+		"TypeScript",
+		"Node.js",
+		"Bun",
+		"Svelte",
+		"Astro",
+		"PostgreSQL",
+		"Redis",
+		"Docker",
+		"Discord API",
+		"Prometheus"
+	],
+	sameAs: [
+		"https://github.com/Larsundso",
+		"https://www.linkedin.com/in/lars-Böse-217272351",
+		"https://www.xing.com/profile/Lars_Boese"
+	]
+};
+
+const websiteSchema = {
+	"@context": "https://schema.org",
+	"@type": "WebSite",
+	name: "lars-dev.org",
+	url: "https://lars-dev.org",
+	description:
+		"Portfolio and CV of Lars Boese. Every figure carries its unit and an as-of date.",
+	author: { "@type": "Person", name: "Lars Boese" },
+	inLanguage
+};
 ---
 
-<html lang="en">
- <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-  <meta name="generator" content={Astro.generator} />
-  <ViewTransitions />
+<html lang={locale}>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="color-scheme" content="light" />
+		<meta name="theme-color" content="#e1d2bb" />
 
-  <!-- Primary Meta Tags -->
-  <title>Lars B. | Expert Full-Stack Developer & JavaScript Specialist</title>
-  <meta name="title" content="Lars B. | Expert Full-Stack Developer & JavaScript Specialist" />
-  <meta
-   name="description"
-   content="Chamber of Industry and Commerce certified IT specialist with expertise in JavaScript, TypeScript, Svelte, and Astro. Passionate about building scalable, high-performance web applications and delivering exceptional user experiences."
-  />
-  <meta
-   name="keywords"
-   content="full-stack developer, frontend developer, JavaScript expert, TypeScript developer, Svelte specialist, Astro framework, web application development, software engineering, UI/UX, Node.js, Express.js, React, Vue.js, portfolio, Lars B., freelance developer, certified IT specialist"
-  />
-  <meta name="author" content="Lars B." />
-  <meta name="robots" content="index, follow" />
-  
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content={siteUrl} />
-  <meta property="og:title" content="Lars B. | Expert Full-Stack Developer & JavaScript Specialist" />
-  <meta property="og:description" content="Chamber of Industry and Commerce certified IT specialist with expertise in JavaScript, TypeScript, Svelte, and Astro. View my portfolio, technical skills, and project history." />
-  <meta property="og:image" content={new URL('/favicon.png', siteUrl).toString()} />
-  <meta property="og:site_name" content="Lars B. Developer Portfolio" />
-  
-  <!-- Twitter/X -->
-  <meta property="twitter:card" content="summary_large_image" />
-  <meta property="twitter:url" content={siteUrl} />
-  <meta property="twitter:title" content="Lars B. | Expert Full-Stack Developer & JavaScript Specialist" />
-  <meta property="twitter:description" content="Chamber of Industry and Commerce certified IT specialist with expertise in JavaScript, TypeScript, Svelte, and Astro. View my portfolio, technical skills, and project history." />
-  <meta property="twitter:image" content={new URL('/favicon.png', siteUrl).toString()} />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-  <!-- Favicon and App Icons -->
-  <link rel="apple-touch-icon" type="image/png" href="/favicon.png" sizes="128x128" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="mask-icon" href="/favicon.png" color="#6e3c21" />
-  <meta name="msapplication-TileColor" content="#6e3c21" />
-  <meta name="theme-color" content="#f7f1ee" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#0e0a12" media="(prefers-color-scheme: dark)" />
-  
-  <!-- Canonical URL -->
-  <link rel="canonical" href={siteUrl} />
-  
-  <!-- Additional SEO meta tags -->
-  <meta name="format-detection" content="telephone=no" />
-  <meta name="language" content="English" />
-  <meta name="revisit-after" content="7 days" />
-  
-  <!-- Structured Data (JSON-LD) for Person -->
-  <script is:inline type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Person",
-      "name": "Lars B.",
-      "url": "https://lars-dev.org",
-      "jobTitle": "Full-Stack Developer",
-      "description": "Chamber of Industry and Commerce certified IT specialist for application development and open-source full-stack developer.",
-      "worksFor": {
-        "@type": "Organization",
-        "name": "Freelance"
-      },
-      "alumniOf": {
-        "@type": "EducationalOrganization",
-        "name": "Chamber of Industry and Commerce",
-        "sameAs": "https://www.ihk.de/schwaben/produktmarken/aus-und-weiterbildung/ausbildung/ausbildungsberufe-a-z/fachinformatiker-anwendungsentwicklung-5058194"
-      },
-      "sameAs": [
-        "https://github.com/Larsundso",
-        "https://www.linkedin.com/in/lars-Böse-217272351",
-        "https://www.xing.com/profile/Lars_Boese"
-      ],
-      "knowsAbout": [
-        "JavaScript",
-        "TypeScript",
-        "Svelte",
-        "Astro",
-        "Full-Stack Development",
-        "Web Development",
-        "Node.js",
-        "Express.js",
-        "UI/UX Design",
-        "Software Architecture"
-      ],
-      "skills": [
-        "Frontend Development",
-        "Backend Development",
-        "Database Design",
-        "API Development",
-        "Performance Optimization",
-        "Responsive Design"
-      ]
-    }
-  </script>
-  
-  <!-- Structured Data (JSON-LD) for WebSite -->
-  <script is:inline type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "Lars B. Developer Portfolio",
-      "url": "https://lars-dev.org",
-      "description": "Professional portfolio of Lars B., a certified full-stack developer and JavaScript specialist.",
-      "author": {
-        "@type": "Person",
-        "name": "Lars B."
-      },
-      "keywords": "full-stack developer, JavaScript, TypeScript, Svelte, Astro, web development"
-    }
-  </script>
- </head>
- <body
-  class="dark min-w-100lvw min-h-100lvh bg-background relative flex flex-row justify-evenly items-start flex-wrap overflow-x-hidden"
- >
-  <AnimatedBackground />
-  
-  <div class="w-full h-1 bg-gradient-to-r from-transparent via-accent to-transparent"></div>
-  
-  <main class="relative w-full flex flex-row justify-evenly items-start flex-wrap z-10 backdrop-blur-sm">
-    <slot />
-  </main>
-  
-  <!-- Scroll to top button -->
-  <button
-    id="scrollToTopBtn"
-    aria-label="Scroll to top"
-    class="fixed bottom-5 right-5 bg-accent/80 hover:bg-accent text-background w-12 h-12 rounded-full flex items-center justify-center shadow-lg transform scale-0 transition-all duration-300 z-30"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-    </svg>
-  </button>
-  
-  <footer class="w-full text-center p-4 text-text/70 text-sm mt-8">
-    <div class="w-full h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent mb-4"></div>
-    <p>© {new Date().getFullYear()} Lars B. | Crafted with ❤️ using Astro & Svelte</p>
-  </footer>
+		<title>{title}</title>
+		<meta name="title" content={title} />
+		<meta name="description" content={description} />
+		<meta name="author" content="Lars Boese" />
+		<meta name="robots" content="index, follow" />
+		<link rel="canonical" href={canonical} />
 
-  <style is:global>
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    section {
-      animation: fadeIn 0.6s ease-out forwards;
-    }
-    
-    section:nth-child(2) {
-      animation-delay: 0.1s;
-    }
-    
-    section:nth-child(3) {
-      animation-delay: 0.2s;
-    }
-    
-    a:not(.no-hover-effect) {
-      position: relative;
-      transition: all 0.3s ease;
-    }
-    
-    a:not(.no-hover-effect)::after {
-      content: '';
-      position: absolute;
-      width: 0;
-      height: 2px;
-      bottom: -2px;
-      left: 0;
-      background-color: var(--color-accent, #e69065);
-      transition: width 0.3s ease;
-    }
-    
-    a:not(.no-hover-effect):hover::after {
-      width: 100%;
-    }
-  </style>
-  
-  <script>
-    // Scroll to top button functionality
-    document.addEventListener('DOMContentLoaded', function() {
-      const scrollToTopBtn = document.getElementById('scrollToTopBtn');
-      
-      if (scrollToTopBtn) {
-        // Show/hide button based on scroll position
-        window.addEventListener('scroll', function() {
-          if (window.scrollY > 300) {
-            scrollToTopBtn.classList.replace('scale-0', 'scale-100');
-          } else {
-            scrollToTopBtn.classList.replace('scale-100', 'scale-0');
-          }
-        });
-        
-        // Smooth scroll to top when clicked
-        scrollToTopBtn.addEventListener('click', function() {
-          window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-          });
-        });
-      }
-    });
-  </script>
- </body>
+		<!-- language alternates: one page pair, fixed URLs -->
+		<link rel="alternate" hreflang="en" href="https://lars-dev.org/" />
+		<link rel="alternate" hreflang="de" href="https://lars-dev.org/de/" />
+		<link rel="alternate" hreflang="x-default" href="https://lars-dev.org/" />
+
+		<!-- Open Graph -->
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonical} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:site_name" content="lars-dev.org" />
+		<meta property="og:locale" content={ogLocale} />
+		<meta property="og:locale:alternate" content={ogLocaleAlternate} />
+
+		<!-- Twitter/X -->
+		<meta property="twitter:card" content="summary" />
+		<meta property="twitter:url" content={canonical} />
+		<meta property="twitter:title" content={title} />
+		<meta property="twitter:description" content={description} />
+
+		<script is:inline type="application/ld+json" set:html={JSON.stringify(personSchema)} />
+		<script is:inline type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
+	</head>
+	<body>
+		<!--
+THESIS: A career pinned to a wall by its owner's hand — one red thread (der rote Faden) from December 2019 to yesterday's commit; refuses the dark-neon developer-dashboard default and the neutral CV alike.
+OWN-WORLD: warm cork field under paper artifacts: typed index cards (Courier Prime), flyer headlines (League Gothic), body copy (Atkinson Hyperlegible), handwritten annotations (Shantell Sans) in six rationed pride inks; brass pins, restrained shadows, one crimson thread stitching everything chronologically.
+STORY: a German-market recruiter recognizes a human who has shipped continuously since 2019 — every claim a pinned artifact with unit and as-of date — and writes to jobs@lars-dev.org.
+FIRST VIEWPORT: hero wall cluster: handwritten pride-ink Lottie greeting center; red thread entering from a 2019 pin; Ayako polaroid (2.4M users, 8,357 servers); hand-annotated telemetry print-out; contact note as the pinned primary action.
+FORM: pinboard wall — grounded candidate 3 of 7, human-steered round; seed key 6d79e1c5.
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+-->
+		<a class="skip-link" href="#main">{ui.skipLink}</a>
+
+		<header>
+			<slot name="header" />
+		</header>
+
+		<main id="main">
+			<slot />
+		</main>
+
+		<button class="to-top" id="to-top" aria-label={ui.backToTop} data-visible="false">
+			<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+				<path
+					d="M4 12.5 L10 6.5 L16 12.5"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"></path>
+			</svg>
+		</button>
+
+		<footer class="wall-footer">
+			<slot name="footer">
+				{
+					ui.footerLine ? (
+						<p>{ui.footerLine}</p>
+					) : (
+						<p>
+							Lars Boese · <a href="mailto:jobs@lars-dev.org">jobs@lars-dev.org</a> · {year}
+						</p>
+					)
+				}
+			</slot>
+		</footer>
+
+		<style>
+			/* scroll-to-top: a brass pin pressed into the cork */
+			.to-top {
+				position: fixed;
+				right: calc(var(--baseline) * 3);
+				bottom: calc(var(--baseline) * 3);
+				z-index: 50;
+				width: 44px;
+				height: 44px;
+				border: none;
+				border-radius: 50%;
+				cursor: pointer;
+				display: grid;
+				place-items: center;
+				color: var(--ink);
+				background: radial-gradient(
+					circle at 35% 30%,
+					color-mix(in oklab, var(--brass) 40%, white),
+					var(--brass) 58%,
+					color-mix(in oklab, var(--brass) 55%, black)
+				);
+				box-shadow:
+					0 2px 8px oklch(25% 0.015 60 / 0.25),
+					inset 0 0 0 1px oklch(25% 0.015 60 / 0.2);
+				visibility: hidden;
+				opacity: 0;
+				transition: visibility 0s 150ms;
+			}
+
+			.to-top[data-visible="true"] {
+				visibility: visible;
+				opacity: 1;
+				transition: none;
+			}
+
+			@media (prefers-reduced-motion: no-preference) {
+				.to-top {
+					transition:
+						opacity 150ms ease-out,
+						translate 150ms ease-out,
+						box-shadow 150ms ease-out,
+						visibility 0s 150ms;
+				}
+
+				.to-top[data-visible="true"] {
+					transition:
+						opacity 150ms ease-out,
+						translate 150ms ease-out,
+						box-shadow 150ms ease-out;
+				}
+
+				/* the pin settles when hovered, presses in when clicked */
+				.to-top:hover {
+					translate: 0 1px;
+					box-shadow:
+						0 1px 4px oklch(25% 0.015 60 / 0.25),
+						inset 0 0 0 1px oklch(25% 0.015 60 / 0.2);
+				}
+
+				.to-top:active {
+					translate: 0 2px;
+				}
+			}
+
+			.wall-footer {
+				padding: calc(var(--baseline) * 4) calc(var(--baseline) * 3) calc(var(--baseline) * 6);
+				text-align: center;
+				font-family: var(--font-typed);
+				font-size: 0.875rem;
+				color: var(--ink-soft);
+			}
+
+			.wall-footer p {
+				margin: 0;
+			}
+
+			.wall-footer a {
+				color: inherit;
+				text-underline-offset: 3px;
+			}
+
+			.wall-footer a:hover {
+				color: var(--ink);
+			}
+		</style>
+
+		<script>
+			const toTop = document.getElementById("to-top");
+			if (toTop) {
+				const onScroll = () => {
+					toTop.dataset.visible = String(window.scrollY > 480);
+				};
+				window.addEventListener("scroll", onScroll, { passive: true });
+				onScroll();
+				/* smoothness comes from CSS scroll-behavior, which
+				   prefers-reduced-motion already resolves to auto */
+				toTop.addEventListener("click", () => window.scrollTo({ top: 0 }));
+			}
+		</script>
+	</body>
 </html>

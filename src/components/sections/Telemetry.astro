@@ -1,0 +1,385 @@
+---
+/**
+ * Telemetry — hand-annotated chart print-outs pinned to the cork.
+ *
+ * SSR ECharts SVGs from getCharts (paper ground, pride-ink series,
+ * snapshot-safe) pinned as PinCard print-outs, each with a unit + as-of
+ * line, a handwritten margin note quoting the headline figure, and a
+ * <details> data table for assistive tech. The habit field renders
+ * 1,700+ day cells as four pattern-filled SVG rects, stamped with its
+ * as-of date. A typed provenance card states where the figures come from.
+ */
+import getCharts from "~/components/scripts/getCharts";
+import HandNote from "~/components/wall/HandNote.astro";
+import PinCard from "~/components/wall/PinCard.astro";
+import Stamp from "~/components/wall/Stamp.astro";
+import { getWall, type Locale } from "~/data/i18n";
+
+interface Props {
+	class?: string;
+}
+
+const { class: className } = Astro.props;
+
+const locale = (Astro.currentLocale ?? "en") as Locale;
+const { chartStrings, sectionStrings, ui } = getWall(locale);
+const tf = chartStrings.telemetrySection;
+
+const { charts, habit, provenance, trackingStart } = await getCharts(locale);
+---
+
+<section class:list={["telemetry", "wall-max", className]} id="telemetry" aria-labelledby="telemetry-title">
+	<div class="wall-grid telemetry__grid">
+		<PinCard as="div" variant="flyer" rotate={-1} class="telemetry__headline">
+			<h2 class="telemetry__h" id="telemetry-title">{ui.nav.telemetry}</h2>
+			<div class="telemetry__rule" aria-hidden="true"></div>
+			<p class="telemetry__since">{tf.trackedSince(trackingStart)}</p>
+		</PinCard>
+
+		<PinCard as="div" variant="typed" rotate={1} class="telemetry__prov">
+			<h3 class="telemetry__prov-title">{tf.sourceHeading}</h3>
+			{provenance.map((line) => <p class="telemetry__prov-line">{line}</p>)}
+		</PinCard>
+
+		{
+			charts.map((chart, i) => (
+				<div
+					class:list={[
+						"telemetry__slot",
+						i % 2 === 0 ? "telemetry__slot--left" : "telemetry__slot--right"
+					]}
+				>
+					<PinCard as="figure" variant="print" rotate={i % 2 === 0 ? 1 : -1} class="telemetry__card">
+						<h3 class="telemetry__title">{chart.title}</h3>
+						<p class="telemetry__unit">{chart.unit}</p>
+						<div
+						class:list={[
+							"telemetry__chart",
+							chart.id.startsWith("recent-") && "telemetry__chart--wide"
+						]}
+						role="img"
+						aria-label={chart.alt}
+						tabindex={chart.id.startsWith("recent-") ? 0 : undefined}
+						set:html={chart.svg}
+					/>
+						<HandNote as="p" ink={chart.annotation.ink} class="telemetry__note">
+							{chart.annotation.text}
+						</HandNote>
+						{
+							/* a starred figure explains itself on the card face,
+							   not only inside the folded table */
+							chart.table.note && (
+								<p class="telemetry__facenote">{chart.table.note}</p>
+							)
+						}
+						<details class="telemetry__details">
+							<summary>{tf.dataAsTable}</summary>
+							<div class="telemetry__scroll">
+								<table>
+									<caption class="sr-only">
+										{chart.title} — {chart.unit}
+									</caption>
+									<thead>
+										<tr>
+											{chart.table.head.map((head) => (
+												<th scope="col">{head}</th>
+											))}
+										</tr>
+									</thead>
+									<tbody>
+										{chart.table.rows.map((row) => (
+											<tr>
+												{row.map((cell, j) =>
+													j === 0 ? <th scope="row">{cell}</th> : <td>{cell}</td>
+												)}
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</div>
+							{chart.table.note && <p class="telemetry__tablenote">{chart.table.note}</p>}
+						</details>
+					</PinCard>
+				</div>
+			))
+		}
+
+		<div class="telemetry__slot telemetry__slot--habit">
+			<PinCard as="figure" variant="print" rotate={1} class="telemetry__card telemetry__habit">
+				<h3 class="telemetry__title">{habit.title}</h3>
+				<p class="telemetry__unit">{habit.unit}</p>
+				<div class="telemetry__field" role="img" aria-label={habit.alt} set:html={habit.svg} />
+				<p class="telemetry__figure">{habit.line}</p>
+				<p class="telemetry__smallprint">{habit.smallPrint}</p>
+				<HandNote as="p" ink={habit.annotation.ink} class="telemetry__note telemetry__note--flow">
+					{habit.annotation.text}
+				</HandNote>
+				<Stamp sub={sectionStrings.asOfStamp} label={habit.asOf} rotate={7} class="telemetry__stamp" />
+			</PinCard>
+		</div>
+	</div>
+</section>
+
+<style>
+	.telemetry {
+		padding-block: calc(var(--baseline) * 8);
+		scroll-margin-top: calc(var(--baseline) * 4);
+	}
+
+	.telemetry__grid {
+		align-items: start;
+	}
+
+	/* every artifact spans the full wall until it is wide enough to collage */
+	.telemetry :global(.telemetry__headline),
+	.telemetry :global(.telemetry__prov),
+	.telemetry__slot {
+		grid-column: 1 / -1;
+	}
+
+	.telemetry__slot {
+		position: relative;
+	}
+
+	/* ---- the flyer headline ------------------------------------ */
+
+	.telemetry :global(.telemetry__headline) {
+		max-width: 26rem;
+	}
+
+	.telemetry__h {
+		margin: 0;
+		font-size: clamp(3rem, 2.4rem + 2.6vw, 4.25rem);
+	}
+
+	.telemetry__rule {
+		width: 44%;
+		max-width: 9rem;
+		height: 4px;
+		margin-block-start: var(--baseline);
+		background: var(--thread);
+		rotate: -0.6deg;
+	}
+
+	.telemetry__since {
+		margin: calc(var(--baseline) * 2) 0 0;
+		font-size: clamp(1.125rem, 1rem + 0.6vw, 1.375rem);
+		color: var(--ink-soft);
+	}
+
+	/* ---- the typed provenance card ------------------------------ */
+
+	.telemetry :global(.telemetry__prov) {
+		max-width: 34rem;
+		font-size: 0.875rem;
+	}
+
+	/* one line tall, lifted into the header band onto the red rule */
+	.telemetry__prov-title {
+		margin: calc(var(--baseline) * -4) 0 var(--baseline);
+		font-size: 1rem;
+		font-weight: 700;
+	}
+
+	.telemetry__prov-line {
+		margin: 0;
+	}
+
+	/* ---- print-out cards ---------------------------------------- */
+
+	.telemetry :global(.telemetry__card) {
+		display: block;
+		width: 100%;
+		margin: 0;
+	}
+
+	.telemetry__title {
+		margin: 0;
+		font-size: 1.125rem;
+		line-height: calc(var(--baseline) * 3);
+	}
+
+	.telemetry__unit {
+		margin: calc(var(--baseline) / 2) 0 0;
+		font-size: 0.8125rem;
+		color: var(--ink-soft);
+	}
+
+	.telemetry__chart,
+	.telemetry__field {
+		margin-block-start: calc(var(--baseline) * 2);
+	}
+
+	.telemetry__chart :global(svg),
+	.telemetry__field :global(svg) {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+
+	/* the dense seven-day sheets pan on narrow screens instead of
+	   shrinking their type; tabindex keeps the pan keyboard-reachable */
+	.telemetry__chart--wide {
+		overflow-x: auto;
+	}
+
+	.telemetry__chart--wide :global(svg) {
+		min-width: 34rem;
+	}
+
+	/* ---- handwritten margin notes -------------------------------- */
+
+	.telemetry :global(.telemetry__note) {
+		margin: var(--baseline) 0 0;
+		font-size: 1.0625rem;
+		line-height: 1.3;
+		text-align: right;
+		rotate: -2deg;
+	}
+
+	/* ---- the data tables ----------------------------------------- */
+
+	.telemetry__details {
+		margin-block-start: calc(var(--baseline) * 2);
+		border-block-start: 1px solid color-mix(in oklab, var(--ink) 15%, transparent);
+		padding-block-start: var(--baseline);
+	}
+
+	.telemetry__details summary {
+		cursor: pointer;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: var(--ink-soft);
+	}
+
+	.telemetry__details summary:hover {
+		color: var(--ink);
+	}
+
+	.telemetry__details[open] summary {
+		margin-block-end: var(--baseline);
+	}
+
+	.telemetry__scroll {
+		overflow-x: auto;
+	}
+
+	.telemetry__details table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.8125rem;
+	}
+
+	.telemetry__details :is(th, td) {
+		padding: calc(var(--baseline) * 0.75) var(--baseline);
+		border-block-end: 1px solid color-mix(in oklab, var(--ink) 12%, transparent);
+		text-align: left;
+		vertical-align: top;
+	}
+
+	.telemetry__details th[scope="col"] {
+		font-size: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--ink-soft);
+	}
+
+	.telemetry__details :is(th, td):not(:first-child) {
+		text-align: right;
+		white-space: nowrap;
+	}
+
+	.telemetry__tablenote {
+		margin: var(--baseline) 0 0;
+		font-size: 0.75rem;
+		color: var(--ink-soft);
+	}
+
+	.telemetry__facenote {
+		margin: var(--baseline) 0 0;
+		font-size: 0.8125rem;
+		color: var(--ink-soft);
+	}
+
+	/* ---- the habit field ------------------------------------------ */
+
+	.telemetry__figure {
+		margin: calc(var(--baseline) * 2) 0 0;
+		font-size: 1rem;
+		font-weight: 700;
+	}
+
+	.telemetry__smallprint {
+		margin: calc(var(--baseline) / 2) 0 0;
+		font-size: 0.8125rem;
+		color: var(--ink-soft);
+	}
+
+	.telemetry :global(.telemetry__stamp) {
+		position: absolute;
+		top: calc(var(--baseline) * -2);
+		right: calc(var(--baseline) * -1.5);
+		--stamp-size: 6rem;
+	}
+
+	/* keep the printed header clear of the stamp */
+	.telemetry :global(.telemetry__habit) .telemetry__title,
+	.telemetry :global(.telemetry__habit) .telemetry__unit {
+		padding-inline-end: 5.5rem;
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	/* ---- the collage once the wall is wide ------------------------ */
+
+	@media (min-width: 64rem) {
+		.telemetry :global(.telemetry__headline) {
+			grid-column: 1 / span 5;
+			max-width: none;
+			align-self: center;
+		}
+
+		.telemetry :global(.telemetry__prov) {
+			grid-column: 7 / span 6;
+			max-width: none;
+			margin-block-start: calc(var(--baseline) * 3);
+		}
+
+		.telemetry__slot--left {
+			grid-column: 1 / span 6;
+		}
+
+		.telemetry__slot--right {
+			grid-column: 7 / span 6;
+			margin-block-start: calc(var(--baseline) * 5);
+		}
+
+		.telemetry__slot--habit {
+			grid-column: 3 / span 8;
+		}
+
+		/* margin notes ride the top-right corner of the sheet */
+		.telemetry :global(.telemetry__note:not(.telemetry__note--flow)) {
+			position: absolute;
+			top: calc(var(--baseline) * 1.5);
+			right: calc(var(--baseline) * 3);
+			max-width: 15rem;
+			margin: 0;
+		}
+
+		.telemetry__slot:not(.telemetry__slot--habit) .telemetry__title,
+		.telemetry__slot:not(.telemetry__slot--habit) .telemetry__unit {
+			padding-inline-end: 34%;
+		}
+	}
+</style>

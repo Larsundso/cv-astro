@@ -1,171 +1,106 @@
-let res: BaseInsights | null = null;
+/**
+ * Last-12-months coding statistics (WakaTime insights, range last_year).
+ *
+ * Tries the live API when WAKA_KEY is set; falls back to the checked-in
+ * snapshot without throwing. The snapshot records only one publishable
+ * last-12-months figure (AI-Coding share, 32.46 %, as of 2026-08-03) —
+ * when `source` is "snapshot", render dated lifetime figures from
+ * src/data/snapshot.ts instead of pretending to a full year window.
+ */
+import { telemetry } from "~/data/snapshot";
+import {
+	formatHM,
+	isoDay,
+	toSlice,
+	wakaFetch,
+	type StatSlice,
+	type TelemetrySource,
+	type WakaShare
+} from "~/data/telemetry";
 
-export default async () => {
- if (res) return res;
+export type { StatSlice, TelemetrySource };
 
- res = await fetch(
-  `https://wakatime.com/api/v1/users/current/insights/stats/last_year`,
-  {
-   headers: { Authorization: `Basic ${btoa(`${import.meta.env.WAKA_KEY}:`)}` },
-  }
- ).then((r) => (r.ok ? (r.json() as Promise<BaseInsights>) : null));
- if (!res) throw new Error("Failed to fetch WakaTime stats");
+export interface YearStats {
+	source: TelemetrySource;
+	/** Date the figures were measured (live pull date or snapshot date). */
+	asOf: string;
+	/** Null when the snapshot cannot state a verified window. */
+	range: { start: string; end: string } | null;
+	total: { seconds: number; text: string } | null;
+	dailyAverage: { seconds: number; text: string } | null;
+	languages: StatSlice[];
+	projects: StatSlice[];
+	editors: StatSlice[];
+	categories: StatSlice[];
+}
 
- return res;
+/** Trimmed WakaTime `insights/stats/last_year` response. */
+interface WakaYear {
+	data: {
+		start: string;
+		end: string;
+		total_seconds_including_other_language?: number;
+		total_seconds: number;
+		daily_average_including_other_language?: number;
+		daily_average: number;
+		languages: WakaShare[];
+		projects: WakaShare[];
+		editors: WakaShare[];
+		categories: WakaShare[];
+	};
+}
+
+const fromLive = (live: WakaYear): YearStats => {
+	const d = live.data;
+	const total = d.total_seconds_including_other_language ?? d.total_seconds;
+	const daily = d.daily_average_including_other_language ?? d.daily_average;
+	return {
+		source: "live",
+		asOf: isoDay(d.end, telemetry.asOf),
+		range: { start: isoDay(d.start, ""), end: isoDay(d.end, telemetry.asOf) },
+		total: { seconds: total, text: formatHM(total) },
+		dailyAverage: { seconds: daily, text: formatHM(daily) },
+		languages: d.languages.map(toSlice),
+		projects: d.projects.map(toSlice),
+		editors: d.editors.map(toSlice),
+		categories: d.categories.map(toSlice)
+	};
 };
 
-export interface Language {
- name: string;
- total_seconds: number;
- percent: number;
- digital: string;
- decimal: string;
- text: string;
- hours: number;
- minutes: number;
-}
+const fromSnapshot = (): YearStats => ({
+	source: "snapshot",
+	asOf: telemetry.asOf,
+	range: null,
+	total: null,
+	dailyAverage: null,
+	languages: [],
+	projects: [],
+	editors: [],
+	categories: [
+		{
+			name: "AI Coding",
+			seconds: null,
+			percent: telemetry.windowLast12Months.aiCodingSharePercent,
+			text: null
+		}
+	]
+});
 
-export interface Project {
- total_seconds: number;
- name: string;
- percent: number;
- digital: string;
- decimal: string;
- text: string;
- hours: number;
- minutes: number;
-}
+let cached: YearStats | null = null;
 
-export interface OperatingSystem {
- total_seconds: number;
- name: string;
- percent: number;
- digital: string;
- decimal: string;
- text: string;
- hours: number;
- minutes: number;
-}
+export default async (): Promise<YearStats> => {
+	if (cached) return cached;
 
-export interface BestDay {
- date: string; // YYYY-MM-DD
- total_seconds: number;
- text: string;
-}
+	const live = await wakaFetch<WakaYear>("/users/current/insights/stats/last_year");
+	if (live?.data) {
+		try {
+			cached = fromLive(live);
+			return cached;
+		} catch {
+			// Malformed live payload — fall through to the snapshot.
+		}
+	}
 
-export interface CurrentUser {
- total: {
-  seconds: number;
-  text: string;
- };
- daily_average: {
-  seconds: number;
-  text: string;
- };
-}
-
-export interface AllUsers {
- total: {
-  average: number;
-  text: string;
-  max: number;
-  median: number;
- };
- daily_average: {
-  average: number;
-  text: string;
-  max: number;
-  median: number;
- };
-}
-
-export interface Machine {
- total_seconds: 1684195.320762;
- name: string;
- machine_name_id: "5fb56f64-8aa0-4fa5-b800-5eb2cce2078c";
- percent: 39.09;
- digital: "467:49";
- decimal: "467.82";
- text: "467 hrs 49 mins";
- hours: 467;
- minutes: 49;
-}
-
-export interface Category {
- name: "Coding" | "Building" | "Debugging";
- total_seconds: number;
- percent: number;
- digital: string;
- decimal: string;
- text: string;
- hours: number;
- minutes: number;
-}
-
-export interface Dependency {
- total_seconds: number;
- name: string;
- percent: number;
- digital: string;
- decimal: string;
- text: string;
- hours: number;
- minutes: number;
-}
-
-export interface Editor {
- total_seconds: number;
- name: string;
- percent: number;
- digital: string;
- decimal: string;
- text: string;
- hours: number;
- minutes: number;
-}
-
-export interface BaseInsights {
- data: {
-  languages: Array<Language>;
-  projects: Array<Project>;
-  operating_systems: Array<OperatingSystem>;
-  best_day: BestDay;
-  all_users: AllUsers;
-  machines: Array<Machine>;
-  categories: Array<Category>;
-  dependencies: Array<Dependency>;
-  editors: Array<Editor>;
-
-  daily_average: number;
-  total_seconds_including_other_language: number;
-  total_seconds: number;
-  holidays: number;
-  id: string;
-  status: "ok";
-  is_up_to_date: boolean;
-  is_up_to_date_pending_future: boolean;
-  is_stuck: boolean;
-  is_already_updating: boolean;
-  range: "last_year";
-  percent_calculated: number;
-  timeout: number;
-  timezone: "Europe/Berlin";
-  writes_only: boolean;
-  start: string; // Date String
-  end: string; // Date String
-  user_id: string;
-  is_including_today: boolean;
-  human_readable_range: "last year";
-  created_at: string; // Date String
-  modified_at: string; // Date String
-  days_including_holidays: number;
-  human_readable_total: string;
-  human_readable_daily_average: string;
-  days_minus_holidays: number;
-  human_readable_total_including_other_language: string;
-  daily_average_including_other_language: number;
-  human_readable_daily_average_including_other_language: string;
-  is_cached: boolean;
-  username: string;
- };
-}
+	cached = fromSnapshot();
+	return cached;
+};

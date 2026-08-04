@@ -12,10 +12,20 @@ export default defineConfig({
   lottie(),
   svelte(),
   UnoCSS({ injectReset: true }),
-  sitemap(),
-  icon({ include: { "tabler": ["*"] } }),
+  sitemap({
+   i18n: {
+    defaultLocale: "en",
+    locales: { en: "en", de: "de" },
+   },
+  }),
+  icon(),
  ],
+ i18n: {
+  defaultLocale: "en",
+  locales: ["en", "de"],
+  routing: { prefixDefaultLocale: false },
+ },
  server: { host: true },
- site: "https://astro.build",
+ site: "https://lars-dev.org",
  image: { service: passthroughImageService() },
 });

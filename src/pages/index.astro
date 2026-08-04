@@ -1,12 +1,10 @@
 ---
-import Layout from "../layouts/main.astro";
-import Hero from "../components/hero/Hero.astro";
-import ContentSections from "../components/content/ContentSections.astro";
-import Contact from "../components/contact/Contact.astro";
+/**
+ * / — the wall in English, the default locale (prefixDefaultLocale:
+ * false). The whole page lives in WallPage.astro; this route only
+ * mounts it. Copy resolves inside via getWall(Astro.currentLocale).
+ */
+import WallPage from "~/components/WallPage.astro";
 ---
 
-<Layout>
- <Hero />
- <ContentSections />
- <Contact />
-</Layout>
+<WallPage />

@@ -1,0 +1,79 @@
+---
+/**
+ * PinButton — an interactive pinned note. Renders <a> with href,
+ * <button> without. Typed face; the pin settles when hovered,
+ * the note presses into the cork when active.
+ */
+interface Props {
+	href?: string;
+	type?: "button" | "submit";
+	/** rotation step: -1 | 0 | 1 → ±1.2deg */
+	rotate?: -1 | 0 | 1;
+	class?: string;
+	"aria-label"?: string;
+}
+
+const {
+	href,
+	type = "button",
+	rotate = 0,
+	class: className,
+	"aria-label": ariaLabel
+} = Astro.props;
+const Tag = href ? "a" : "button";
+const attrs = href ? { href } : { type };
+---
+
+<Tag
+	{...attrs}
+	aria-label={ariaLabel}
+	class:list={["pin-btn", "pinned", className]}
+	style={`--tilt:${rotate};`}
+>
+	<span class="brass-pin pin-btn__pin" aria-hidden="true" />
+	<slot />
+</Tag>
+
+<style>
+	.pin-btn {
+		position: relative;
+		display: inline-block;
+		padding: calc(var(--baseline) * 2) calc(var(--baseline) * 3);
+		background: var(--paper);
+		box-shadow: var(--pin-shadow);
+		border: none;
+		cursor: pointer;
+		font-family: var(--font-typed);
+		font-weight: 700;
+		font-size: 1rem;
+		line-height: calc(var(--baseline) * 3);
+		color: var(--ink);
+		text-align: center;
+		text-decoration: none;
+	}
+
+	.pin-btn__pin {
+		position: absolute;
+		top: calc(var(--baseline) * -0.75);
+		left: 50%;
+		translate: -50% 0;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.pin-btn {
+			transition:
+				box-shadow 150ms ease-out,
+				translate 150ms ease-out;
+		}
+
+		.pin-btn:hover {
+			box-shadow: 0 1px 4px oklch(25% 0.015 60 / 0.18);
+			translate: 0 1px;
+		}
+
+		.pin-btn:active {
+			box-shadow: 0 1px 2px oklch(25% 0.015 60 / 0.2);
+			translate: 0 2px;
+		}
+	}
+</style>

@@ -1,0 +1,156 @@
+---
+/**
+ * Greeting — the handwritten centerpiece of the hero cluster.
+ *
+ * Motion-capable visitors watch the Lottie ink draw "Hi, ich bin Lars".
+ * Everyone else — prefers-reduced-motion, no JS, failed load — gets the
+ * designed resolved state: the same greeting hand-set letter by letter
+ * in the six pride inks. The swap is driven purely by CSS (:has on the
+ * injected Lottie svg), so the static greeting can never vanish without
+ * the animation actually being there.
+ *
+ * Material law: everything on this sheet is hand material (Shantell Sans
+ * / the Lottie's handwriting). No other face enters the card.
+ */
+import LottieAnimation from "astro-integration-lottie/Lottie.astro";
+import Hi from "~/assets/Hi.json?url";
+
+interface Props {
+	/** The greeting text; also the accessible <h1> content. */
+	greeting: string;
+	/** Small handwritten line below the greeting. */
+	subline: string;
+}
+
+const { greeting, subline } = Astro.props;
+
+/** Pride inks in flag order — cycled across the letters. */
+const INKS = ["magenta", "amber", "green", "teal", "blue", "violet"] as const;
+let inkIndex = 0;
+const words = greeting.split(" ").map((word) =>
+	[...word].map((ch) => ({ ch, ink: INKS[inkIndex++ % INKS.length] }))
+);
+---
+
+<div class="hero-greeting">
+	<h1 class="hero-greeting__title">
+		<span class="sr-only">{greeting}</span>
+		<span class="hero-greeting__letters" aria-hidden="true">
+			{
+				words.map((word, wi) => (
+					<>
+						{wi > 0 && " "}
+						<span class="hero-greeting__word">
+							{word.map((l) => (
+								<span style={`color:var(--ink-${l.ink})`}>{l.ch}</span>
+							))}
+						</span>
+					</>
+				))
+			}
+		</span>
+	</h1>
+	<div class="hero-greeting__anim" aria-hidden="true">
+		<LottieAnimation src={Hi} autoplay={true} loop={false} />
+	</div>
+	<p class="hero-greeting__subline">{subline}</p>
+</div>
+
+<script is:inline>
+	/* Hand over to the ink only once it has actually drawn.
+	   The player injects its <svg> before the first frame paints, and this
+	   asset draws on from nothing — so swapping on mere presence leaves a
+	   blank centerpiece whenever playback stalls (slow chunk, no rAF,
+	   screenshot bots). Marking the wrapper only after real geometry has
+	   been painted keeps the hand-set letters as the safe resting state. */
+	(() => {
+		const root = document.currentScript?.previousElementSibling?.closest?.(".hero-greeting");
+		const host = root ?? document.querySelector(".hero-greeting");
+		if (!host) return;
+		const frame = host.querySelector(".hero-greeting__anim");
+		if (!frame) return;
+
+		const painted = () => {
+			if (!frame.querySelector("svg")) return false;
+			/* Ask the player, not the layout: the frame is display:none
+			   until we hand over, so geometry cannot be measured — but
+			   lottie keeps rendering, and a frame past 0 means real ink. */
+			const list = window.lottie?.getRegisteredAnimations?.() ?? [];
+			const mine =
+				list.find((a) => a?.wrapper && frame.contains(a.wrapper)) ?? list[0];
+			return !!mine && mine.currentFrame > 0;
+		};
+
+		const deadline = performance.now() + 5000;
+		const tick = () => {
+			if (painted()) {
+				host.dataset.anim = "drawn";
+				return;
+			}
+			if (performance.now() < deadline) requestAnimationFrame(tick);
+		};
+		requestAnimationFrame(tick);
+	})();
+</script>
+
+<style>
+	.hero-greeting {
+		text-align: center;
+	}
+
+	.hero-greeting__title {
+		margin: 0;
+	}
+
+	.hero-greeting__letters {
+		display: block;
+		font-family: var(--font-hand);
+		font-weight: 700;
+		font-size: clamp(2rem, 4.5vw, 3rem);
+		line-height: 1.2;
+		letter-spacing: 0.01em;
+	}
+
+	.hero-greeting__word {
+		display: inline-block;
+	}
+
+	/* Lottie frame — hidden until the player has actually injected its svg */
+	.hero-greeting__anim {
+		display: none;
+		width: 100%;
+		aspect-ratio: 557 / 97;
+	}
+
+	.hero-greeting__subline {
+		margin: calc(var(--baseline) * 2) 0 0;
+		font-family: var(--font-hand);
+		font-weight: 400;
+		font-size: 1rem;
+		color: var(--ink-soft);
+	}
+</style>
+
+<style is:global>
+	/* Swap static letters for the drawing ink only when motion is welcome
+	   AND the Lottie svg is really in the DOM. Reduced motion, no JS, or a
+	   failed load all keep the resolved hand-set state. */
+	@media (prefers-reduced-motion: no-preference) {
+		.hero-greeting[data-anim="drawn"] .hero-greeting__anim {
+			display: block;
+		}
+
+		.hero-greeting[data-anim="drawn"] .hero-greeting__letters {
+			display: none;
+		}
+	}
+
+	.hero-greeting__anim svg {
+		display: block;
+		width: 100%;
+		height: 100%;
+		/* The asset's strokes are pastel; press the same hues deeper into
+		   the paper so the greeting holds up against --paper. */
+		filter: brightness(0.62) saturate(1.9);
+	}
+</style>

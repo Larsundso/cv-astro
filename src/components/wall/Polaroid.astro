@@ -1,0 +1,63 @@
+---
+/**
+ * Polaroid — a photo frame pinned to the cork, captioned by hand.
+ * Slot: the photo (img or svg); it fills the frame.
+ */
+interface Props {
+	caption: string;
+	/** rotation step: -1 | 0 | 1 → ±1.2deg */
+	rotate?: -1 | 0 | 1;
+	pin?: boolean;
+	class?: string;
+}
+
+const { caption, rotate = 0, pin = true, class: className } = Astro.props;
+---
+
+<figure class:list={["polaroid", "pinned", className]} style={`--tilt:${rotate};`}>
+	{pin && <span class="brass-pin polaroid__pin" aria-hidden="true" />}
+	<div class="polaroid__frame">
+		<slot />
+	</div>
+	<figcaption class="polaroid__caption">{caption}</figcaption>
+</figure>
+
+<style>
+	.polaroid {
+		position: relative;
+		margin: 0;
+		background: var(--paper);
+		box-shadow: var(--pin-shadow);
+		padding: calc(var(--baseline) * 1.5) calc(var(--baseline) * 1.5) calc(var(--baseline) * 2);
+	}
+
+	.polaroid__pin {
+		position: absolute;
+		top: calc(var(--baseline) * -0.75);
+		left: 50%;
+		translate: -50% 0;
+	}
+
+	.polaroid__frame {
+		background: var(--paper-aged);
+		aspect-ratio: 8 / 9;
+		overflow: hidden;
+	}
+
+	.polaroid__frame > :global(:is(img, svg)) {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.polaroid__caption {
+		font-family: var(--font-hand);
+		font-weight: 500;
+		font-size: 0.875rem;
+		line-height: 1.35;
+		text-align: center;
+		color: var(--ink);
+		margin-top: calc(var(--baseline) * 1.5);
+	}
+</style>

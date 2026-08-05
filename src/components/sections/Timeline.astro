@@ -3,10 +3,11 @@
  * Timeline — Der Rote Faden itself.
  * Career and education as ONE chronological wall path: the crimson thread
  * runs from pin to pin, stitching artifacts from 2010 to HEUTE.
- * Career entries come from wall.ts `timeline`; education entries join the
- * same thread as smaller cards. The two 2022-09 education records
- * (apprenticeship, vocational school) are already covered verbatim by the
- * apprenticeship and final-project career cards, so they are not repeated.
+ * Career entries come from wall.ts `timeline`. The two 2022-09 education
+ * records (apprenticeship, vocational school) are already covered verbatim
+ * by the apprenticeship and final-project career cards, so they are not
+ * repeated; the three general-education records that remain are ONE card
+ * on ONE pin (see `schools` below) rather than three.
  *
  * WEIGHT, not metronome. Nine cards on an even left/right beat at one size
  * emphasise nothing, and by chronology the primacy slot falls to a 2010
@@ -57,11 +58,19 @@ import Sticker from "~/components/wall/Sticker.astro";
 import Thread from "~/components/wall/Thread.astro";
 import { getWall, type Locale } from "~/data/i18n";
 import { ihk } from "~/data/snapshot";
+import { splitLangRuns } from "~/data/wall";
 import type { EducationEntry, EmploymentEntry, TimelineEntry } from "~/data/wall";
 
 const locale = (Astro.currentLocale ?? "en") as Locale;
-const { education, employment, projects, timeline, sectionStrings, ui } = getWall(locale);
+const { education, employment, projects, timeline, sectionStrings, ui, germanRuns } =
+	getWall(locale);
 const ts = sectionStrings.timeline;
+
+/* German runs inside English prose get `lang="de"`: the IHK final project's
+   own title, the credential named on the Columbus card, and the exam cycle
+   "Sommer 2025". The strings in the data layer stay plain text — the marking
+   happens here, against the list in wall.ts. Empty list on /de/. */
+const runs = (text: string) => splitLangRuns(text, germanRuns);
 
 /* ---- merge career + education into one chronological path --------- */
 
@@ -113,9 +122,31 @@ const EMPLOYER_OF: Record<string, string> = {
 	"raleo-2025": "raleo"
 };
 
+/* ── ONE SCHOOLING CARD ──────────────────────────────────────────────
+   The general-education records — BZ St. Konrad 2010-04–2018-07, the
+   technical high school 2018-08–2018-10, the one-year vocational school
+   2019-08–2020-02 — stood as three separately pinned index cards. Measured
+   before this merge: y 1,360–2,008 at 1440 (the whole of desktop screen 2
+   and the top of screen 3) and y 2,560–3,232 at 390 (a full phone
+   viewport), with the first EMPLOYMENT card not reached until 20.0 % of
+   the page. Ten years of schooling took the two screenfuls that carry most
+   of a recruiter's reading, and every one of the three cards was shaped
+   exactly like the employment cards below it.
+   The chronology is untouched — forward order IS the concept, and this
+   card still sorts on the EARLIEST start, so it opens the thread. What
+   changes is that ten years now cost one pin instead of three. Every
+   institution and every date survives verbatim, as one typed record line
+   each: this is a re-allocation, not a deletion.
+   Built from whatever education entries survive the merge filter, not from
+   a hand-written id list, so adding a school adds a line rather than a
+   card. */
+const schools = [...education]
+	.filter((entry) => !MERGED_EDUCATION_IDS.has(entry.id))
+	.sort((a, b) => a.start.localeCompare(b.start));
+
 type Row =
 	| { kind: "career"; sort: string; entry: TimelineEntry; flagship: boolean; peak: boolean }
-	| { kind: "education"; sort: string; entry: EducationEntry };
+	| { kind: "school"; sort: string; entries: EducationEntry[] };
 
 const rows: Row[] = [
 	...timeline.map((entry) => ({
@@ -125,13 +156,9 @@ const rows: Row[] = [
 		flagship: entry.id === FLAGSHIP_ID,
 		peak: entry.id === PEAK_ID
 	})),
-	...education
-		.filter((entry) => !MERGED_EDUCATION_IDS.has(entry.id))
-		.map((entry) => ({
-			kind: "education" as const,
-			sort: entry.start,
-			entry
-		}))
+	...(schools.length > 0
+		? [{ kind: "school" as const, sort: schools[0]!.start, entries: schools }]
+		: [])
 ].sort((a, b) => a.sort.localeCompare(b.sort));
 
 /* ---- the material law, made computable ----------------------------- */
@@ -207,10 +234,17 @@ const layout = rows.map((row, i) => {
 /* ---- dates ---------------------------------------------------------- */
 
 const year = (isoish: string) => isoish.slice(0, 4);
-const eduStampLabel = (e: EducationEntry) =>
-	e.end && year(e.end) !== year(e.start) ? `${year(e.start)}–${year(e.end)}` : year(e.start);
 const span = (start: string, end: string | null) => (end ? `${start} – ${end}` : ts.since(start));
 const eduDates = (e: EducationEntry) => span(e.start, e.end);
+/* the schooling card's stamp: the whole span it covers, first start to last
+   end — the three separate year stamps became one range */
+const schoolStamp = (list: EducationEntry[]) => {
+	const first = list[0]!;
+	const last = list[list.length - 1]!;
+	const from = year(first.start);
+	const to = year(last.end ?? last.start);
+	return from === to ? from : `${from}–${to}`;
+};
 
 /* ---- flagship extras: perf + scope from the data layer ------------- */
 
@@ -322,7 +356,7 @@ const links = layout.map(({ side }, i) => {
 						},
 						i
 					) => {
-						const edu = row.kind === "education";
+						const edu = row.kind === "school";
 						const flagship = row.kind === "career" && row.flagship;
 						const annotation = row.kind === "career" ? row.entry.annotation : undefined;
 						const link = links[i];
@@ -347,7 +381,7 @@ const links = layout.map(({ side }, i) => {
 							(!employer?.company || !row.entry.title.includes(employer.company));
 						return (
 							<li
-								id={row.entry.id}
+								id={row.kind === "career" ? row.entry.id : "schooling"}
 								class:list={[
 									"rf-row",
 									`rf-row--${side}`,
@@ -383,7 +417,7 @@ const links = layout.map(({ side }, i) => {
 								    to be the spine's x. Dead markup that states a wrong constant is
 								    how the constant comes back. */}
 								<span class="brass-pin rf-pin" aria-hidden="true" />
-								{row.entry.id === STICKER_ROW_ID && (
+								{row.kind === "career" && row.entry.id === STICKER_ROW_ID && (
 									<span class="rf-sticker" aria-hidden="true">
 										<Sticker name="pixel" size={4.25} rotate={-7} />
 									</span>
@@ -411,7 +445,7 @@ const links = layout.map(({ side }, i) => {
 										<span class="rf-stampwrap">
 											<Stamp
 												label={
-													row.kind === "career" ? row.entry.dateLabel : eduStampLabel(row.entry)
+													row.kind === "career" ? row.entry.dateLabel : schoolStamp(row.entries)
 												}
 												sub={flagship ? "IHK" : undefined}
 												rotate={stampRotate}
@@ -429,13 +463,27 @@ const links = layout.map(({ side }, i) => {
 																	{employer.role} · {span(employer.start, employer.end)}
 																</p>
 															)}
-															{!titleIsCompany && <p class="rf-emp-line">{row.entry.title}</p>}
+															{!titleIsCompany && (
+																<p class="rf-emp-line">
+																	{runs(row.entry.title).map((part) =>
+																		part.de ? <span lang="de">{part.text}</span> : part.text
+																	)}
+																</p>
+															)}
 														</>
 													) : (
-														<h3>{row.entry.title}</h3>
+														<h3>
+															{runs(row.entry.title).map((part) =>
+																part.de ? <span lang="de">{part.text}</span> : part.text
+															)}
+														</h3>
 													)}
 													{(material === "print" ? narrative : record).map((paragraph) => (
-														<p>{paragraph}</p>
+														<p>
+															{runs(paragraph).map((part) =>
+																part.de ? <span lang="de">{part.text}</span> : part.text
+															)}
+														</p>
 													))}
 													{flagship && (
 														<>
@@ -456,10 +504,22 @@ const links = layout.map(({ side }, i) => {
 													)}
 												</>
 											) : (
+												/* ONE CARD, THREE INSTITUTIONS, EVERY DATE KEPT. A school
+												   issues a typed record and nothing else, so each of them
+												   is one record line — its span first, the way every
+												   dateline on this wall opens — and the lines sit on
+												   consecutive rules of the same card rather than on three
+												   separate sheets. The stamp carries the whole range. */
 												<>
-													<h3>{row.entry.institution}</h3>
-													<p class="rf-dates">{eduDates(row.entry)}</p>
-													{row.entry.detail && <p>{row.entry.detail}</p>}
+													<h3>{ts.schooling}</h3>
+													{row.entries.map((school) => (
+														<>
+															<p class="rf-school">
+																{ts.schoolLine(eduDates(school), school.institution)}
+															</p>
+															{school.detail && <p class="rf-school">{school.detail}</p>}
+														</>
+													))}
 												</>
 											)}
 										</PinCard>
@@ -476,7 +536,11 @@ const links = layout.map(({ side }, i) => {
 											class="rf-slip"
 										>
 											{record.map((paragraph) => (
-												<p>{paragraph}</p>
+												<p>
+													{runs(paragraph).map((part) =>
+														part.de ? <span lang="de">{part.text}</span> : part.text
+													)}
+												</p>
 											))}
 										</PinCard>
 									)}
@@ -537,7 +601,7 @@ const links = layout.map(({ side }, i) => {
 		background: var(--thread);
 	}
 
-	/* desktop variants activate at 48rem (see media block below) */
+	/* desktop variants activate at 48.0625rem (see media block below) */
 	.rf-stitch--span,
 	.rf-stitch--vert {
 		display: none;
@@ -911,12 +975,21 @@ const links = layout.map(({ side }, i) => {
 	   stays on the same twelve tracks the cards are cut to. Its padding and
 	   ruling are PinCard's — a slip is the same stock as a card. */
 
-	/* education dateline: subordinate size, card leading — a step down in
-	   size may never be a step off the ruling */
-	.rf-cardwrap .rf-dates {
-		margin-top: 0;
+	/* ---- the schooling card ------------------------------------------ */
+	/* Three institutions on three consecutive rules of ONE typed card. They
+	   take the card's own ruling and no paragraph gap between them, because
+	   they are rows of a record, not paragraphs of an essay — a 24px gap
+	   between them would say they are three documents again, which is the
+	   thing this card exists to stop saying. The first one keeps the h3's
+	   gap; only the ones after it close up. Subordinate size, card leading:
+	   a step down in size may never be a step off the ruling. */
+	.rf-cardwrap .rf-school {
 		font-size: var(--step--1);
 		line-height: var(--lh-0);
+	}
+
+	.rf-cardwrap .rf-school + .rf-school {
+		margin-top: 0;
 	}
 
 	.rf-link {
@@ -949,7 +1022,7 @@ const links = layout.map(({ side }, i) => {
 	}
 
 	/* ---- sticker ----------------------------------------------------- */
-	/* Below 48rem every card runs the full width beside the thread and the
+	/* Below 48.0625rem every card runs the full width beside the thread and the
 	   only bare strip left is the 40px the thread itself occupies — there
 	   is no cork to spare, so the sticker is desktop-only. */
 
@@ -967,7 +1040,12 @@ const links = layout.map(({ side }, i) => {
 	   The four widths are four whole column counts — 5 / 6 / 7 / 8 — so the
 	   emphasis ladder is measured in columns, not in taste. */
 
-	@media (min-width: 48rem) {
+	/* 48.0625rem, not 48rem: `wall.css` and `Projects.astro` gate their
+	   narrow branches on `max-width: 48rem`, which is TRUE at exactly 768
+	   alongside `min-width: 48rem` — so at 768 this section took its wide
+	   twelve-column shape while Projects stayed single-column. See the
+	   `--spine-x` block in WallPage.astro for the measured heights. */
+	@media (min-width: 48.0625rem) {
 		.rf-stitch--m {
 			display: none;
 		}

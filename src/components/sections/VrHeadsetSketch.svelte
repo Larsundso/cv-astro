@@ -2,13 +2,37 @@
 	VrHeadsetSketch — the one three.js touch of the whole site, quarantined.
 	three loads only on intersection (client:visible), DPR capped at 2. The SSR
 	poster sketch stands in until the first frame and stays if WebGL is missing.
-	prefers-reduced-motion: no idle spin — a still frame; drag/arrows re-render.
+
+	IT DOES NOT MOVE BY ITSELF, AND THAT IS THE POINT. Until 2026-08-05 this
+	canvas ran `renderer.setAnimationLoop` at 0.0035 rad/frame — ~12°/s,
+	forever, whenever it was on screen — which made it the ONLY object on a
+	wall of pinned paper that moved without being touched. A sketch that spins
+	on its own is not a sketch pinned to cork; it is a widget embedded in one.
+	It now draws ONCE, when three finishes loading and the canvas has a real
+	size, and re-draws only on drag or resize. That deletes the idle loop, the
+	IntersectionObserver that gated it, and the `prefers-reduced-motion`
+	special case that existed solely to switch it off — a still frame is the
+	default for everyone, so there is no reduced state to special-case.
+
+	IT IS ALSO HONESTLY DECORATIVE. `role="img"` announces "graphic" and
+	offers no operation, so a label promising "press the arrow keys" described
+	an affordance assistive tech cannot expose; and WCAG 2.5.7 asks for a
+	SINGLE-POINTER alternative to a drag, which arrow keys are not. The canvas
+	is therefore no longer focusable and its label states only what it is.
+	Dragging survives as pure enhancement for whoever finds it.
+
+	`touch-action: pan-y`, not `none`: at 390 the canvas is 323 × 245 px —
+	83 % of the viewport's width, at 60 % of the page's depth — and
+	`touch-action: none` withdrew panning from it entirely, so a thumb that
+	landed there found the page frozen. `pan-y` gives the vertical axis back
+	to the scroller and keeps the horizontal one, which is the axis the spin
+	actually weights (clientX 0.008 against clientY 0.005).
 -->
 <script lang="ts">
 	import { onMount } from "svelte";
 
 	/** Localized canvas label; the English default stands alone. */
-	let { ariaLabel = "Wireframe sketch of a VR headset. Drag it, or press the arrow keys, to spin it." }: {
+	let { ariaLabel = "Wireframe sketch of a VR headset." }: {
 		ariaLabel?: string;
 	} = $props();
 
@@ -20,7 +44,6 @@
 		let cleanup = () => {};
 		(async () => {
 			const T = await import("three");
-			const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
 			try {
 				const renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true });
 				renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -53,28 +76,28 @@
 					rig.rotation.x = Math.min(0.9, Math.max(-0.9, rig.rotation.x + dx));
 					draw();
 				};
-				const tick = () => { rig.rotation.y += 0.0035; draw(); };
+				/* ONE DRAW, and only at a size worth drawing at. `ready` fades
+				   the canvas up over the SSR poster, so setting it after a draw
+				   made at a degenerate 1×1 host would leave an EMPTY canvas at
+				   full opacity with the poster already gone. It is therefore
+				   gated on the draw having happened at a real size — the
+				   ResizeObserver fires again the moment the host has one. */
 				const size = () => {
-					const w = host.clientWidth || 1, h = host.clientHeight || 1;
-					renderer.setSize(w, h, false);
-					camera.aspect = w / h;
+					const w = host.clientWidth, h = host.clientHeight;
+					renderer.setSize(w || 1, h || 1, false);
+					camera.aspect = (w || 1) / (h || 1);
 					camera.updateProjectionMatrix();
 					draw();
+					if (w > 1 && h > 1) ready = true;
 				};
 				let px = 0, py = 0, down = false;
 				canvas.addEventListener("pointerdown", (e) => { down = true; px = e.clientX; py = e.clientY; canvas.setPointerCapture(e.pointerId); });
 				canvas.addEventListener("pointermove", (e) => { if (!down) return; spin((e.clientX - px) * 0.008, (e.clientY - py) * 0.005); px = e.clientX; py = e.clientY; });
 				for (const end of ["pointerup", "pointercancel"] as const) canvas.addEventListener(end, () => (down = false));
-				const keys: Record<string, [number, number]> = { ArrowLeft: [-0.15, 0], ArrowRight: [0.15, 0], ArrowUp: [0, -0.1], ArrowDown: [0, 0.1] };
-				canvas.addEventListener("keydown", (e) => { if (!keys[e.key]) return; e.preventDefault(); spin(...keys[e.key]); });
-				/* idle only while on screen, never under reduced motion */
-				const io = new IntersectionObserver(([e]) => renderer.setAnimationLoop(e.isIntersecting && !still ? tick : null));
-				io.observe(canvas);
 				const ro = new ResizeObserver(size);
 				ro.observe(host);
 				size();
-				ready = true;
-				cleanup = () => { io.disconnect(); ro.disconnect(); renderer.setAnimationLoop(null); renderer.dispose(); };
+				cleanup = () => { ro.disconnect(); renderer.dispose(); };
 			} catch {
 				/* no WebGL: the poster sketch stays */
 			}
@@ -92,14 +115,13 @@
 			<path d="M38 128C18 128 14 152 38 154M202 128C222 128 226 152 202 154M64 96C84 56 156 56 176 96" opacity="0.4" />
 		</svg>
 	{/if}
-	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-	<canvas bind:this={canvas} class:ready tabindex="0" role="img" aria-label={ariaLabel}></canvas>
+	<canvas bind:this={canvas} class:ready role="img" aria-label={ariaLabel}></canvas>
 </div>
 
 <style>
 	.scene { position: relative; width: 100%; height: 100%; overflow: hidden; }
 	.poster, canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-	canvas { opacity: 0; touch-action: none; cursor: grab; }
+	canvas { opacity: 0; touch-action: pan-y; cursor: grab; }
 	canvas.ready { opacity: 1; }
 	canvas:active { cursor: grabbing; }
 	@media (prefers-reduced-motion: no-preference) {

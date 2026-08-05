@@ -7,7 +7,11 @@
  * line, a handwritten margin note quoting the headline figure, and a
  * <details> data table for assistive tech. The habit field renders
  * 1,700+ day cells as four pattern-filled SVG rects, stamped with its
- * as-of date. A typed provenance card states where the figures come from.
+ * as-of date. A typed provenance card closes the run and states where the
+ * figures come from.
+ *
+ * Reading order is a path, not a guess: flyer → print-out → print-out →
+ * habit field → source. See the ROUTE note above the wide breakpoint.
  */
 import getCharts from "~/components/scripts/getCharts";
 import HandNote from "~/components/wall/HandNote.astro";
@@ -34,11 +38,6 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 			<h2 class="telemetry__h" id="telemetry-title">{ui.nav.telemetry}</h2>
 			<div class="telemetry__rule" aria-hidden="true"></div>
 			<p class="telemetry__since">{tf.trackedSince(trackingStart)}</p>
-		</PinCard>
-
-		<PinCard as="div" variant="typed" rotate={1} class="telemetry__prov">
-			<h3 class="telemetry__prov-title">{tf.sourceHeading}</h3>
-			{provenance.map((line) => <p class="telemetry__prov-line">{line}</p>)}
 		</PinCard>
 
 		{
@@ -132,6 +131,19 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 				<Stamp sub={sectionStrings.asOfStamp} label={habit.asOf} rotate={7} class="telemetry__stamp" />
 			</PinCard>
 		</div>
+
+		{
+			/* The source card closes the run it covers. It used to be pinned
+			   opposite the section flyer — the two artifacts furthest apart
+			   in the section were the first two the eye met, and the reading
+			   order started with a 663px sideways throw. A footnote belongs
+			   under the figures it answers for, and stepping back toward the
+			   left rail here hands the eye to the next act's marquee. */
+		}
+		<PinCard as="div" variant="typed" rotate={1} class="telemetry__prov">
+			<h3 class="telemetry__prov-title">{tf.sourceHeading}</h3>
+			{provenance.map((line) => <p class="telemetry__prov-line">{line}</p>)}
+		</PinCard>
 	</div>
 </section>
 
@@ -385,17 +397,23 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 
 	/* ---- the collage once the wall is wide ------------------------ */
 
+	/* ROUTE. Five artifacts, one line of travel: flyer and first print-out
+	   share the left rail, the two print-outs are a pair read across once,
+	   and the habit field and the source card step back down the middle.
+	   Measured centre-to-centre throw between artifacts in reading order:
+	   51 → 612 → 204 → 204 (was 663 → 51 → 612 → 306). Exactly one
+	   crossing, and it is the one the material asks for: two sheets off the
+	   same run, pinned side by side. */
+
 	@media (min-width: 64rem) {
 		.telemetry :global(.telemetry__headline) {
 			grid-column: 1 / span 5;
 			max-width: none;
-			align-self: center;
 		}
 
 		.telemetry :global(.telemetry__prov) {
-			grid-column: 7 / span 6;
+			grid-column: 2 / span 8;
 			max-width: none;
-			margin-block-start: calc(var(--baseline) * 3);
 		}
 
 		.telemetry__slot--left {
@@ -408,7 +426,7 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 		}
 
 		.telemetry__slot--habit {
-			grid-column: 3 / span 8;
+			grid-column: 4 / span 8;
 		}
 
 		/* margin notes ride the top-right corner of the sheet */

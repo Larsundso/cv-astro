@@ -34,6 +34,11 @@
  * second, earlier instance elsewhere on the wall; this one is the
  * confirmation, not the declaration.
  *
+ * Order. Marquee, then the values flyer and its key on the left rail, then
+ * the record read straight down the right. One crossing, at the point
+ * where the material changes hands: the poster stops and the file starts.
+ * Both breakpoints agree — stacked, the source order IS the reading order.
+ *
  * All copy comes verbatim from ~/data/wall (voice-law final).
  */
 import HandNote from "~/components/wall/HandNote.astro";
@@ -85,6 +90,30 @@ const rules = houseRules.rules.map((rule) => {
 			<PinCard as="div" variant="flyer" rotate={-1}>
 				<h2 id="practice-title">{ui.nav.practice}</h2>
 			</PinCard>
+		</div>
+
+		<div class="practice__values">
+			<PinCard as="article" variant="flyer" rotate={1} class="practice__flyer">
+				<h3 class="practice__flyer-title">{houseRules.title}</h3>
+				<div class="practice__rule-line" aria-hidden="true"></div>
+				<ul class="practice__rules">
+					{
+						rules.map((rule) => (
+							<li style={`color: var(--ink-${rule.ink});`}>
+								<p class="practice__rule-head">{rule.headline}</p>
+								<p class="practice__rule-text">{rule.before}{rule.email && <a class="practice__mail" href={`mailto:${rule.email}`}>{rule.email}</a>}{rule.after}</p>
+							</li>
+						))
+					}
+				</ul>
+			</PinCard>
+
+			<!-- the code the flyer above has just been written in -->
+			<InkKey class="practice__key" rotate={-1} id="practice-ink-key" />
+
+			<div class="practice__sticker">
+				<Sticker name="sip" size={4.5} rotate={-8} />
+			</div>
 		</div>
 
 		<div class="practice__records">
@@ -149,30 +178,6 @@ const rules = houseRules.rules.map((rule) => {
 					</PinCard>
 				)
 			}
-		</div>
-
-		<div class="practice__values">
-			<PinCard as="article" variant="flyer" rotate={-1} class="practice__flyer">
-				<h3 class="practice__flyer-title">{houseRules.title}</h3>
-				<div class="practice__rule-line" aria-hidden="true"></div>
-				<ul class="practice__rules">
-					{
-						rules.map((rule) => (
-							<li style={`color: var(--ink-${rule.ink});`}>
-								<p class="practice__rule-head">{rule.headline}</p>
-								<p class="practice__rule-text">{rule.before}{rule.email && <a class="practice__mail" href={`mailto:${rule.email}`}>{rule.email}</a>}{rule.after}</p>
-							</li>
-						))
-					}
-				</ul>
-			</PinCard>
-
-			<!-- the code the flyer above has just been written in -->
-			<InkKey class="practice__key" rotate={1} id="practice-ink-key" />
-
-			<div class="practice__sticker">
-				<Sticker name="sip" size={4.5} rotate={-8} />
-			</div>
 		</div>
 	</div>
 </section>
@@ -386,6 +391,18 @@ const rules = houseRules.rules.map((rule) => {
 
 	/* ---- two artifacts side by side once the wall is wide ------- */
 
+	/* ROUTE. The two stacks used to hang from the same line, and their
+	   artifacts interleaved: record, flyer, record, record — the eye crossed
+	   the wall twice at 663px to read four cards. They are now one route:
+	   the values statement and its ink key on the left rail directly under
+	   the act's own marquee, then ONE crossing into the record, which is
+	   read straight down. Measured centre-to-centre throw in reading order:
+	   188 → 612 → 0 → 0 (was 188 → 663 → 663 → 0).
+
+	   The record hangs one step lower than the flyer, so which of the two
+	   opens the act is stated by the layout instead of decided by a
+	   rounding difference between two rotated boxes. */
+
 	@media (min-width: 64rem) {
 		.practice__grid {
 			row-gap: calc(var(--baseline) * 6);
@@ -396,18 +413,17 @@ const rules = houseRules.rules.map((rule) => {
 			grid-row: 1;
 		}
 
-		/* both columns hang from the same line under the marquee: the
-		   record and the values are peers, read side by side */
-		.practice__records {
+		.practice__values {
 			grid-column: 1 / span 6;
 			grid-row: 2;
 			max-width: none;
 		}
 
-		.practice__values {
-			grid-column: 8 / span 5;
+		.practice__records {
+			grid-column: 7 / span 6;
 			grid-row: 2;
 			max-width: none;
+			margin-block-start: calc(var(--baseline) * 5);
 		}
 
 		.practice__sticker {

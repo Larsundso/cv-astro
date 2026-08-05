@@ -63,6 +63,18 @@ export const telemetry = {
 	lifetime: {
 		/** Designated headline figure — includes the "Other" bucket. */
 		total: { seconds: 19_558_020, display: "5,432 h 47 m" } satisfies Measured,
+		/**
+		 * ACTIVE-DAY CONVENTION, stated once because it is not the obvious
+		 * one: WakaTime's daily average divides by days WORKED, not by days
+		 * elapsed. 19,558,020 s / 1,575 active days = 12,418 s ≈ 3 h 27 m;
+		 * over the 1,739 elapsed days it would be 3 h 7 m. Copy that prints
+		 * this as "per day" therefore adds twenty minutes silently — say
+		 * "per day worked", or print the denominator.
+		 *
+		 * `windowJuly2026.dailyAverage` (5 h 53 m) comes from the same
+		 * instrument and presumably the same rule, but that has NOT been
+		 * checked against a July day count. Verify before labelling it.
+		 */
 		dailyAverage: { seconds: 12_420, display: "3 h 27 m" } satisfies Measured,
 		activeDays: { active: 1_575, elapsed: 1_739, ratePercent: 90.6 },
 		bestDay: {
@@ -81,8 +93,23 @@ export const telemetry = {
 			{ name: "Vue.js", hours: 176.2, seconds: 634_320, percent: 3.24, derived: true }
 		] satisfies LanguageShare[],
 
-		/** TypeScript + JavaScript + Svelte + Vue + JSX, share of all tracked time. */
-		tsFamily: { hours: 3_231, percent: 69.0 },
+		/* REMOVED 2026-08-05 — `tsFamily: { hours: 3_231, percent: 69.0 }`.
+		 *
+		 * The three numbers it touched could not all be true at once:
+		 * 3,231 h is 59.47 % of the published lifetime total (19,558,020 s),
+		 * not 69.0 %, and the four published language rows above already sum
+		 * to 4,225.6 h = 77.78 %. No pair of the three was consistent.
+		 *
+		 * It was referenced nowhere outside this file, so nothing on the
+		 * wall was ever wrong — but this file is the single source of truth,
+		 * and a latent figure is a figure waiting to be published.
+		 *
+		 * Deleted rather than recomputed, deliberately: the family as
+		 * documented included JSX, whose hours the pull does not publish, so
+		 * any replacement total would have been asserted rather than
+		 * measured. If the family figure is ever wanted, re-pull it — do not
+		 * reconstruct it from the rows above.
+		 */
 		/** Ayako project family, 7 generations, share of all tracked time. */
 		ayakoFamily: { hours: 2_800.7, seconds: 10_082_520, percent: 51.55 },
 

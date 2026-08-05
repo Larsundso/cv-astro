@@ -119,23 +119,46 @@ const sourceLine = ht.sourceLine(
    measured vertices. Every vertex below is a pin centre measured at
    1440 × 900 (identical at 1280 — the shell is capped at 78rem, so one
    measurement covers every width where the board is full). Re-measure
-   and retune whenever an artifact moves. */
-const DESKTOP_STATIONS: Record<Locale, [number, number][]> = {
+   and retune whenever an artifact moves.
+
+   THE ONE STATION THAT IS NOT A PIN. The run from the signature to the
+   polaroid is the wall's highest-value junction — its focal mass to its
+   strongest image — and as a straight line it was 758px long and 11.3 %
+   visible, in two disconnected fragments (measured at 1440, both locales:
+   11.3 % en / 10.5 % de, occluded by `.hero__greeting` and the typed
+   record card). From the name the thread simply disappeared, and the next
+   red ink the eye found was a stub emerging from under a card 300px away.
+   A straight line between two pins is right when there is cork between
+   them; here there is a 590px sheet and a 490px sheet edge to edge, so
+   the taut run had nowhere to surface.
+   So it now leaves the signature pin DOWNWARD, clears the two band-1
+   sheets by their bottom edge, and crosses the open cork of the band gap
+   on its way west. That is one extra vertex, and it is a BEND, not a pin:
+   it takes no thread dot, because a dot with no pin under it is the wall
+   telling a lie about its own material. Every other vertex here is a pin
+   centre, and `nodes` is built from exactly those. */
+type Station = { x: number; y: number; pin: boolean };
+const P = (x: number, y: number): Station => ({ x, y, pin: true });
+const BEND = (x: number, y: number): Station => ({ x, y, pin: false });
+
+const DESKTOP_STATIONS: Record<Locale, Station[]> = {
 	en: [
-		[308, 1],
-		[892, 1],
-		[211, 364],
-		[646, 394],
-		[1041, 517],
-		[802, 880]
+		P(308, 1),
+		P(892, 1),
+		BEND(905, 300),
+		P(211, 364),
+		P(646, 394),
+		P(1041, 517),
+		P(802, 880)
 	],
 	de: [
-		[309, 1],
-		[892, 1],
-		[211, 408],
-		[646, 437],
-		[1041, 556],
-		[802, 880]
+		P(309, 1),
+		P(892, 1),
+		BEND(905, 340),
+		P(211, 408),
+		P(646, 437),
+		P(1041, 556),
+		P(802, 880)
 	]
 };
 
@@ -143,9 +166,10 @@ const stations = DESKTOP_STATIONS[locale];
 const THREAD_DESKTOP = {
 	width: 1200,
 	height: 880,
-	path: tautPath(stations),
-	/* a thread dot on every pin it wraps — never on the exit vertex */
-	nodes: stations.slice(0, -1).map(([x, y]) => ({ x, y }))
+	path: tautPath(stations.map((s): [number, number] => [s.x, s.y])),
+	/* a thread dot on every pin it wraps — never on the exit vertex, and
+	   never on the bend, which has no pin under it */
+	nodes: stations.slice(0, -1).filter((s) => s.pin)
 };
 
 /* The thread, stacked column: a taut near-vertical stitch down the

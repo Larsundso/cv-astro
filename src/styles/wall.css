@@ -25,13 +25,38 @@
   --cork: oklch(76.5% 0.045 75);
   --cork-deep: oklch(75% 0.048 72);
   --paper: oklch(97.5% 0.008 90);
-  --paper-aged: oklch(94% 0.02 85);
+  /* Aged stock was a CHROMA distinction sold as a STOCK distinction: at
+     94% it measured 1.117:1 against --paper and APCA Lc 0.0 — both sheets
+     fell in the same lightness bin, so "aged index card vs clean print-out"
+     was invisible at any distance and the wall had one paper, warmer in
+     places. At 90% it is 1.259:1 (Lc -14.4), ink on it still 11.9:1, and it
+     is still figure against the board at 1.57:1. Value, not hue, is what
+     tells two stocks apart. */
+  --paper-aged: oklch(90% 0.026 84);
   --ink: oklch(25% 0.015 60);
   --ink-soft: oklch(38% 0.015 60);
 
   /* thread + pins — --thread is the only structural accent */
   --thread: oklch(50% 0.19 22);
   --brass: oklch(70% 0.09 85);
+
+  /* THE WALL'S ONE DARK. Measured over the whole 1440x13862 render, 87.82%
+     of the page sat above L 0.75 and the entire mid-dark register — L 0.46
+     to 0.69, where a picture keeps its structure — held 1.46%. There were
+     two modes and nothing between them: board and paper. A composition
+     cannot be given contrast, focus or depth by texture or shadow tuning if
+     it has no darks in it at all.
+     The dark is put in an OBJECT, never in the ground: lowering the board
+     would push stamp ink toward its floor (measured, cork cannot go below
+     L~0.762 before a 10.9px stamp legend fails 4.5:1). So the five section
+     flyers — the one artifact class that repeats at act boundaries — are
+     screen-printed on dark stock. Materially honest, no new hue, and it
+     lands a dark mass roughly every 2,600px of scroll.
+     Measured: --paper on this stock 12.33:1; the stock on bare cork 6.23:1.
+     --flyer-rule is --thread at the same chroma and hue, lit: the base ink
+     is only 1.99:1 on this stock, which no rule may be. */
+  --flyer-stock: oklch(31% 0.03 62);
+  --flyer-rule: oklch(62% 0.19 22);
 
   /* pride ink set (annotations + data; each >=4.5:1 on --paper as text) */
   --ink-magenta: oklch(45% 0.19 350);
@@ -50,7 +75,45 @@
      paper sits at 1, a polaroid is cardstock and stands proud (1.6). */
   --baseline: 8px;
   --lift: 1;
-  --shade: 25% 0.02 60;
+  /* SHADE IS THE ABSENCE OF THE LAMP, NOT A STAIN. At 25% 0.02 60 the
+     shadow was 15deg WARMER than the cork it darkened, so compositing it
+     dropped lightness while barely touching chroma (measured over --cork at
+     alpha 0.34: dL 0.1619, dC 0.0084) — the signature of dirt on a surface,
+     not of light withdrawn from it. Under a warm key the ambient is cool,
+     and chroma falls faster than lightness: at 22% 0.035 265 the same
+     composite measures dL 0.1711 and dC 0.0223, i.e. chroma now falls ~2.7x
+     faster relative to lightness. The wall stays warm — the shaded cork
+     lands at hue 67deg, chroma 0.023. There is no blue anywhere on screen;
+     the cool exists only as the RATE at which the warmth drains. */
+  --shade: 22% 0.035 265;
+
+  /* THE LAMP, ON THE PAPER. Every sheet was a mathematically flat fill:
+     sampling the brightest pixel in 30x30 patches at four corners and the
+     centre of a sheet returned the same value five times, spread 0.00000,
+     while the board under it fell 0.798 -> 0.740. The light existed on the
+     wall and nowhere else, so nothing was IN it.
+     A modulation, not a colour: white and black at fixed alphas over
+     whatever stock the sheet is, so the same declaration works on --paper
+     and on --paper-aged without flattening the difference between them.
+     105deg (not the board's 90deg) because a 600px sheet has no reading
+     order to run against — the vertical component that was wrong across
+     13,000px is exactly right across one card.
+     Measured on --paper: L 0.9815 lit -> 0.9493 shaded, spread 0.0322.
+     On --paper-aged: 0.9203 -> 0.8756. Paper's shaded corner still reads
+     1.83:1 against bare cork. The dark stock gets its own pair, because a
+     white alpha sized for a 97% ground would lift a 31% ground to 72%. */
+  --lamp: linear-gradient(
+    105deg,
+    rgb(255 255 255 / 0.2) 0%,
+    transparent 45%,
+    rgb(0 0 0 / 0.035) 100%
+  );
+  --lamp-dark: linear-gradient(
+    105deg,
+    rgb(255 255 255 / 0.055) 0%,
+    transparent 45%,
+    rgb(0 0 0 / 0.14) 100%
+  );
 
   /* type scale — ONE fluid ladder, 360→1440, every step sharing the same
      interpolation so two sizes can never swap rank at an intermediate
@@ -110,10 +173,19 @@
    each element against its own --lift, which is what makes the ramp real.
    Set --lift on the artifact; the three layers scale together, so offset,
    blur and elevation stay physically consistent. */
+/* THE SEAT. All three layers were offset down-and-right, so there was no
+   zero-offset term anywhere in the stack — every sheet was lit and cast a
+   shadow, and none of them was in CONTACT with the board. Measured across
+   sheet edges, the shadow side ran 0.073-0.095 L below ambient and the lit
+   side only 0.018-0.025. The first layer now carries no offset at all: it
+   is the occlusion right at the paper's edge, the dark line that says this
+   object is resting ON something. It scales with --lift like the rest, so
+   a polaroid at 1.6 seats harder than a slip at 1. */
 *,
 *::before,
 *::after {
   --pin-shadow:
+    0 0 calc(2px * var(--lift)) oklch(var(--shade) / 0.2),
     calc(1px * var(--lift)) calc(1.5px * var(--lift)) calc(3px * var(--lift))
       oklch(var(--shade) / 0.1),
     calc(2px * var(--lift)) calc(3px * var(--lift)) calc(8px * var(--lift))
@@ -203,10 +275,43 @@ main {
 }
 
 /* ---- focus: one ring, every interactive element ------------ */
+/* THE RING NEEDS ITS OWN GROUND. --thread on bare cork measured 1.60-2.84:1
+   against the pixels the outline actually replaces — worst on the language
+   switch and the five contact channels, i.e. on the conversion path — with
+   the 1.4.11 floor at 3:1. The ink is not the problem and must not change;
+   the ring simply had nothing behind it. A 7px paper shadow under a 2px
+   outline offset 3px gives the ring --paper on BOTH edges (paper shows at
+   0-3px and again at 5-7px), so the ring is measured against paper
+   everywhere: 6.19:1. It also reads as a paper label slipped behind the
+   pin, which is the wall's own vocabulary rather than a browser default.
+   Elements that carry --pin-shadow restate it alongside the ring, or
+   focusing them would lift them off the board. */
 
 :focus-visible {
   outline: 2px solid var(--thread);
   outline-offset: 3px;
+  box-shadow: 0 0 0 7px var(--paper);
+}
+
+.paper:focus-visible,
+.paper-slip:focus-visible,
+.skip-link:focus-visible {
+  box-shadow:
+    0 0 0 7px var(--paper),
+    var(--pin-shadow);
+}
+
+/* The back-to-top pin was the one control the general rule could not reach:
+   `WallPage.astro` gives it a brass cast of its own, and a component-scoped
+   declaration computes at (0,2,0) against this file's (0,1,0). Measured
+   before this rule, its ring sat straight on cork — thread 183,22,45 against
+   board 190,167,143. The doubled class settles it by specificity rather than
+   by which stylesheet happens to be emitted last. */
+.rail__pin.rail__pin:focus-visible {
+  box-shadow:
+    0 0 0 7px var(--paper),
+    2px 3px 5px oklch(var(--shade) / 0.5),
+    inset 0 0 0 1px oklch(var(--shade) / 0.2);
 }
 
 /* ---- skip link: a paper note that drops in on focus -------- */
@@ -221,7 +326,7 @@ main {
   color: var(--ink);
   font-family: var(--font-typed);
   font-weight: 700;
-  font-size: 0.9375rem;
+  font-size: var(--step-0);
   text-decoration: none;
   box-shadow: var(--pin-shadow);
   translate: 0 calc(-100% - var(--baseline) * 3);
@@ -234,7 +339,8 @@ main {
 /* ---- paper + pins ------------------------------------------ */
 
 .paper {
-  background: var(--paper);
+  background-color: var(--paper);
+  background-image: var(--lamp);
   box-shadow: var(--pin-shadow);
 }
 
@@ -248,7 +354,8 @@ main {
   width: fit-content;
   max-width: 16rem;
   padding: calc(var(--baseline) * 0.75) calc(var(--baseline) * 1.5);
-  background: var(--paper);
+  background-color: var(--paper);
+  background-image: var(--lamp);
   box-shadow: var(--pin-shadow);
 }
 
@@ -263,8 +370,51 @@ main {
     var(--brass) 58%,
     color-mix(in oklab, var(--brass) 55%, black)
   );
-  /* the pin's own cast agrees with its specular and with every sheet */
-  box-shadow: 2px 2px 4px oklch(var(--shade) / 0.34);
+  /* The pin's own cast agrees with its specular and with every sheet — and
+     it is now allowed to be a real shadow. A 14px brass head lying on cork
+     under a lamp casts something considerably darker than 0.34 of a shade
+     that was itself too pale; at 0.50, spread over the 51 pins on the wall,
+     this is the cheapest correctly-placed dark on the page. */
+  box-shadow: 2px 3px 5px oklch(var(--shade) / 0.5);
+}
+
+/* THE DARK ARTIFACT CLASS. A section flyer is the one sheet on the wall
+   that carries an <h2> — the act's own name — which is exactly the set that
+   repeats at compositional cadence, so the selector is the definition
+   rather than a hook. (The header title card, the free-forever pull-quote,
+   the bench heading and the house-rules poster all carry <p> or <h3> and
+   stay on paper: they are statements, not act boundaries.)
+   The chained class is deliberate: Astro scopes component styles with an
+   attribute, so PinCard's own `.pin-card` rule computes at (0,2,0) and a
+   bare `.pin-card--flyer:has(h2)` at (0,1,1) would silently lose.
+   Everything inside is repainted by REDEFINING THE INK TOKENS, not by
+   chasing each descendant's selector: the flyers' rules are drawn in four
+   different files (a border in Projects, a div in Telemetry, an inline SVG
+   stroke in Timeline and Contact), and every one of them resolves
+   var(--thread). One declaration turns all four. */
+/* `--dark` is the opt-in for a poster that is NOT an act boundary but is
+   carrying the section's weight anyway: Projects' free-forever pull-quote
+   sits at 47% of the page, in the single longest run of the wall with no
+   dark in it (4,094px between the Projects flyer and the Telemetry one).
+   The :is() is what keeps the whole selector at (0,3,0) — above PinCard's
+   own attribute-scoped (0,2,0) — for both arms at once. */
+.pin-card.pin-card--flyer:is(:has(h2), .pin-card--dark) {
+  --ink: var(--paper);
+  --ink-soft: oklch(84% 0.018 82);
+  --thread: var(--flyer-rule);
+  background-color: var(--flyer-stock);
+  background-image: var(--lamp-dark);
+  color: var(--paper);
+}
+
+/* ---- German sets long compounds ---------------------------- */
+/* `hyphens` appeared nowhere in src/. Nothing overflows today only because
+   the copy is hand-hyphenated; this is the insurance, and it costs one
+   declaration. The English wall is untouched — German is the locale whose
+   words are long enough to need it. */
+
+:lang(de) {
+  hyphens: auto;
 }
 
 /* pinned artifacts: rotation steps of ±1.2deg via --tilt (-1 | 0 | 1);

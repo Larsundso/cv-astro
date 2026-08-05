@@ -21,10 +21,23 @@ const Tag = as;
 </Tag>
 
 <style>
+	/* ONE PEN. The hand had five settings across the wall (14, 16, 20, 24, 64)
+	   and three of them landed in the same band as the printed and the typed
+	   face — measured, 23 of the 115 nodes at 16px were handwriting. A hand
+	   that speaks at the body's size is not marginalia, it is a fourth column
+	   of body copy in a script face. The pen is now declared once, here, at
+	   the step below the record; a caller may not resize it, only place it.
+	   (The hero autograph is exempt: it is a signature, an object, not a
+	   voice — it is set on its own element, not on .hand-note.)
+	   The measure is capped for the same reason: at 16px the German telemetry
+	   margin note ran 81 characters, i.e. the hand was carrying the longest
+	   line on a page whose own law says the hand never carries body copy. */
 	.hand-note {
 		margin: 0;
 		font-family: var(--font-hand);
 		font-weight: 500;
-		line-height: 1.4;
+		font-size: var(--step--1);
+		line-height: var(--lh--1);
+		max-inline-size: 34ch;
 	}
 </style>

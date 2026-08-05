@@ -171,10 +171,13 @@ const headingId = id ?? `ink-key-${locale}-${Math.random().toString(36).slice(2,
 		min-inline-size: 0;
 	}
 
+	/* the job line is the hand's own band, like every other pen stroke on the
+	   wall: it used to sit at --step-0, which put six lines of handwriting
+	   into the printed record's size class */
 	.ink-key :global(.ink-key__job) {
 		display: block;
-		font-size: var(--step-0);
-		line-height: var(--lh--1);
+		/* the key's two channels are already measured by the slip */
+		max-inline-size: none;
 	}
 
 	/* the question is the channel that teaches; it is quieter than the job

@@ -81,7 +81,8 @@ const there = hreflang.slice(0, 2).toUpperCase();
 		min-width: 44px;
 		min-height: 44px;
 		padding: calc(var(--baseline) * 1.75) calc(var(--baseline) * 2);
-		background: var(--paper);
+		background-color: var(--paper);
+		background-image: var(--lamp);
 		box-shadow: var(--pin-shadow);
 		font-family: var(--font-typed);
 		font-size: var(--step--1);
@@ -89,6 +90,14 @@ const there = hreflang.slice(0, 2).toUpperCase();
 		letter-spacing: 0.04em;
 		color: var(--ink-soft);
 		text-decoration: none;
+	}
+
+	/* the worst-measured control on the wall for focus contrast: 2.56:1
+	   against the cork the outline replaced. The ring gets its own ground. */
+	.lang-tab:focus-visible {
+		box-shadow:
+			0 0 0 7px var(--paper),
+			var(--pin-shadow);
 	}
 
 	/* the current language: pressed into the paper, plainly inert */

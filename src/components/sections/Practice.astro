@@ -96,7 +96,7 @@ const rules = houseRules.rules.map((rule) => {
 			<PinCard as="article" variant="flyer" rotate={1} class="practice__flyer">
 				<h3 class="practice__flyer-title">{houseRules.title}</h3>
 				<div class="practice__rule-line" aria-hidden="true"></div>
-				<ul class="practice__rules">
+				<ul class="practice__rules" role="list">
 					{
 						rules.map((rule) => (
 							<li style={`color: var(--ink-${rule.ink});`}>
@@ -223,21 +223,25 @@ const rules = houseRules.rules.map((rule) => {
 	/* the demoted title: a card title now, not the act's heading */
 	.practice__card-title {
 		margin: 0 0 var(--baseline);
-		font-size: var(--step-1);
-		line-height: var(--lh-1);
+		font-size: var(--step-2);
+		line-height: var(--lh-2);
 		font-weight: 700;
 	}
 
 	.practice__intro {
 		margin: 0 0 calc(var(--baseline) * 2);
-		font-size: var(--step-0);
-		line-height: var(--lh-0);
+		font-size: var(--step-1);
+		line-height: var(--lh-2);
 	}
 
+	/* On the PRINTED sheet this is a sub-heading in the print voice's own
+	   band. On a typed card the ruled-card rule outranks it and it stays
+	   Courier at the sheet's step — which is the point: one face, one band,
+	   per material. */
 	.practice__block-title {
 		margin: 0 0 var(--baseline);
-		font-size: var(--step-0);
-		line-height: var(--lh-0);
+		font-size: var(--step-1);
+		line-height: var(--lh-2);
 		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: var(--track-display);
@@ -251,8 +255,8 @@ const rules = houseRules.rules.map((rule) => {
 
 	.practice__records :global(.pin-card--print) p {
 		margin: 0 0 var(--baseline);
-		font-size: var(--step-0);
-		line-height: var(--lh-0);
+		font-size: var(--step-1);
+		line-height: var(--lh-2);
 	}
 
 	.practice__records :global(.pin-card--print) p:last-child {
@@ -264,9 +268,8 @@ const rules = houseRules.rules.map((rule) => {
 		padding-inline-start: calc(var(--baseline) * 2);
 	}
 
+	/* the pen's setting is declared once, in HandNote; a caller places it */
 	.practice__margin :global(.hand-note) {
-		font-size: var(--step-0);
-		line-height: var(--lh-0);
 		rotate: -1deg;
 	}
 
@@ -354,8 +357,8 @@ const rules = houseRules.rules.map((rule) => {
 	.practice__rule-text {
 		margin: 0;
 		font-family: var(--font-body);
-		font-size: var(--step-0);
-		line-height: var(--lh-0);
+		font-size: var(--step-1);
+		line-height: var(--lh-2);
 		text-transform: none;
 		letter-spacing: normal;
 		text-wrap: pretty;

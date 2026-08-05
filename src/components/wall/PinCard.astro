@@ -38,7 +38,9 @@ const Tag = as;
 <style>
 	.pin-card {
 		position: relative;
-		background: var(--paper);
+		background-color: var(--paper);
+		/* the lamp falls on the sheet, not only on the wall behind it */
+		background-image: var(--lamp);
 		box-shadow: var(--pin-shadow);
 		padding: calc(var(--baseline) * 3);
 	}
@@ -64,7 +66,12 @@ const Tag = as;
 		font-size: var(--step-0);
 		line-height: calc(var(--baseline) * 3);
 		padding-top: calc(var(--baseline) * 6);
+		/* three layers now: the lamp rides ON TOP of the printed ruling,
+		   because light falls on ink as well as on stock. The third
+		   background-position value is not optional — without it the ruling
+		   phase, which is the whole reason --rule-phase exists, shifts. */
 		background-image:
+			var(--lamp),
 			linear-gradient(
 				180deg,
 				transparent calc(var(--baseline) * 5),
@@ -80,6 +87,7 @@ const Tag = as;
 			);
 		background-position:
 			0 0,
+			0 0,
 			0 calc(var(--rule-phase) * -1);
 	}
 
@@ -93,6 +101,23 @@ const Tag = as;
 
 	.pin-card--typed :global(:is(p, li, h3, h4, dt, dd) + :is(p, li, h3, h4, dt, dd)) {
 		margin-block-start: calc(var(--baseline) * 3);
+	}
+
+	/* A TYPIST SKIPS A LINE. A caller may raise a typed heading above the
+	   sheet's body step (Timeline does, for its two peak rows), and the rule
+	   above then held that heading in ONE ruling period: 24px of type in 24px
+	   of leading, ratio 1.000, measured -3px of overlap where it wraps. A
+	   typewriter cannot set 1.000 either — it advances a whole line or two.
+	   So: one period while the type fits it, two the moment it does not.
+	   1.05em, not 1em, because type exactly as tall as its period has no
+	   descender room. 16px -> 24, 20px -> 24, 24px -> 48.
+	   MEASURED, THIS CURRENTLY CHANGES NOTHING: the one heading on the wall
+	   that is actually set at 24px on a 24px ruling is Timeline's peak-row
+	   title, and `Timeline.astro:765-771` sets its leading with a stronger
+	   selector and a comment defending the value. This declaration is the
+	   component's own statement of the rule, not a fix for that node. */
+	.pin-card--typed :global(:is(h3, h4)) {
+		line-height: round(up, 1.05em, calc(var(--baseline) * 3));
 	}
 
 	/* flyer: poster headlines, nothing else on the sheet */

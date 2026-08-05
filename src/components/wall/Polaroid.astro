@@ -29,7 +29,8 @@ const { caption, rotate = 0, pin = true, class: className } = Astro.props;
 		/* photo stock is the thickest paper on the wall — it stands proud
 		   of the notes rather than casting the identical shadow they do */
 		--lift: 1.6;
-		background: var(--paper);
+		background-color: var(--paper);
+		background-image: var(--lamp);
 		box-shadow: var(--pin-shadow);
 		padding: calc(var(--baseline) * 1.5) calc(var(--baseline) * 1.5) calc(var(--baseline) * 2);
 	}

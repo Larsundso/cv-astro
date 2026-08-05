@@ -39,7 +39,8 @@ const attrs = href ? { href } : { type };
 		position: relative;
 		display: inline-block;
 		padding: calc(var(--baseline) * 2) calc(var(--baseline) * 3);
-		background: var(--paper);
+		background-color: var(--paper);
+		background-image: var(--lamp);
 		box-shadow: var(--pin-shadow);
 		border: none;
 		cursor: pointer;
@@ -50,6 +51,14 @@ const attrs = href ? { href } : { type };
 		color: var(--ink);
 		text-align: center;
 		text-decoration: none;
+	}
+
+	/* the ring needs paper behind it AND the note needs to stay on the
+	   board: --pin-shadow is restated, or focusing the CTA un-pins it */
+	.pin-btn:focus-visible {
+		box-shadow:
+			0 0 0 7px var(--paper),
+			var(--pin-shadow);
 	}
 
 	.pin-btn__pin {

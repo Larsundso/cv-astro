@@ -181,7 +181,7 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 		<div class="g-promise col-stack">
 			{
 				ayako.promise && (
-					<PinCard variant="flyer" rotate={1} class="promise-card">
+					<PinCard variant="flyer" rotate={1} class="promise-card pin-card--dark">
 						<blockquote>
 							<p>“{ayako.promise}”</p>
 						</blockquote>
@@ -419,11 +419,19 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 	.head-rule {
 		border-bottom: 4px solid var(--thread);
 	}
+	/* The stamp still laps its flyer — that overhang is the wall's only
+	   genuine occlusion and it stays. What changed under it is the ground:
+	   the section flyer is now dark stock, and stamp ink on dark stock is
+	   ink on ink. So the lap is taken from 60% of the stamp's area to 22%,
+	   by lifting it rather than by moving it sideways: the LEGEND now sits
+	   entirely on bare cork, where it is measured, and only the lower arc of
+	   the ring crosses the poster's corner. Deliberate trade — a smaller lap
+	   against a date nobody could have read. */
 	.projects :global(.head-stamp) {
 		--stamp-size: 5.5rem;
 		position: absolute;
 		right: calc(var(--baseline) * -2);
-		top: calc(var(--baseline) * -3);
+		top: calc(var(--baseline) * -8);
 	}
 	@media (max-width: 48rem) {
 		.projects :global(.head-stamp) {
@@ -440,16 +448,20 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 		margin-top: 0;
 	}
 
-	/* the print-out reads on the ladder too — without this it inherits the
-	   document's 1rem and drifts off the scale at small widths */
+	/* THE PRINT VOICE HAS ITS OWN BAND. It used to read at --step-0, i.e. at
+	   the typewriter's size and at the hand's size — three of four faces in
+	   one band, 115 of 243 nodes. A printed sheet is not a filing card: it
+	   steps up one, onto a four-baseline leading that a wrapped line can
+	   actually use. --lh-2 also settles the 1.200 leading the build had
+	   already diagnosed once at Hero.astro:481-483 and fixed in one place. */
 	.projects :global(.pin-card--print) {
-		font-size: var(--step-0);
-		line-height: var(--lh-0);
+		font-size: var(--step-1);
+		line-height: var(--lh-2);
 	}
 
 	.card-title {
-		font-size: var(--step-1);
-		line-height: var(--lh-1);
+		font-size: var(--step-2);
+		line-height: var(--lh-2);
 		font-weight: 700;
 	}
 
@@ -473,15 +485,20 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 		margin-top: calc(var(--baseline) * 3);
 	}
 
+	/* The subordinate register: stock, licence, the figure lines. One step
+	   under the printed body, and deliberately NOT at --step--1, which now
+	   belongs to the hand alone — a stack line and a margin note used to sit
+	   at one size on the same sheet. (Inside a typed card the ruled-card rule
+	   still wins and these stay Courier at the sheet's own step.) */
 	.stack,
 	.license {
 		color: var(--ink-soft);
-		font-size: var(--step--1);
-		line-height: var(--lh--1);
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
 	}
 	.fact-line {
-		font-size: var(--step--1);
-		line-height: var(--lh--1);
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
 	}
 
 	.links {
@@ -519,8 +536,8 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 	}
 	.proof-rest {
 		margin: calc(var(--baseline) * 1) 0 0;
-		font-size: var(--step-0);
-		line-height: var(--lh-0);
+		font-size: var(--step-1);
+		line-height: var(--lh-2);
 		color: var(--ink-soft);
 	}
 
@@ -543,8 +560,6 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 		padding: calc(var(--baseline) * 1.5) calc(var(--baseline) * 2);
 		background: var(--paper);
 		box-shadow: var(--pin-shadow);
-		font-size: var(--step-0);
-		line-height: var(--lh-0);
 	}
 	.projects :global(.pull-right) {
 		justify-self: end;
@@ -571,8 +586,15 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 		border-top: 1px solid color-mix(in oklab, var(--ink) 15%, transparent);
 		padding-top: calc(var(--baseline) * 2);
 	}
+	/* At 320 (the 1.4.10 reflow target) the printed body's own step leaves a
+	   194px measure inside the card, the fold indent and the wall's padding —
+	   and `VRChatSpeechAssistant` is 21 unbreakable characters. Measured, the
+	   sheet ran 5px past the viewport and was clipped. Same valve the mail
+	   address on this wall already uses, and only a last resort: nothing
+	   breaks until nothing else fits. */
 	.bench-name {
 		font-weight: 700;
+		overflow-wrap: anywhere;
 	}
 
 	/* the disclosure triangle hangs in the margin like the "— " of a fact
@@ -615,13 +637,6 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 		background: var(--paper-aged);
 		aspect-ratio: 4 / 3;
 	}
-	/* both photo captions read at one setting on the ladder: the hand writes
-	   under a picture at the same size everywhere in this section */
-	.projects :global(.polaroid__caption) {
-		font-size: var(--step-0);
-		line-height: var(--lh-0);
-	}
-
 	/* Ayako peeking out of the cork beside the last sheet. The typed index
 	   is the one stop that starts a column in, so the bare board is now on
 	   its LEFT — which is where she goes. Below 64rem that indent column is

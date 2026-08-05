@@ -192,10 +192,13 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 		rotate: -0.6deg;
 	}
 
+	/* League Gothic below 24px was reading at the printed body's size — a
+	   display face borrowing the record's band. The subline of a poster is
+	   still poster. */
 	.telemetry__since {
 		margin: calc(var(--baseline) * 2) 0 0;
-		font-size: var(--step-1);
-		line-height: var(--lh-1);
+		font-size: var(--step-2);
+		line-height: var(--lh-2);
 		color: var(--ink-soft);
 	}
 
@@ -227,17 +230,26 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 		margin: 0;
 	}
 
+	/* the printed voice, on its own step. These sheets used to inherit the
+	   document's 1rem, which is the typewriter's step and the hand's step. */
+	.telemetry :global(.pin-card--print) {
+		font-size: var(--step-1);
+		line-height: var(--lh-2);
+	}
+
 	.telemetry__title {
 		margin: 0;
-		font-size: var(--step-1);
-		line-height: var(--lh-1);
+		font-size: var(--step-2);
+		line-height: var(--lh-2);
 		text-wrap: balance;
 	}
 
+	/* subordinate register: one step under the printed body, never at the
+	   hand's step — the hand's own note sits on this same sheet */
 	.telemetry__unit {
 		margin: calc(var(--baseline) / 2) 0 0;
-		font-size: var(--step--1);
-		line-height: var(--lh--1);
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
 		color: var(--ink-soft);
 	}
 
@@ -259,8 +271,8 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 		margin: var(--baseline) 0 var(--baseline);
 		padding-block-start: var(--baseline);
 		border-block-start: 1px solid color-mix(in oklab, var(--ink) 18%, transparent);
-		font-size: var(--step-0);
-		line-height: var(--lh-0);
+		font-size: var(--step-1);
+		line-height: var(--lh-2);
 		font-weight: 700;
 	}
 
@@ -278,8 +290,6 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 
 	.telemetry :global(.telemetry__note) {
 		margin: var(--baseline) 0 0;
-		font-size: var(--step-0);
-		line-height: var(--lh-0);
 		text-align: right;
 		text-wrap: pretty;
 		rotate: -2deg;
@@ -295,8 +305,8 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 
 	.telemetry__details summary {
 		cursor: pointer;
-		font-size: var(--step--1);
-		line-height: var(--lh--1);
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
 		font-weight: 700;
 		color: var(--ink-soft);
 	}
@@ -349,8 +359,8 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 
 	.telemetry__facenote {
 		margin: var(--baseline) 0 0;
-		font-size: var(--step--1);
-		line-height: var(--lh--1);
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
 		color: var(--ink-soft);
 	}
 
@@ -358,15 +368,15 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 
 	.telemetry__figure {
 		margin: calc(var(--baseline) * 2) 0 0;
-		font-size: var(--step-0);
-		line-height: var(--lh-0);
+		font-size: var(--step-1);
+		line-height: var(--lh-2);
 		font-weight: 700;
 	}
 
 	.telemetry__smallprint {
 		margin: calc(var(--baseline) / 2) 0 0;
-		font-size: var(--step--1);
-		line-height: var(--lh--1);
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
 		color: var(--ink-soft);
 	}
 
@@ -375,6 +385,18 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 		top: calc(var(--baseline) * -2);
 		right: calc(var(--baseline) * -1.5);
 		--stamp-size: 6rem;
+	}
+
+	/* Stacked, the habit sheet runs the full width of the wall's padding
+	   box, and its overhang has nowhere to go: a 96px ring rotated 7deg is
+	   107px wide, and the card's own 1.2deg tilt pushes its right edge out
+	   by half its height x sin(1.2deg) — which grew with the type. Measured
+	   at 768: 2px of the ring past the viewport, clipped silently by
+	   `overflow-x: clip`. The lap moves to the top edge only. */
+	@media (max-width: 63.999rem) {
+		.telemetry :global(.telemetry__stamp) {
+			right: 0;
+		}
 	}
 
 	/* keep the printed header clear of the stamp */

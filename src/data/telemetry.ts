@@ -47,28 +47,94 @@ export type FigureLocale = "en" | "de";
 
 const INTL: Record<FigureLocale, string> = { en: "en-US", de: "de-DE" };
 
+/* ------------------------------------------------------------------ */
+/* THE FIGURE AND ITS UNIT ARE ONE TOKEN                               */
+/* ------------------------------------------------------------------ */
+/* Measured on the served HTML of both locales: ZERO occurrences of
+ * U+00A0, U+202F or U+2009, across ~50 `figure %` joins and every h/m
+ * join — on a wall whose stated law is "every figure carries its unit".
+ * It is not theoretical: one German frame broke "… 90,6" / "%.", leaving
+ * the unit and the terminal full stop alone on a line.
+ *
+ * Bound here, at the helper, rather than at the fifty call sites: a
+ * hand-typed no-break space is invisible in a diff and survives exactly
+ * until the next copy edit.
+ *
+ * U+00A0 rather than the typographically finer U+202F (NARROW NO-BREAK
+ * SPACE): U+00A0 is present in every font on the wall, U+202F is not
+ * guaranteed in Courier Prime or Atkinson Hyperlegible, and a missing
+ * glyph renders as a notdef box in the middle of a figure. The
+ * load-bearing property is unbreakability, not width. */
+const NB = "\u00a0";
+
+/**
+ * The magnitude above which the instrument stops identifying the digit.
+ *
+ * WakaTime does not MEASURE a duration, it CONSTRUCTS one: editor plugins
+ * emit heartbeats on file change, on save, and every two minutes of
+ * typing, and the server joins consecutive heartbeats that fall inside a
+ * 15-minute keystroke timeout. A single boundary decision can therefore
+ * move a total by up to fifteen minutes. At four figures of hours the
+ * minutes digit is not merely uninformative — it is not identified by the
+ * method that produced it, and printing it invites a reader to test a
+ * precision the instrument cannot support.
+ *
+ * Below the threshold the minutes stay: on a daily figure fifteen minutes
+ * is a visible fraction of the value, so the digit still carries
+ * information.
+ *
+ * Nothing is rounded UP and no value is lost: the coarse forms floor, so
+ * they can only ever understate, and the exact forms remain on the data
+ * tables, in the chart alt text and on the provenance card.
+ */
+const COARSE_HOURS = 1_000;
+
 /** A grouped figure: 8,357 · 3,019.9 (en) → 8.357 · 3.019,9 (de). */
 export const figure = (value: number, locale: FigureLocale = "en"): string =>
 	value.toLocaleString(INTL[locale], { maximumFractionDigits: 6 });
 
-/** "5,432 h 47 m" / "5.432 h 47 m" from a seconds total. Voice law: `h` and `m`. */
+/** A share with its unit bound to it: "90.6 %" / "90,6 %". */
+export const pct = (value: number, locale: FigureLocale = "en"): string =>
+	`${figure(value, locale)}${NB}%`;
+
+/** EXACT: "5,432 h 47 m" / "5.432 h 47 m" from a seconds total. Tables,
+ *  alt text and provenance — never softened. Voice law: `h` and `m`. */
 export const formatHM = (totalSeconds: number, locale: FigureLocale = "en"): string => {
 	const hours = Math.floor(totalSeconds / 3600);
 	const minutes = Math.floor((totalSeconds % 3600) / 60);
-	return `${figure(hours, locale)} h ${minutes} m`;
+	return `${figure(hours, locale)}${NB}h ${minutes}${NB}m`;
 };
 
-/** "3,019.9 h" / "3.019,9 h" from an hours figure. */
-export const formatH = (hours: number, locale: FigureLocale = "en"): string =>
-	`${hours.toLocaleString(INTL[locale], { maximumFractionDigits: 1 })} h`;
+/** Card face: minutes only where the method identifies them (COARSE_HOURS). */
+export const formatHMCoarse = (totalSeconds: number, locale: FigureLocale = "en"): string => {
+	const hours = Math.floor(totalSeconds / 3600);
+	return hours >= COARSE_HOURS ? `${figure(hours, locale)}${NB}h` : formatHM(totalSeconds, locale);
+};
 
-/** Abbreviated millions in the locale's own word: "2.4M+" → "2,4 Mio.+". */
+/** EXACT: "3,019.9 h" / "3.019,9 h" from an hours figure. */
+export const formatH = (hours: number, locale: FigureLocale = "en"): string =>
+	`${hours.toLocaleString(INTL[locale], { maximumFractionDigits: 1 })}${NB}h`;
+
+/** Card face: whole hours at or above COARSE_HOURS, floored. */
+export const formatHCoarse = (hours: number, locale: FigureLocale = "en"): string =>
+	hours >= COARSE_HOURS
+		? `${figure(Math.floor(hours), locale)}${NB}h`
+		: formatH(hours, locale);
+
+/**
+ * Abbreviated millions in the locale's own word: "2.4M+" → „über 2,4 Mio.".
+ *
+ * German does not suffix a `+` to an abbreviation point — "2,4 Mio.+" is an
+ * English form rendered with German words. The preposition carries the
+ * "at least" sense that the `+` carries in English, so both walls state the
+ * same floored claim in their own idiom.
+ */
 export const millionsPlus = (value: number, locale: FigureLocale = "en"): string => {
 	const millions = (value / 1_000_000).toLocaleString(INTL[locale], {
 		minimumFractionDigits: 1,
 		maximumFractionDigits: 1
 	});
-	return locale === "de" ? `${millions} Mio.+` : `${millions}M+`;
+	return locale === "de" ? `über ${millions}${NB}Mio.` : `${millions}M+`;
 };
 
 /** ISO date (YYYY-MM-DD) from an API datetime string, with a fallback. */

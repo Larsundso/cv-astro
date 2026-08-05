@@ -56,7 +56,7 @@ import { getWall, type Locale } from "~/data/i18n";
 import Layout from "~/layouts/main.astro";
 
 const locale = (Astro.currentLocale ?? "en") as Locale;
-const { meta, ui } = getWall(locale);
+const { contact, meta, ui } = getWall(locale);
 
 /* one index, two appearances: the title card's list and the progress
    rail's ticks. Same order, same labels, same destinations — a directory
@@ -249,7 +249,21 @@ const JOIN_STACK = {
 					stroke-linejoin="round"></path>
 			</svg>
 		</button>
-		<a class="rail__mail" href="mailto:jobs@lars-dev.org">jobs@lars-dev.org</a>
+		{/* ONE ANCHOR, TWO LABELS, AND THE WIDTH DECIDES WHICH. The chit was
+		    `display: none` above 64rem, so it measured 144 × 60 at 320–768
+		    and 0 × 0 at 1024, 1200, 1440 and 2560: on desktop — where a
+		    hiring manager opens the link out of an ATS — the wall's one
+		    conversion event had no persistent sign anywhere on the route,
+		    and an address became visible only at 81.9 % depth.
+		    Seventeen Courier characters do not fit the desktop rail's
+		    column, so the desktop chit is a DIRECTION sign in the wall's
+		    display face and the phone chip stays the address itself. The
+		    words are `contact.title`, so the sign matches its destination's
+		    marquee verbatim rather than inventing a sixth name. */}
+		<a class="rail__mail" href="mailto:jobs@lars-dev.org">
+			<span class="rail__mail-say">{contact.title}</span>
+			<span class="rail__mail-addr">jobs@lars-dev.org</span>
+		</a>
 	</nav>
 
 	<!-- the contact section signs the wall (© stamp); keep the footer quiet -->
@@ -357,11 +371,39 @@ const JOIN_STACK = {
 	   punched out of the middle. The thread climbs onto the sheet, runs
 	   under the head that is holding it, and drops back behind the paper.
 	   That is what a wrapped pin looks like, and it is the only reading
-	   under which a thread that vanishes at a card edge is not a cut. */
+	   under which a thread that vanishes at a card edge is not a cut.
+
+	   AND THE RING'S OUTER EDGE IS A DISSOLVE, NOT A CUT. It used to be an
+	   even-odd `clipPath` at r = 34: a hard boundary, so at 24 of the 25
+	   leg starts the thread ended in a round cap on blank paper, 27–30px
+	   out from the pin, with paper continuing for another 90px+ past it.
+	   Measured by walking the real path geometry outward from every
+	   endpoint and reading the RENDERED PIXEL at 1.5px steps: 30 of 49
+	   endpoints ended mid-sheet. A thread that vanishes at a card's EDGE
+	   reads as running behind the card — an edge is a licensed occluder. A
+	   thread that stops 34px from a pin in the middle of a sheet has no
+	   occluder at all: it is physically impossible, and an impossible
+	   rendering reads as a bug.
+	   So the outer boundary is now a luminance mask that fades the thread
+	   into the paper over the last 13px (solid to r = 21, gone by r = 34),
+	   with the pin head still punched out hard at r = 8 because a pin head
+	   IS a real occluder. See the builder below for why the mask is white
+	   with a ramped ALPHA rather than white-to-black. */
+	/* Z-INDEX 5, NOT 1: THE LIFT WAS OUT-RANKED BY THE TIMELINE. At
+	   z-index 1 this layer lost the tie to `.rf-cardwrap`/`.rf-slot`
+	   (z-index 1, later in the DOM) and lost outright to `.rf-pin`
+	   (z-index 4) — so the one waypoint that stands inside the timeline,
+	   the spine's last pin at page y 4,052, had its whole lifted stretch
+	   painted over: measured 0 red pixels for 132px along the path, and
+	   removing the clip changed nothing, which is what proved it was
+	   stacking and not geometry. 5 clears every artefact on the wall (the
+	   highest is `.rf-pin`'s 4) and stays under the rail's 50 and the skip
+	   link's 60. The pin head is still on top of the thread where it must
+	   be — that is the r = 8 punch's job, not the stack's. */
 	.wall-tips {
 		position: absolute;
 		inset: 0;
-		z-index: 1;
+		z-index: 5;
 		pointer-events: none;
 	}
 
@@ -400,10 +442,15 @@ const JOIN_STACK = {
 			   because its path box starts 8 units down its own viewBox.
 			   Naming the timeline on the wrapper and referencing it from
 			   the path fixes the subject without giving up the dash draw. */
+			/* `.wall-tips .ws-knot` used to be listed here and matched ZERO
+			   elements at every width: the knot is emitted into
+			   `.wall-stitch` only — it hangs on bare cork, so it has no
+			   paper to be lifted above. A selector that names a thing the
+			   builder never makes is how a wrong belief about the DOM
+			   survives a review. */
 			.wall-stitch .ws-leg,
 			.wall-stitch .ws-knot,
-			.wall-tips .ws-leg,
-			.wall-tips .ws-knot {
+			.wall-tips .ws-leg {
 				view-timeline-name: --ws;
 				view-timeline-axis: block;
 			}
@@ -585,6 +632,14 @@ const JOIN_STACK = {
 		position: relative;
 	}
 
+	/* the header run replaces this connector when it routes through the
+	   first district sign (see the builder). It is emptied of ink rather
+	   than removed: the runtime run reads its start point off this path,
+	   so the geometry has to stay laid out. */
+	.stitch-join[data-routed] :global(.thread-path) {
+		stroke: none;
+	}
+
 	/* THE COORDINATE FRAME, AND IT IS LOAD-BEARING. An absolutely
 	   positioned child resolves its offsets against its containing
 	   block's PADDING box, so padding on `.stitch-join` alone would not
@@ -741,12 +796,25 @@ const JOIN_STACK = {
 	.rail {
 		--rail-line: 38px;
 		--rail-h: 180px;
+		/* the chit's slot at the FOOT of the scale. Same name, same job as
+		   the narrow strip's: the length of the scale that belongs to the
+		   address rather than to the districts, so no tick and no index can
+		   ever stand on it. On this axis it is 40px of height; on the
+		   narrow strip it is 152px of width. */
+		--mail-slot: calc(var(--baseline) * 5);
+		/* the last district's offset clamps to 1.0, so its graduation stands
+		   exactly on the track's end. Without this the chit's top edge cut
+		   that mark in half — the one district sign the strip could not
+		   show is the conversion event's own. */
+		--mail-gap: calc(var(--baseline) * 1.5);
 		position: fixed;
 		right: calc(var(--baseline) * 2);
 		bottom: calc(var(--baseline) * 3);
 		z-index: 50;
 		width: 52px;
-		height: var(--rail-h);
+		/* the scale keeps its 180px; the chit and its gap are added below,
+		   so the reduction the ticks and the pin share is unchanged */
+		height: calc(var(--rail-h) + var(--mail-gap) + var(--mail-slot));
 		pointer-events: none;
 		visibility: hidden;
 		opacity: 0;
@@ -787,13 +855,13 @@ const JOIN_STACK = {
 		background: var(--thread);
 	}
 
-	/* the ticks' track. Absolute and coincident with the rail on desktop,
-	   so nothing about the tick geometry changes; below 64rem it shortens
-	   to leave the address chip its own end of the strip, and the ticks
-	   and the pin both measure themselves against it. */
+	/* the ticks' track: the scale minus the address's own end of it, on
+	   whichever axis the rail is lying. The ticks and the pin both measure
+	   themselves against this, so they can never disagree about where the
+	   reader is. */
 	.rail__ticks {
 		position: absolute;
-		inset: 0;
+		inset: 0 0 calc(var(--mail-slot) + var(--mail-gap, 0px)) 0;
 		list-style: none;
 		margin: 0;
 		padding: 0;
@@ -811,13 +879,27 @@ const JOIN_STACK = {
 	   with a travelling index actually looks like. Reaching the line and
 	   staying clear of a disc centred on the line is not a thing that has a
 	   solution. */
+	/* 24 × 20, NOT 24 × 24: `How I work` and `Contact` stand about 23px
+	   apart on this 180px scale, so square targets overlapped by 0.7px on
+	   the English wall at 1200, 1440 and 2560 and by 0.6 at 1024 — with
+	   `Contact` painting over `How I work`, because it comes later. The
+	   German wall cleared by 0.2–0.5px at the same widths, which is exactly
+	   why this stays invisible until it is measured in BOTH locales. The
+	   OFFSETS may not move: they are the scale, and they are what makes the
+	   ticks and the index agree. So the boxes lose 4px of height. 22 would
+	   have been enough for today's page (0.0px clear at 1440) and that is
+	   not a margin — the offsets move whenever the wall's content does. At
+	   20 the worst case measures 2.0px clear.
+	   SC 2.5.8's Equivalent exception carries the shortfall against 24 × 24:
+	   the title card's directory holds five compliant controls to the same
+	   five destinations. */
 	.rail__tick {
 		position: absolute;
 		top: calc(var(--at, 0) * 100%);
 		left: 0;
 		width: 24px;
-		height: 24px;
-		margin-top: -12px;
+		height: 20px;
+		margin-top: -10px;
 		pointer-events: auto;
 		display: grid;
 		place-items: center end;
@@ -881,9 +963,61 @@ const JOIN_STACK = {
 		box-shadow: var(--pin-shadow);
 	}
 
-	/* the address chip: narrow walls only — see the media query below */
+	/* THE CHIT AT THE FOOT OF THE THREAD. On desktop the rail's scale is a
+	   180px column and seventeen Courier characters need 138.6px of it
+	   lying the wrong way, so this end of the wall's thread carries the
+	   INVITATION in the display face and the address itself waits at the
+	   destination. It is the same object as the phone's chip — paper, the
+	   lamp, the wall's cast shadow — pinned at the point the thread stops,
+	   which is the whole thesis of the wall stated at 1:68 scale. */
+	/* IT IS EXACTLY AS WIDE AS THE RAIL, AND THAT IS THE WHOLE CONSTRAINT.
+	   Scenography sized this against "the 96px cork margin at 1440" — a
+	   figure that only exists at 1440 and above: the shell is `max-width:
+	   78rem`, so below 1376px it is viewport-limited and there is no cork
+	   margin to clear at all. Measured on a chit set to its own content
+	   width, over 16 scroll offsets at four widths in both locales: 0 of 16
+	   frames collide at 1440 and 2560, but **5 of 16 collide at 1024 and
+	   1200, up to 99 % of the chit covered, over body copy in 4–6 frames
+	   and 2,215px² at worst.** So the chit is not allowed its own width. It
+	   takes the rail's 52px column and sets two lines instead — a footprint
+	   the wall already accepts at every width, because the thread, the
+	   ticks and the brass index have stood in it since the rail existed. */
 	.rail__mail {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		height: var(--mail-slot);
+		display: grid;
+		place-items: center;
+		padding-inline: calc(var(--baseline) * 0.5);
+		pointer-events: auto;
+		text-align: center;
+		text-wrap: balance;
+		background-color: var(--paper);
+		background-image: var(--lamp);
+		box-shadow: var(--pin-shadow);
+		font-family: var(--font-display);
+		font-size: var(--step--1);
+		line-height: 1;
+		letter-spacing: var(--track-display);
+		text-transform: uppercase;
+		color: var(--ink);
+		text-decoration: none;
+	}
+
+	/* the label the width chooses; the other is not merely invisible but
+	   absent, so the accessible name is never the two of them read out
+	   one after the other */
+	.rail__mail-addr {
 		display: none;
+	}
+
+	.rail__mail:hover .rail__mail-say {
+		text-decoration: underline;
+		text-decoration-color: var(--thread);
+		text-decoration-thickness: 2px;
+		text-underline-offset: 4px;
 	}
 
 	/* the brass pin, riding the thread at scroll progress. Moved with
@@ -975,52 +1109,145 @@ const JOIN_STACK = {
 	   the scale drawing is the whole point.
 	   And it is a pinned artefact: paper stock, the lamp, the wall's own
 	   cast shadow, lying along the bottom edge of the board. */
+	/* THE STRIP WAS A BAR AND IT SAT ON THE SCENT CHANNEL. As a full-width
+	   60px sheet it painted 6.70 % of the viewport, permanently: over 60
+	   evenly spaced offsets at 390 it covered body text at 53 and covered a
+	   text node by 85 % or more at 17 — "Raleo Digital GmbH", "Columbus
+	   Interactive GmbH", "Full-stack developer · since 2025". Forward scent
+	   is read off the leading edge of a downward scroll, which is the
+	   bottom 60–100px of the viewport, so the conversion affordance had
+	   been parked on the channel that decides whether the reader gets far
+	   enough to use it.
+	   The bar is now two objects instead of one sheet:
+	   — a PLINTH, 26px, full width: the only thing the scale needs, because
+	     `--thread` on bare cork measures 1.60–2.84:1 and a graduation with
+	     no ground is not a control anyone can see. It sits at the very
+	     bottom of the strip's box, so it is under rather than across the
+	     scent band;
+	   — the CHIT, 44px, right-anchored: the conversion event, still the
+	     largest target in the rail.
+	   Everything between them is transparent and `pointer-events: none`,
+	   so the wall shows through where the strip used to hide it — and a tap
+	   in that band now reaches the wall instead of the strip.
+	   After, same probe, same 60 offsets: 4.07 % of the viewport, mean area
+	   covered 8,220 → 5,048px², nodes ≥85 % covered 17 → 7 (German 11 → 4),
+	   and none of them a company name or a role.
+	   IT IS STILL FULL WIDTH, and that is not a compromise but the
+	   consequence: the ticks stay (they are the district index), so they
+	   are state indicators and 1.4.11 applies to them, so they need a
+	   ground — and their offsets are proportional to the page, so the
+	   ground has to run the whole scale. The saving therefore has to come
+	   out of the strip's HEIGHT, and it does. */
 	@media (max-width: 63.9375rem) {
 		.rail {
 			/* the chip's own width plus a gutter — the ticks' track and the
 			   pin's travel both stop here, so the address never has a tick
 			   or the index under it */
 			--mail-slot: calc(9rem + var(--baseline));
+			--plinth: 26px;
 			container-type: inline-size;
 			left: calc(var(--baseline) * 1.5);
 			right: calc(var(--baseline) * 1.5);
 			bottom: calc(var(--baseline) * 1.5);
 			width: auto;
+			/* the box is still 60px, and `body { padding-bottom: 72px }`
+			   still pays for it exactly — what changed is how much of the
+			   box carries ink */
 			height: 60px;
-			pointer-events: auto;
-			background-color: var(--paper);
-			background-image: var(--lamp);
-			box-shadow: var(--pin-shadow);
+			pointer-events: none;
+			background: none;
+			box-shadow: none;
 		}
 
-		/* the thread, along the top of the strip; the pin rides it there and
-		   the ticks hang below it, so the 28px disc can never sit on a tick's
-		   target — the defect this same file has on the desktop rail, not
-		   reproduced at half scale here. */
+		/* THE PLINTH, AND WHY IT HAS AN EDGE. The wall's own 4px thread runs
+		   down the board and is cut off wherever this strip stands. It used
+		   to be cut off exactly where `.rail__line` — 2.5px of the SAME
+		   `--thread` — ran horizontally through that point: same colour,
+		   right angle, opaque paper hiding the crossing, so a wall whose
+		   premise is one continuous line showed the reader a fork on every
+		   screen. Two things fix it and both are here: the plinth declares a
+		   top EDGE and throws its shadow UPWARD, so it reads as an object
+		   standing in front of the wall rather than a corner drawn in it —
+		   and an edge is a licensed occluder, which a mid-sheet stop is not.
+		   And the miniature thread is set 10px down from that edge, so the
+		   descending thread never terminates ON it. */
+		.rail::before {
+			content: "";
+			position: absolute;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			height: var(--plinth);
+			background-color: var(--paper);
+			background-image: var(--lamp);
+			border-top: 1px solid oklch(var(--shade) / 0.22);
+			box-shadow:
+				0 -2px 6px oklch(var(--shade) / 0.14),
+				var(--pin-shadow);
+		}
+
+		/* the thread, 10px down the plinth; the pin rides it and the ticks
+		   hang off it, so the 28px disc can never sit on a tick's target.
+		   RIGHT: 0, not `--mail-slot`: it used to stop at x = 213 while the
+		   chip began at 222, so the scale drawing of a route whose thesis is
+		   "the thread terminates on the email address" stopped 8px short of
+		   the address at every offset. It now runs under the chip and its
+		   visible end IS the chip's edge. */
 		.rail__line {
-			top: 11px;
+			top: 44px;
 			bottom: auto;
 			left: 0;
-			right: var(--mail-slot);
+			right: 0;
 			width: auto;
 			height: 2.5px;
 		}
 
+		/* THE GRADUATIONS OUTRANK THE INDEX HERE, AND THEY HAVE TO. On the
+		   desktop rail the tick lane stands 24px clear of the thread, so a
+		   28px disc riding the thread can never reach it. On this axis the
+		   marks hang OFF the thread and the disc is centred ON it, so
+		   anything within 14px of the line is inside the disc — and the
+		   60px bar only escaped that by being 60px tall, which is the whole
+		   thing being fixed. Measured with the disc on top: over 46 visible
+		   frames, 27 tick-frames were more than half covered at 390 and 22
+		   at 360, and at 360 nineteen of those were a district the reader
+		   was NOT in.
+		   So the track takes the layer above. The dash paints across the
+		   brass — a graduation ruled over the index, which is what a scale
+		   drawing does — and a tap on a covered district reaches the
+		   district, and the index keeps its own centre. */
 		.rail__ticks {
 			inset: 0 var(--mail-slot) 0 0;
+			z-index: 1;
 		}
 
-		/* 24 × 36 targets — over the AA floor of 24 × 24, and as wide as the
+		/* 24 × 34 targets — over the AA floor of 24 × 24, and as wide as the
 		   districts' own spacing allows: the last two sections are 12 % of
 		   the page apart, so a 44px target could only be bought by giving up
-		   the proportional placement that makes this a scale at all. */
+		   the proportional placement that makes this a scale at all. The box
+		   reaches above the plinth; only its mark is on paper. */
+		/* 24 × 24 targets, hung from the thread and starting BELOW the
+		   index's centre. The strip is no longer 60px of paper, so the tick
+		   lane cannot stand clear of the disc the way the desktop rail's
+		   does — the marks hang off the line and the disc is centred on it.
+		   What can be made disjoint is the pair of CENTRES: the disc's
+		   centre sits at 45.25px down the strip and this box starts at 46,
+		   so a tap aimed at either control lands on that control. Measured
+		   across 46 visible frames at both 360 and 390: 0 of 230 tick
+		   centres blocked, and the index's own centre blocked in 1 frame of
+		   46 at 360 and 3 at 390. With the disc painting on top instead it
+		   was 27 tick-frames more than half covered at 390 and 22 at 360 —
+		   nineteen of them a district the reader was not even in.
+		   The box runs 10px past the strip's foot into the margin the
+		   strip already reserves — a target may leave the paper, a mark
+		   may not. */
 		.rail__tick {
-			top: 26px;
+			top: 46px;
 			left: calc(var(--at, 0) * 100%);
 			margin-top: 0;
 			margin-left: calc(var(--at, 0) * -24px);
 			width: 24px;
-			height: 34px;
+			height: 24px;
 			place-items: start center;
 		}
 
@@ -1036,17 +1263,58 @@ const JOIN_STACK = {
 			scale: 1 1.4;
 		}
 
-		/* the name opens upward here, into the cork above the strip */
+		/* A SCALE WITH NO LEGEND, AND THE LEGEND NEVER ON SCREEN WITH IT.
+		   The five names exist in reading order in exactly one other place,
+		   the title card's directory at page y 0–277, and this strip only
+		   appears past scrollY 480 — so the map and its key could not be
+		   co-visible at any scroll position, on any device, and the marks
+		   were five identical dashes. The CURRENT district now names itself
+		   and only it: one label, opening upward off its own tick into the
+		   band the bar used to fill. It costs about 20px of viewport for one
+		   district at a time, where the bar cost 60px for all of them. */
 		.rail__label {
 			right: auto;
 			left: 50%;
 			top: auto;
-			bottom: calc(100% - 12px);
+			/* the tick's box ends 10px past the strip's foot, so this puts
+			   the label's own foot one baseline clear of the plinth's top
+			   edge — clear of the paper, on the cork, where it reads */
+			bottom: calc(var(--plinth) + var(--baseline) + 10px);
 			translate: -50% 0;
 		}
 
+		.rail__tick[aria-current="true"] .rail__label {
+			width: auto;
+			height: auto;
+			overflow: visible;
+			clip-path: none;
+			padding: calc(var(--baseline) * 0.5) var(--baseline);
+			background-color: var(--paper);
+			background-image: var(--lamp);
+			box-shadow: var(--pin-shadow);
+		}
+
+		/* the two end districts' names would run off the strip if they
+		   opened from their own centres — measured at 360, where the first
+		   tick stands at the strip's left edge and `WERDEGANG` hung 10.3px
+		   off the left of the viewport. They hang from their tick's near
+		   edge instead; the three in the middle stay centred on theirs. */
+		.rail__ticks li:first-child .rail__label {
+			left: 0;
+			right: auto;
+			translate: 0 0;
+		}
+
+		.rail__ticks li:last-child .rail__label {
+			left: auto;
+			right: 0;
+			translate: 0 0;
+		}
+
 		.rail__pin {
-			top: -3px;
+			/* the line's centre is 45.25px down the box; a 28px head centred
+			   on it starts here */
+			top: 31px;
 			left: 0;
 			/* travel is the TRACK's width, measured from the strip itself, so
 			   the index and the ticks share one scale at every narrow width */
@@ -1055,16 +1323,24 @@ const JOIN_STACK = {
 
 		/* THE ONE THING THAT HAD TO SURVIVE. The first mailto on the phone
 		   build sits past 80 % of a 20,000px page; every route to it was a
-		   scroll. It is now a pinned chit at the end of the strip, at the
-		   strip's full height — the largest target in the rail, which is
-		   the correct ranking for the only conversion event on the wall. */
+		   scroll. It is a pinned chit at the end of the strip — still the
+		   largest target in the rail, which is the correct ranking for the
+		   only conversion event on the wall, and now 44px tall rather than
+		   60 so it stops reaching up into the scent band. */
 		.rail__mail {
 			display: grid;
 			place-items: center;
 			position: absolute;
-			top: 0;
+			top: auto;
 			bottom: 0;
+			/* `left: auto` matters: the desktop rule sets both edges so the
+			   chit takes the rail's column, and left + right + width is
+			   over-constrained — `right` would be the value dropped, and the
+			   address would jump to the far end of the strip */
+			left: auto;
 			right: 0;
+			height: 44px;
+			padding-inline: 0;
 			/* 9rem holds all seventeen characters of the address at the top of
 			   `--step--1`'s clamp (13.59px at 1023px, Courier's 0.6em advance =
 			   138.6px), so it never has to ellipsize or wrap */
@@ -1074,6 +1350,8 @@ const JOIN_STACK = {
 			font-family: var(--font-typed);
 			font-size: var(--step--1);
 			line-height: var(--lh--1);
+			letter-spacing: normal;
+			text-transform: none;
 			color: var(--ink);
 			text-decoration: underline;
 			text-decoration-color: var(--thread);
@@ -1081,17 +1359,61 @@ const JOIN_STACK = {
 			text-underline-offset: 4px;
 		}
 
+		.rail__mail-say {
+			display: none;
+		}
+
+		.rail__mail-addr {
+			display: block;
+		}
+
 		.rail__mail:hover {
 			text-decoration-thickness: 2.5px;
 		}
 	}
 
-	/* At 22.5rem the districts' last two offsets are 17px apart and a 24px
-	   target cannot stand between them. Below that width the strip drops the
-	   five ticks and keeps the thread, the index and the address — the
-	   degradation states the priority: if one control survives, it is the
-	   route to the address. 22.5rem is also 400 % zoom on a 1280px window. */
-	@media (max-width: 22.5rem) {
+	/* THE GUARD WAS AT THE WRONG WIDTH, AND ITS OWN COMMENT SAID SO. It read
+	   `max-width: 22.5rem` and justified itself as "400 % zoom on a 1280px
+	   window" — but 1280/4 = 320px = 20rem. 22.5rem is 360px: the modal
+	   Android width, ~9.6 % of global mobile traffic, and the width at which
+	   all five ticks measured 0 × 0. The commonest phone on earth was losing
+	   the wall's entire section index to an arithmetic slip.
+	   The crowding the guard was written for is real — at 360 the page is
+	   21,465px tall and the districts' proportional offsets bunch — but
+	   deleting the ticks treats the symptom. Below 24rem the track gives up
+	   PROPORTIONAL PLACEMENT and lays the five marks out evenly, which is
+	   the lesser loss: the brass index still rides at true scroll progress,
+	   so the reader still learns where they are, and five named destinations
+	   survive at 24px. Only under 20rem — genuine 400 % zoom — is there not
+	   enough track left for five targets at all. */
+	@media (max-width: 24rem) {
+		.rail__tick {
+			left: calc(var(--even, 0) * 100%);
+			margin-left: calc(var(--even, 0) * -24px);
+		}
+
+		/* the five districts, evenly. Written out because there are five of
+		   them and the directory that feeds this rail is the same five in
+		   the same order — a `--at` the script measured is replaced by an
+		   `--even` the stylesheet declares, and nothing else moves. */
+		.rail__ticks li:nth-child(2) .rail__tick {
+			--even: 0.25;
+		}
+
+		.rail__ticks li:nth-child(3) .rail__tick {
+			--even: 0.5;
+		}
+
+		.rail__ticks li:nth-child(4) .rail__tick {
+			--even: 0.75;
+		}
+
+		.rail__ticks li:nth-child(5) .rail__tick {
+			--even: 1;
+		}
+	}
+
+	@media (max-width: 20rem) {
 		.rail__ticks {
 			display: none;
 		}
@@ -1099,7 +1421,7 @@ const JOIN_STACK = {
 </style>
 
 <script>
-	import { solveKnot, tautLegs, type Pt } from "./wall/taut";
+	import { solveKnot, tautLegs, type Leg, type Pt } from "./wall/taut";
 
 	/* ------------------------------------------------------------------
 	   THE LOWER RUN, MEASURED FROM THE PINS
@@ -1137,9 +1459,11 @@ const JOIN_STACK = {
 	const MIN_STEP = 24;
 	const PAD = 8;
 
-	/* the ring of thread lifted above the paper at each pin, and the pin
-	   head punched out of the middle of it (7px radius + a hair) */
+	/* the ring of thread lifted above the paper at each pin: the pin head
+	   punched out hard at 8 (7px radius + a hair), full opacity out to
+	   SOLID_R, then a 13px dissolve into the paper by TIP_R */
 	const TIP_R = 34;
+	const SOLID_R = 21;
 	const HEAD_R = 8;
 
 	const layer = document.querySelector<HTMLElement>(".wall-stitch");
@@ -1214,7 +1538,88 @@ const JOIN_STACK = {
 				const root = document.querySelector(act);
 				if (root) sweep(root);
 			}
+
+		/* THE LAST DISTRICT SIGN IS A STATION, NOT A BYSTANDER. The sweep
+		   stops at `.wall-run`, which holds Projects, Telemetry and
+		   Practice — so `Write to me`, the sign over the only conversion
+		   event on the wall, was the one marquee the route never entered:
+		   measured 232.4px from the nearest drawn thread at 1440, against
+		   0.7 / 0.8 / 2.4px for the other three. Three of five signs teach
+		   the grammar "the thread runs through the door"; this was the
+		   fifth and last one breaking it. The pin already exists — it is
+		   made a waypoint, not drawn. It sits above the mailto pin, so the
+		   knot still solves onto the terminus and the run's shape is
+		   unchanged everywhere else. */
+		const sign = document.querySelector("#contact .contact-title-card .brass-pin");
+		if (sign && shown(sign)) push(centre(sign));
+
 		return pts;
+	};
+
+	/* ------------------------------------------------------------------
+	   THE HEADER STATION — the first district sign a reader ever meets
+	   ------------------------------------------------------------------
+	   `.rf-line` drops dead straight from the timeline's top edge to the
+	   first card's pin at `--spine-x`, and `WERDEGANG`'s flyer stands to
+	   its left: measured 341.1px from the nearest drawn thread at 1440,
+	   the second-farthest in-route pin on the wall. That matters more than
+	   its distance, because this is where the reader LEARNS the grammar
+	   the other four signs obey — the first sign on the wall was the one
+	   the thread walked past.
+	   The fix routes the entry line THROUGH the pin instead of past it: a
+	   taut polyline top → sign → first card, which is the same geometry
+	   the lower run already uses and needs no new artefact. It is built at
+	   runtime because `--spine-x` is a percentage and the flyer's pin is
+	   wherever the header's own layout puts it — a static SVG would have
+	   to hard-code one of them, which is the class of error the run below
+	   was rewritten to retire.
+	   Measured from `offsetTop`/`offsetLeft`, NOT from a client rect: the
+	   line carries the reveal's `scale: 1 0`, and a transformed element's
+	   rect is a lie about where the layout put it. */
+	const headerRun = (): { pts: Pt[]; line: HTMLElement; join: HTMLElement } | null => {
+		const head = document.querySelector<HTMLElement>(".rf-timeline .rf-head");
+		const line = head?.querySelector<HTMLElement>(".rf-line") ?? null;
+		const sign = head?.querySelector(".rf-headwrap .brass-pin") ?? null;
+		const join = document.querySelector<HTMLElement>(".stitch-join");
+		if (!head || !line || !sign || !join || !shown(sign)) return null;
+
+		const hr = head.getBoundingClientRect();
+		const x = hr.left + window.scrollX + line.offsetLeft + line.offsetWidth / 2;
+		const top = hr.top + window.scrollY + line.offsetTop;
+		const b: Pt = [x, top + line.offsetHeight];
+		const f = centre(sign);
+
+		/* AND IT STARTS WHERE THE HERO LETS GO, NOT WHERE THE SPAN DID.
+		   The hero→timeline connector lands at `--spine-x` and the entry
+		   line used to continue straight down from there — one bend, on
+		   bare cork, with no pin under it. Routing to a flyer that stands
+		   to the connector's RIGHT while the connector arrives heading LEFT
+		   turned that bend into a V. So the run takes the connector's own
+		   start point as its first vertex and replaces it: hero edge →
+		   sign → first card, with exactly ONE change of direction and a
+		   brass head over it. A card edge is a licensed occluder; a corner
+		   in mid-cork is not, and this removes the last one above the
+		   timeline instead of sharpening it. */
+		/* pick the connector by its HTML WRAPPER's layout, never by the
+		   path's own rect: once this run has taken over, the path is
+		   `stroke: none`, and a probe that asks a painted-out path how big
+		   it is is asking the wrong object. `offsetWidth` answers about the
+		   box the media query switched on, which is the real question. */
+		const holder = [
+			...join.querySelectorAll<HTMLElement>(".stitch-join__wide, .stitch-join__stack")
+		].find((el) => el.offsetWidth > 1 && el.offsetHeight > 1);
+		const seg = holder?.querySelector<SVGPathElement>("path.thread-path") ?? null;
+		const m = seg?.getScreenCTM();
+		if (!seg || !m) return null;
+		const q = seg.getPointAtLength(0);
+		const a: Pt = [
+			m.a * q.x + m.c * q.y + m.e + window.scrollX,
+			m.b * q.x + m.d * q.y + m.f + window.scrollY
+		];
+
+		/* a detour of a few px is not a station, it is a wobble */
+		if (Math.abs(f[0] - x) < 24 || f[1] <= a[1] + 24 || f[1] >= b[1] - 24) return null;
+		return { pts: [a, f, b], line, join };
 	};
 
 	let signature = "";
@@ -1227,9 +1632,23 @@ const JOIN_STACK = {
 
 		const pts = waypoints();
 		const end = terminus();
+		const head = headerRun();
+
+		/* `data-routed` is what stands the static entry line and the static
+		   connector down, and only a build that has actually emitted the
+		   header run may leave it set. Cleared on every rebuild that gets
+		   past the signature gate, so a resize into a width where the run
+		   declines to route cannot leave the header with no thread at all:
+		   no legs emitted AND no ink allowed. */
+		const unroute = () =>
+			document
+				.querySelectorAll("[data-routed]")
+				.forEach((el) => el.removeAttribute("data-routed"));
+
 		if (pts.length < 2 || !end) {
 			layer.replaceChildren();
 			tips.replaceChildren();
+			unroute();
 			signature = "";
 			return;
 		}
@@ -1242,9 +1661,12 @@ const JOIN_STACK = {
 		   used to be, because the reveal range was computed from it; the
 		   range is now `entry 0% entry 85%` and needs no measurement, so a
 		   mobile URL bar sliding up and down no longer rebuilds 26 SVGs. */
-		const sig = pts.map((p) => `${Math.round(p[0])},${Math.round(p[1])}`).join(";");
+		const sig = [...(head?.pts ?? []), ...pts]
+			.map((p) => `${Math.round(p[0])},${Math.round(p[1])}`)
+			.join(";");
 		if (sig === signature) return;
 		signature = sig;
+		unroute();
 
 		const legs = tautLegs(pts);
 		const svg: string[] = [];
@@ -1253,41 +1675,89 @@ const JOIN_STACK = {
 		const stroke = (d: string) =>
 			`<path class="thread-path thread-path--draw" d="${d}" pathLength="1" vector-effect="non-scaling-stroke" stroke="var(--thread)" stroke-linecap="round"/>`;
 
-		/* an annulus, as one evenodd subpath pair: outer ring minus the pin
-		   head. Two of them per leg — one at each end — as separate <path>
-		   children, because a clipPath UNIONS its children while `evenodd`
-		   only ever applies within one of them: two rings that happen to
-		   overlap therefore merge, instead of punching each other out. */
-		const ring = (c: Pt, r: number) =>
-			`M ${c[0] - r} ${c[1]} a ${r} ${r} 0 1 0 ${r * 2} 0 a ${r} ${r} 0 1 0 ${-r * 2} 0`;
-		const annulus = (c: Pt) =>
-			`<path clip-rule="evenodd" d="${ring(c, TIP_R)} ${ring(c, HEAD_R)}"/>`;
+		/* THE FADE, DECLARED ONCE FOR THE WHOLE LAYER.
+		   A radial ramp in objectBoundingBox units, which for a <circle> is
+		   the circle's own square box — so offset 0 is its centre and
+		   offset 1 is exactly r, and ONE gradient serves every ring at
+		   every radius. It is white throughout with a ramped stop-OPACITY,
+		   never white-to-black, and that is the whole trick:
+		   — a <mask>'s content composites source-over, NOT additively, so a
+		     white-to-black disc drawn over an earlier disc would repaint
+		     its own dark rim as a hole in its neighbour. Rings do overlap:
+		     two waypoints may stand MIN_STEP = 24px apart against a 34px
+		     ring. White-over-white under source-over stays white, so alpha
+		     ramps merge where black rims would punch. This is what retires
+		     the even-odd sibling-path workaround the clipPath needed.
+		   — the luminance is constant, so the mask value is pure alpha and
+		     the linearRGB-vs-sRGB question a luminance mask otherwise
+		     raises never arises: the 13px dissolve is the same ramp on
+		     every engine. */
+		const FADE = "ws-tip-fade";
+		const defs =
+			`<svg width="0" height="0" aria-hidden="true" style="position:absolute">` +
+			`<defs><radialGradient id="${FADE}">` +
+			`<stop offset="0" stop-color="#fff" stop-opacity="1"/>` +
+			`<stop offset="${SOLID_R / TIP_R}" stop-color="#fff" stop-opacity="1"/>` +
+			`<stop offset="1" stop-color="#fff" stop-opacity="0"/>` +
+			`</radialGradient></defs></svg>`;
 
-		legs.forEach((leg, i) => {
-			const x = leg.x - PAD;
-			const y = leg.y - PAD;
-			const w = leg.w + PAD * 2;
-			const h = leg.h + PAD * 2;
-			const box = `left:${x - ox}px;top:${y - oy}px;width:${w}px;height:${h}px`;
-			const view = `viewBox="${x} ${y} ${w} ${h}" preserveAspectRatio="none"`;
-			svg.push(
-				`<div class="ws-leg" style="${box}">` +
-					`<svg ${view} fill="none" aria-hidden="true">${stroke(leg.d)}</svg>` +
-					`</div>`
-			);
-			const id = `ws-tip-${i}`;
-			/* the run's last vertex is the KNOT's entry, not a pin — there
-			   is no head there to wrap, and the knot is already on bare
-			   cork, so that end keeps its place behind the paper */
-			const ends = i === legs.length - 1 ? [pts[i]!] : [pts[i]!, pts[i + 1]!];
-			tip.push(
-				`<div class="ws-leg" style="${box}">` +
-					`<svg ${view} fill="none" aria-hidden="true">` +
-					`<clipPath id="${id}" clipPathUnits="userSpaceOnUse">${ends.map(annulus).join("")}</clipPath>` +
-					`<g clip-path="url(#${id})">${stroke(leg.d)}</g>` +
-					`</svg></div>`
-			);
-		});
+		/* one ring: the fading disc, and the head punch that follows every
+		   disc in the mask so a pin head always wins over a neighbour's
+		   ring — which is correct, because there really is a pin there */
+		const disc = (c: Pt) =>
+			`<circle cx="${c[0]}" cy="${c[1]}" r="${TIP_R}" fill="url(#${FADE})"/>`;
+		const punch = (c: Pt) => `<circle cx="${c[0]}" cy="${c[1]}" r="${HEAD_R}" fill="#000"/>`;
+
+		/** one run → one `.ws-leg` per leg in each layer. `bare` names the
+		    vertices that are NOT pins — the knot's entry at the foot of the
+		    lower run, the header run's landing corner — so no ring is spent
+		    wrapping a head that is not there. */
+		const emit = (run: Leg[], verts: Pt[], prefix: string, bare: Set<number>) =>
+			run.forEach((leg, i) => {
+				const x = leg.x - PAD;
+				const y = leg.y - PAD;
+				const w = leg.w + PAD * 2;
+				const h = leg.h + PAD * 2;
+				const box = `left:${x - ox}px;top:${y - oy}px;width:${w}px;height:${h}px`;
+				const view = `viewBox="${x} ${y} ${w} ${h}" preserveAspectRatio="none"`;
+				svg.push(
+					`<div class="ws-leg" style="${box}">` +
+						`<svg ${view} fill="none" aria-hidden="true">${stroke(leg.d)}</svg>` +
+						`</div>`
+				);
+				const id = `${prefix}-${i}`;
+				const ends = [i, i + 1].filter((k) => !bare.has(k)).map((k) => verts[k]!);
+				if (!ends.length) return;
+				/* userSpaceOnUse with an explicit rect: the default is
+				   objectBoundingBox at -10%/120% of the MASKED GROUP's box,
+				   and a near-vertical leg's box is only a few px wide
+				   (measured: 71 at 1440), which would clip the stroke and
+				   the rings alike. 40px of margin clears TIP_R plus half
+				   the stroke. */
+				const mBox = `x="${x - 40}" y="${y - 40}" width="${w + 80}" height="${h + 80}"`;
+				tip.push(
+					`<div class="ws-leg" style="${box}">` +
+						`<svg ${view} fill="none" aria-hidden="true">` +
+						`<mask id="${id}" maskUnits="userSpaceOnUse" ${mBox}>` +
+						ends.map(disc).join("") +
+						ends.map(punch).join("") +
+						`</mask>` +
+						`<g mask="url(#${id})">${stroke(leg.d)}</g>` +
+						`</svg></div>`
+				);
+			});
+
+		/* the header station first, so the entry line is drawn where the
+		   span used to be; the span itself then stands down (see
+		   `.rf-line[data-routed]` in Timeline.astro) */
+		if (head) {
+			emit(tautLegs(head.pts), head.pts, "ws-head", new Set([0]));
+			head.line.setAttribute("data-routed", "");
+			head.join.setAttribute("data-routed", "");
+		}
+
+		/* the lower run's last vertex is the KNOT's entry, not a pin */
+		emit(legs, pts, "ws-tip", new Set([pts.length - 1]));
 
 		svg.push(
 			`<div class="ws-knot" style="left:${knot.entry[0] - 80 - ox}px;top:${knot.entry[1] - oy}px;width:${KNOT.w}px;height:${KNOT.h}px;rotate:${Math.round(knot.angle * 100) / 100}deg">` +
@@ -1296,7 +1766,11 @@ const JOIN_STACK = {
 		);
 
 		layer.innerHTML = svg.join("");
-		tips.innerHTML = tip.join("");
+		/* the gradient ships WITH the legs on every rebuild — a defs-only
+		   node inserted once would be dropped the first time a resize
+		   re-writes this innerHTML, and every mask would then resolve to
+		   nothing and hide the layer entirely */
+		tips.innerHTML = defs + tip.join("");
 	};
 
 	let queued = 0;
@@ -1348,12 +1822,22 @@ const JOIN_STACK = {
 			rail.style.setProperty("--progress", String(p));
 			rail.dataset.visible = String(window.scrollY > 480);
 
+			/* NO TICK WAS CURRENT FOR THE FIRST 2,463px. The rule was "the
+			   last graduation the index has passed", and the index has
+			   passed none of them until Werdegang's own offset — so for the
+			   first three phone screens the strip showed a travelling pin
+			   against five anonymous marks and named nothing, which is
+			   precisely the stretch where a reader has least idea where
+			   they are. The first district is current from the top: the
+			   reader is not past it, they are on their way to it, and it is
+			   the next door on the route either way. */
 			let current: HTMLAnchorElement | null = null;
-			for (const tick of ticks) {
-				if (tick.hidden) continue;
+			const live = ticks.filter((tick) => !tick.hidden);
+			for (const tick of live) {
 				const at = Number(tick.style.getPropertyValue("--at") || 0);
 				if (at <= p + 0.001) current = tick;
 			}
+			current ??= live[0] ?? null;
 			for (const tick of ticks) {
 				if (tick === current) tick.setAttribute("aria-current", "true");
 				else tick.removeAttribute("aria-current");

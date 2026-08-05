@@ -25,7 +25,16 @@
 import * as echarts from "echarts";
 import { getWall, type Locale, type WallModule } from "~/data/i18n";
 import { telemetry } from "~/data/snapshot";
-import { figure, formatH, formatHM, type StatSlice, type TelemetrySource } from "~/data/telemetry";
+import {
+	figure,
+	formatH,
+	formatHCoarse,
+	formatHM,
+	formatHMCoarse,
+	pct,
+	type StatSlice,
+	type TelemetrySource
+} from "~/data/telemetry";
 import type { PrideInk } from "~/data/wall";
 import getInsights from "./getInsights";
 import getSummaries, { type DaySummary } from "./getSummaries";
@@ -46,12 +55,43 @@ const INK = "#27201a"; // --ink
 const INK_SOFT = "#49413b"; // --ink-soft
 const PAPER = "#f9f7f1"; // --paper
 const GRID_LINE = "#d8d5cf"; // ink 14 % over paper
-const AXIS_LINE = "#99948e"; // ink 42 % over paper
-/* The "everything else" bucket is the wall's own unremarkable material,
- * not an ECharts default grey: --paper-aged (oklch(94% 0.02 85)) with a
- * 1px ink hairline so a paper-on-paper bar still has an edge. */
-const PAPER_AGED = "#f1eadc"; // --paper-aged
-const HAIRLINE = "rgba(39, 32, 26, 0.18)"; // --ink at 18 %
+const AXIS_LINE = "#99948e"; // ink 42 % over paper — chrome only, never a mark
+/**
+ * THE REMAINDER IS A QUANTITY, SO IT IS DRAWN IN INK.
+ *
+ * The "everything else" bar used to be `--paper-aged` with a 1 px hairline,
+ * "so a paper-on-paper bar still has an edge". Two things were wrong with
+ * that, and only one of them was a contrast bug.
+ *
+ * Measured against the card stock including its wash: the fill came out at
+ * 1.117:1, APCA Lc 0.0 — below the threshold at which two areas can be told
+ * apart at all — and the safety hairline at 1.281:1. The hex had also
+ * drifted: it was pinned to `oklch(94% 0.02 85)` and that token became
+ * `oklch(90% 0.026 84)` a cycle ago. Syncing the hex is NOT the fix; it
+ * moves 1.117 to 1.259 and changes nothing a reader can perceive.
+ *
+ * The encoding was the worse half. That bar carries 2,632 h — 48.45 % of
+ * the record, and on the languages sheet the single quantity equal to all
+ * three coloured bars put together — while a 51.55 : 48.45 split read
+ * pre-attentively as a shutout. And 400 px below it the habit field teaches
+ * the reader, explicitly, that pale-and-hollow means NONE. The wall's own
+ * mark for absence was being used for its largest unnamed quantity.
+ *
+ * So the remainder is `--ink` at 50 % over `--paper`: a grey INK printed on
+ * the sheet, 3.12:1, past the 3:1 floor for a graphical object. Everything
+ * else here is ink on a stock, and a stock cannot be printed onto a stock.
+ * The hairline goes with it — a real mark does not need a safety edge.
+ * Grey stays 2.0–2.5× less salient than every pride ink, so the remainder
+ * remains subordinate while ceasing to be invisible; and because it is
+ * lighter than all six inks it also separates from them by lightness alone,
+ * in greyscale, on e-ink and under every CVD simulation.
+ *
+ * The same grey raises the habit field's hollow cell, which was outlined in
+ * AXIS_LINE at 2.808:1 — likewise under the floor. Sharing one ink is
+ * deliberate: hollow keeps meaning absence, solid means not-itemised, and
+ * the two stop borrowing each other's clothes.
+ */
+const INK_MUTED = "#908c86"; // --ink at 50 % over --paper — 3.12:1
 /* Defensive fallback only: every charted name gets a pride ink. */
 const NEUTRAL = "#aba6a0"; // ink 34 % over paper
 
@@ -84,8 +124,14 @@ const SERIES_ORDER: readonly PrideInk[] = ["magenta", "blue", "amber", "teal", "
 const CLAIM_INK = {
 	/** Ranked own projects, and the Ayako family split: sole ownership. */
 	projects: "magenta",
-	/** Where the measured hours actually went: how you know. */
-	languages: "teal",
+	/* MOVED TEAL → AMBER, deliberately, and stated here so it cannot be
+	   read as drift. With the concentration promoted into the TITLE (see
+	   FINDINGS below), the languages note no longer answers "how do you
+	   know?" — it answers "where does this claim stop?", on both branches:
+	   on the snapshot sheet the curation (application languages only), on a
+	   live pull the top-N cut. That is the amber job as the ink key defines
+	   it, and it gives amber the second genuine job the wall was short of. */
+	languages: "amber",
 	/** Still running, this week and since 2021. */
 	run: "green"
 } as const satisfies Record<string, PrideInk>;
@@ -112,14 +158,16 @@ interface FindingCopy {
 	/** Snapshot projects sheet: the Ayako family outweighs everything else. */
 	ayakoTitle: string;
 	ayakoNote: string;
-	/** Languages sheet: how concentrated the charted hours are. */
-	languagesTitle: (name: string) => string;
-	/** Live sheet: the top rows do NOT cover the record, so the note names
-	 *  the only denominator it has — the bars on the sheet. */
-	languagesNoteOfChart: (share: string, of: number) => string;
-	/** Snapshot sheet: the remainder row makes the sheet total the whole
-	 *  record, so the note can state the share of everything tracked. */
-	languagesNoteOfRecord: (share: string) => string;
+	/** Snapshot sheet: the rows sum to the record, so the title can state the
+	 *  leading language's share of everything tracked. */
+	languagesTitleOfRecord: (name: string, share: string) => string;
+	/** Live sheet: the rows are a top-N slice, so the title's denominator is
+	 *  the sheet itself and the title must say so. */
+	languagesTitleOfChart: (name: string, share: string, of: number) => string;
+	/** Snapshot sheet note — the curation, which is the sheet's limit. */
+	languagesNoteCuration: string;
+	/** Live sheet note — the cut, which is that sheet's limit. */
+	languagesNoteCut: (of: number) => string;
 	/** Habit sheet. */
 	habitTitle: (daysInTen: number, sinceYear: string) => string;
 	habitNote: (idle: string, startYear: string, endYear: string) => string;
@@ -139,14 +187,25 @@ const FINDINGS: Record<Locale, FindingCopy> = {
 		   who else touched it. That is what the note now says, and it is
 		   what the two bars are actually evidence about. */
 		ayakoNote: "mine end to end — no team, no handover",
-		/* Outcome, not effort. "…is where the hours went" was the last
-		   headline on the wall that measured expenditure rather than result —
-		   three blind judges attacked precisely that framing. Same figure,
-		   same denominator, same provenance; it now names what the language
-		   BUILT rather than what it consumed. */
-		languagesTitle: (name) => `The product is written in ${name}`,
-		languagesNoteOfChart: (share, of) => `one language, ${share} of these ${of} bars`,
-		languagesNoteOfRecord: (share) => `one language, ${share} of everything tracked`,
+		/* TITLE AND NOTE WERE THE WRONG WAY ROUND. The title read "The
+		   product is written in TypeScript" — a claim about the PRODUCT —
+		   directly above a unit line reading "lifetime" and a bar labelled
+		   "Everything else". The rows on this sheet sum to the whole tracked
+		   record; the product is precisely the object these bars cannot
+		   draw, so the headline and the axis named different things two
+		   lines apart. Meanwhile the note carried the correct referent.
+		   So they swap: the title now carries the concentration, in the
+		   record's own terms, and the note carries the curation limit that
+		   until now existed only in alt text, where no sighted reader meets
+		   it. The share is the API's own published figure for the leading
+		   language, printed to the same two decimals as the data table two
+		   lines below — not a ratio re-derived here, which would have been
+		   off by hundredths and invited exactly the check it must survive. */
+		languagesTitleOfRecord: (name, share) => `${name} carries ${share} of everything tracked`,
+		languagesTitleOfChart: (name, share, of) =>
+			`${name} carries ${share} of the ${of} languages on this sheet`,
+		languagesNoteCuration: "application languages only — data and markup formats are not charted",
+		languagesNoteCut: (of) => `the top ${of} only — the rest of the record is not on this sheet`,
 		habitTitle: (daysInTen, sinceYear) =>
 			`Coded on ${daysInTen} days out of 10 since ${sinceYear}`,
 		habitNote: (idle, startYear, endYear) =>
@@ -159,12 +218,24 @@ const FINDINGS: Record<Locale, FindingCopy> = {
 		/* siehe en: die Notiz wiederholte den Titel daneben. Die Balken
 		   zeigen die Größe; wer es gebaut hat, zeigt kein Balken. */
 		ayakoNote: "von vorn bis hinten meins — kein Team, keine Übergabe",
-		/* siehe en: das Ergebnis benennen, nicht den Aufwand */
-		languagesTitle: (name) => `Das Produkt ist in ${name} geschrieben`,
-		languagesNoteOfChart: (share, of) => `eine Sprache, ${share} dieser ${of} Balken`,
-		languagesNoteOfRecord: (share) => `eine Sprache, ${share} der gesamten Aufzeichnung`,
+		/* siehe en: Titel und Notiz waren vertauscht. Der Titel sprach über
+		   das Produkt, über einer Einheitszeile „Gesamtzeitraum“ und einem
+		   Balken „Alles andere“ — die Zeilen summieren sich zur gesamten
+		   Aufzeichnung, und genau das Produkt können diese Balken nicht
+		   zeichnen. Jetzt trägt der Titel die Konzentration und die Notiz
+		   die Auswahlgrenze, die bisher nur im Alt-Text stand. */
+		languagesTitleOfRecord: (name, share) =>
+			`${name} trägt ${share} der gesamten Aufzeichnung`,
+		languagesTitleOfChart: (name, share, of) =>
+			`${name} trägt ${share} der ${of} Sprachen auf diesem Blatt`,
+		languagesNoteCuration:
+			"nur Anwendungssprachen — Daten- und Auszeichnungsformate sind nicht erfasst",
+		languagesNoteCut: (of) =>
+			`nur die Top ${of} — der Rest der Aufzeichnung steht nicht auf diesem Blatt`,
+		/* Satzstellung wie im Deutschen üblich: die Zeitangabe zuerst. Die
+		   alte Reihenfolge war die englische Klauselfolge, eins zu eins. */
 		habitTitle: (daysInTen, sinceYear) =>
-			`An ${daysInTen} von 10 Tagen programmiert, seit ${sinceYear}`,
+			`Seit ${sinceYear} an ${daysInTen} von 10 Tagen programmiert`,
 		habitNote: (idle, startYear, endYear) =>
 			`die ${idle} leeren Tage verteilen sich über ${startYear}–${endYear} — es sind nicht die letzten ${idle}`,
 		habitUnit: (asOf) => `Eine Zelle pro Tag · Gesamtzählung · Stand ${asOf}`,
@@ -306,7 +377,7 @@ const round2 = (n: number): number => Math.round(n * 100) / 100;
  * en-US, because they are the screen-reader reader's only provenance and
  * are quoted verbatim elsewhere. Hence every ranked row carries both. */
 const pctIn = (p: number | null, locale: Locale): string | null =>
-	p == null ? null : `${figure(round2(p), locale)} %`;
+	p == null ? null : pct(round2(p), locale);
 
 /* ------------------------------------------------------------------ */
 /* Ranked horizontal bars (top projects / top languages)               */
@@ -314,10 +385,15 @@ const pctIn = (p: number | null, locale: Locale): string | null =>
 
 interface RankedRow {
 	name: string;
-	/** Printed time in the page's locale, e.g. "3,019.9 h" / "3.019,9 h" —
-	 *  may carry a trailing "*". */
+	/** CARD FACE, in the page's locale: whole hours above 1,000 h, because
+	 *  the minutes digit is not identified at that magnitude (see
+	 *  telemetry.ts). May carry a trailing "*". */
 	time: string;
-	/** The same figure in en-US, for the alt text (which never localises). */
+	/** THE FOLD, in the page's locale: the exact figure, always. The data
+	 *  table is where a reader who wants the minutes goes to find them, so
+	 *  the coarser face costs no fact. May carry a trailing "*". */
+	timeExact: string;
+	/** The exact figure in en-US, for the alt text (which never localises). */
 	timeEn: string;
 	hours: number;
 	/** Share display, e.g. "55.68 %"; null when not recorded. */
@@ -325,8 +401,6 @@ interface RankedRow {
 	/** The same share in en-US, for the alt text. */
 	shareEn: string | null;
 	color: string;
-	/** The "everything else" bucket: paper-on-paper, so it needs an edge. */
-	hairline?: boolean;
 }
 
 const rankedBarSvg = (rows: RankedRow[]): string =>
@@ -353,11 +427,7 @@ const rankedBarSvg = (rows: RankedRow[]): string =>
 				barWidth: 18,
 				data: rows.map((r) => ({
 					value: round2(r.hours),
-					itemStyle: {
-						color: r.color,
-						borderRadius: [0, 4, 4, 0],
-						...(r.hairline ? { borderColor: HAIRLINE, borderWidth: 1 } : {})
-					}
+					itemStyle: { color: r.color, borderRadius: [0, 4, 4, 0] }
 				})),
 				label: {
 					show: true,
@@ -381,12 +451,15 @@ const rankedBarSvg = (rows: RankedRow[]): string =>
  * exactly the hours printed on the sheet — nothing is invented — and the
  * note that quotes it must state THIS denominator, never a different one.
  *
- * Which denominator that is depends on the sheet: on the snapshot
- * languages chart the rows include the remainder, so they sum to the
- * lifetime record and the note says "of everything tracked"; on a live
- * pull the rows are a top-N slice and the note says "of these N bars".
- * Getting that pairing wrong is how "71.5 % of the top 4" came to sit two
- * lines above a table printing 55.59 %.
+ * LIVE SHEETS ONLY. On a live pull the rows are a top-N slice, there is no
+ * published share of that slice, and this ratio is the only denominator the
+ * sheet has — so the title names it ("of the 5 languages on this sheet").
+ * The snapshot sheet does NOT use this: its rows include the remainder and
+ * therefore sum to the record, so the leading language's share of the whole
+ * is already published, to two decimals, in the same pull the table prints
+ * from. Re-deriving it there would put 55.5 or 55.6 above a table reading
+ * 55.59. Getting that pairing wrong is how "71.5 % of the top 4" came to
+ * sit two lines above a table printing 55.59 %.
  */
 const leadShareOfChart = (rows: RankedRow[], locale: Locale): string | null => {
 	const total = rows.reduce((sum, r) => sum + r.hours, 0);
@@ -407,7 +480,10 @@ const rankedTable = (
 	note?: string
 ): ChartTable => ({
 	head: [kind, heads.trackedTime, heads.share],
-	rows: rows.map((r) => [r.name, r.time, r.share ?? "—"]),
+	/* The fold prints the EXACT figure even where the sheet's face prints
+	   whole hours: the reduction is one of displayed resolution, and a
+	   reader who opens the table is asking for the resolution. */
+	rows: rows.map((r) => [r.name, r.timeExact, r.share ?? "—"]),
 	...(note ? { note } : {})
 });
 
@@ -454,13 +530,15 @@ const stackedDays = (
 	});
 	const hasOther = other.some((s) => s >= 60);
 
-	const barSeries = (name: string, color: string, seconds: number[], edge = PAPER) => ({
+	/* Every segment carries the same 1 px paper border — the remainder no
+	   longer needs a hairline of its own, because it is no longer paper. */
+	const barSeries = (name: string, color: string, seconds: number[]) => ({
 		name,
 		type: "bar" as const,
 		stack: "day",
 		barWidth: 26,
 		// 1px paper border on every segment = a 2px paper gap between fills
-		itemStyle: { color, borderColor: edge, borderWidth: 1 },
+		itemStyle: { color, borderColor: PAPER, borderWidth: 1 },
 		data: seconds.map((s) => round2(s / 3600))
 	});
 
@@ -503,7 +581,7 @@ const stackedDays = (
 		},
 		series: [
 			...names.map((name, i) => barSeries(name, colors.get(name) ?? NEUTRAL, matrix[i])),
-			...(hasOther ? [barSeries(cs.other, PAPER_AGED, other, HAIRLINE)] : [])
+			...(hasOther ? [barSeries(cs.other, INK_MUTED, other)] : [])
 		]
 	});
 
@@ -527,7 +605,8 @@ const stackedTable = (
 		day.date,
 		...stack.matrix.map((row) => (row[i] >= 60 ? formatHM(row[i], locale) : "—")),
 		stack.other[i] >= 60 ? formatHM(stack.other[i], locale) : "—",
-		day.total.text
+		// the data layer's own string is en-US; this column is the page's
+		formatHM(day.total.seconds, locale)
 	])
 });
 
@@ -579,7 +658,11 @@ const dayBlockSvg = (count: number, kind: "on" | "off"): string => {
 	const cell =
 		kind === "on"
 			? `<rect width="${HABIT_CELL}" height="${HABIT_CELL}" rx="2" fill="${INK_HEX.green}"/>`
-			: `<rect x="0.5" y="0.5" width="${HABIT_CELL - 1}" height="${HABIT_CELL - 1}" rx="2" fill="none" stroke="${AXIS_LINE}"/>`;
+			: /* the hollow cell is a MARK, not chrome: it was outlined in the
+			     axis grey at 2.808:1, under the 3:1 floor for a graphical
+			     object, on the one graphic whose whole point is that the
+			     empty days are counted too */
+				`<rect x="0.5" y="0.5" width="${HABIT_CELL - 1}" height="${HABIT_CELL - 1}" rx="2" fill="none" stroke="${INK_MUTED}"/>`;
 
 	return (
 		`<svg viewBox="-1 -1 ${w + 2} ${h + 2}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">` +
@@ -593,12 +676,25 @@ const dayBlockSvg = (count: number, kind: "on" | "off"): string => {
 /* Bundle assembly                                                     */
 /* ------------------------------------------------------------------ */
 
-/** Data-layer display strings are en-US; reprint them from the numeric
- *  source when the page is not. Never a separator swap on the string. */
-const localTime = (text: string | null | undefined, seconds: number, locale: Locale): string => {
-	if (locale === "en") return text ?? formatHM(seconds);
-	// the data layer prints either "5,432 h 47 m" or "2,800.7 h"
-	return text && !text.endsWith(" m") ? formatH(seconds / 3600, locale) : formatHM(seconds, locale);
+/** The data layer prints either "5,432 h 47 m" or "2,800.7 h"; the sniff
+ *  reads which shape, and must tolerate the no-break space the helpers now
+ *  bind between figure and unit. A plain `endsWith(" m")` silently stopped
+ *  matching the moment that space stopped being a plain one. */
+const HAS_MINUTES = /[\s\u00a0]m$/;
+
+/** Reprint a data-layer display string from its numeric source, for the
+ *  locale of the page it is printed on — never a separator swap on the
+ *  string. `coarse` selects the card-face resolution (see telemetry.ts);
+ *  the default is the exact figure, for tables and alt text. */
+const localTime = (
+	text: string | null | undefined,
+	seconds: number,
+	locale: Locale,
+	coarse = false
+): string => {
+	const withMinutes = text ? HAS_MINUTES.test(text) : true;
+	if (withMinutes) return coarse ? formatHMCoarse(seconds, locale) : formatHM(seconds, locale);
+	return coarse ? formatHCoarse(seconds / 3600, locale) : formatH(seconds / 3600, locale);
 };
 
 const build = async (locale: Locale): Promise<ChartsBundle> => {
@@ -619,7 +715,8 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 		);
 		const rows: RankedRow[] = top.map((p) => ({
 			name: p.name,
-			time: formatHM(p.seconds ?? 0, locale),
+			time: formatHMCoarse(p.seconds ?? 0, locale),
+			timeExact: formatHM(p.seconds ?? 0, locale),
 			timeEn: formatHM(p.seconds ?? 0),
 			hours: (p.seconds ?? 0) / 3600,
 			share: pctIn(p.percent, locale),
@@ -647,22 +744,27 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 		const rows: RankedRow[] = [
 			{
 				name: cs.ayakoFamilyRow,
-				time: localTime(fam.text, famSeconds, locale),
+				time: localTime(fam.text, famSeconds, locale, true),
+				timeExact: localTime(fam.text, famSeconds, locale),
 				timeEn: localTime(fam.text, famSeconds, "en"),
 				hours: famSeconds / 3600,
-				share: `${figure(famShare, locale)} %`,
-				shareEn: `${figure(famShare)} %`,
+				share: pct(famShare, locale),
+				shareEn: pct(famShare),
 				color: projectInk(cs.ayakoFamilyRow)
 			},
 			{
 				name: cs.other,
-				time: `${formatHM(restSeconds, locale)}*`,
+				/* Both rows of this one column used to print in two different
+				   time formats — "2,800.7 h" against "2,632 h 5 m*" — inside
+				   the single sheet whose two rows exist to be compared. At the
+				   card-face resolution they meet: whole hours, both. */
+				time: `${formatHMCoarse(restSeconds, locale)}*`,
+				timeExact: `${formatHM(restSeconds, locale)}*`,
 				timeEn: `${formatHM(restSeconds)}*`,
 				hours: restSeconds / 3600,
-				share: `${figure(round2(100 - famShare), locale)} %*`,
-				shareEn: `${figure(round2(100 - famShare))} %*`,
-				color: PAPER_AGED,
-				hairline: true
+				share: `${pct(round2(100 - famShare), locale)}*`,
+				shareEn: `${pct(round2(100 - famShare))}*`,
+				color: INK_MUTED
 			}
 		];
 		/* The two bars are near-equal, which badly undersells the fact: one
@@ -694,7 +796,8 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 		);
 		const rows: RankedRow[] = top.map((l) => ({
 			name: l.name,
-			time: formatHM(l.seconds ?? 0, locale),
+			time: formatHMCoarse(l.seconds ?? 0, locale),
+			timeExact: formatHM(l.seconds ?? 0, locale),
 			timeEn: formatHM(l.seconds ?? 0),
 			hours: (l.seconds ?? 0) / 3600,
 			share: pctIn(l.percent, locale),
@@ -704,15 +807,15 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 		const lead = leadShareOfChart(rows, locale);
 		charts.push({
 			id: "languages",
-			title: lead ? found.languagesTitle(rows[0].name) : cs.titles.topLanguages(rows.length),
+			title: lead
+				? found.languagesTitleOfChart(rows[0].name, lead, rows.length)
+				: cs.titles.topLanguages(rows.length),
 			unit: cs.units.last12MonthsHours(`${year.range.start} → ${year.range.end}`, year.asOf),
 			svg: rankedBarSvg(rows),
 			alt: rankedAlt(cs.alt.topLanguagesYearIntro(rows.length, year.asOf), rows),
 			table: rankedTable(cs.tableHeads.language, cs.tableHeads, rows),
 			annotation: {
-				text: lead
-					? found.languagesNoteOfChart(lead, rows.length)
-					: cs.annotations.languageTop(rows[0].name, rows[0].time),
+				text: found.languagesNoteCut(rows.length),
 				ink: CLAIM_INK.languages
 			}
 		});
@@ -740,11 +843,12 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 		);
 		const rows: RankedRow[] = langs.map((l) => ({
 			name: l.name,
-			time: formatH(l.hours, locale),
+			time: formatHCoarse(l.hours, locale),
+			timeExact: formatH(l.hours, locale),
 			timeEn: formatH(l.hours),
 			hours: l.hours,
-			share: `${figure(l.percent, locale)} %${l.derived ? "*" : ""}`,
-			shareEn: `${figure(l.percent)} %${l.derived ? "*" : ""}`,
+			share: `${pct(l.percent, locale)}${l.derived ? "*" : ""}`,
+			shareEn: `${pct(l.percent)}${l.derived ? "*" : ""}`,
 			color: colors.get(l.name) ?? NEUTRAL
 		}));
 		/* Derived exactly like the projects sheet's rest bar: the published
@@ -757,24 +861,27 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 		if (restSeconds >= 3600) {
 			rows.push({
 				name: cs.other,
-				time: `${formatH(restSeconds / 3600, locale)}*`,
+				time: `${formatHCoarse(restSeconds / 3600, locale)}*`,
+				timeExact: `${formatH(restSeconds / 3600, locale)}*`,
 				timeEn: `${formatH(restSeconds / 3600)}*`,
 				hours: restSeconds / 3600,
-				share: `${figure(restShare, locale)} %*`,
-				shareEn: `${figure(restShare)} %*`,
-				color: PAPER_AGED,
-				hairline: true
+				share: `${pct(restShare, locale)}*`,
+				shareEn: `${pct(restShare)}*`,
+				color: INK_MUTED
 			});
 		}
 		/* With the remainder charted the sheet's rows sum to the record, so
-		 * this ratio is the leading language's share of EVERYTHING tracked —
-		 * 55.6 %, which is both true and the stronger claim. The old note
-		 * quoted 71.5 %, a share of the top four, against a table printing
-		 * 55.59 % two lines below it. */
-		const lead = leadShareOfChart(rows, locale);
+		 * the leading language's published share IS its share of everything
+		 * tracked. It is taken from the pull, not re-derived from the rows:
+		 * dividing here gives 55.5866 %, and printing either 55.5 or 55.6
+		 * above a table that prints 55.59 invites the reader to check the
+		 * headline and find it off. Title and table now print the same
+		 * digits. (The old note quoted 71.5 %, a share of the top four,
+		 * against a table printing 55.59 % two lines below it.) */
+		const lead = pct(langs[0].percent, locale);
 		charts.push({
 			id: "languages",
-			title: lead ? found.languagesTitle(rows[0].name) : cs.titles.topLanguages(langs.length),
+			title: found.languagesTitleOfRecord(langs[0].name, lead),
 			unit: cs.units.lifetimeHours(lifetimeWindow, career.asOf),
 			svg: rankedBarSvg(rows),
 			alt: rankedAlt(cs.alt.appLanguagesLifetimeIntro(langs.length, career.asOf), rows),
@@ -785,9 +892,9 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 				cs.notes.languagesDerived(career.asOf)
 			),
 			annotation: {
-				text: lead
-					? found.languagesNoteOfRecord(lead)
-					: cs.annotations.languageTop(rows[0].name, rows[0].time),
+				/* The curation limit, which until now lived only in the alt
+				   text — where no sighted reader ever meets it. */
+				text: found.languagesNoteCuration,
 				ink: CLAIM_INK.languages
 			}
 		});
@@ -903,15 +1010,56 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 	/* -- provenance ---------------------------------------------------- */
 	/* The as-of convention is stated once, at the head of the source card,
 	 * so no individual figure has to repeat it — which is what lets the
-	 * habit sheet drop its window without losing any provenance. */
-	const provenance = [cs.provenance.convention(career.asOf)].concat(
-		career.source === "live"
-			? [cs.provenance.live(career.asOf)]
-			: [
-					cs.provenance.snapshot(career.asOf),
-					cs.provenance.currentlyJuly2026(telemetry.windowJuly2026.dailyAverage.display)
-				]
-	);
+	 * habit sheet drop its window without losing any provenance.
+	 *
+	 * THEN THE ADDRESS. This card named an instrument and gave no way to
+	 * reach it, while 4,000 px away the wall promises, in the ink reserved
+	 * for provenance, "I can show the source for every figure here,
+	 * including the ones that do not flatter me." Provenance that names the
+	 * instrument but not the address is rigour theatre.
+	 *
+	 * Printing the endpoint creates obligations, so the lines that follow it
+	 * discharge them in order: what the coarse figures are exactly and why
+	 * they are printed coarse; what the endpoint confirms; what it cannot
+	 * confirm, and why an honest attempt to check the total lands 166 h low;
+	 * and that a dated snapshot drifts from a live pull, so the reader who
+	 * follows the link and finds a different AI-Coding share has found the
+	 * expected thing rather than a stale wall. */
+	const audit = telemetry.publicApi;
+	const provenance = [cs.provenance.convention(career.asOf)]
+		.concat(
+			career.source === "live"
+				? [cs.provenance.live(career.asOf)]
+				: [
+						cs.provenance.snapshot(career.asOf),
+						cs.provenance.currentlyJuly2026(
+							formatHM(telemetry.windowJuly2026.dailyAverage.seconds, locale)
+						)
+					]
+		)
+		.concat([
+			cs.provenance.precision(
+				formatHMCoarse(telemetry.lifetime.total.seconds, locale),
+				formatHM(telemetry.lifetime.total.seconds, locale)
+			),
+			cs.provenance.endpoint(audit.endpoint),
+			cs.provenance.checkable({
+				reconstructed: formatHCoarse(Math.floor(audit.reconstructedTotalSeconds / 3600), locale),
+				shortfall: formatHCoarse(Math.floor(audit.shortfallSeconds / 3600), locale),
+				checkedOn: audit.checkedOn
+			})
+		])
+		.concat(
+			career.source === "live"
+				? []
+				: [
+						cs.provenance.drift(
+							pct(telemetry.aiCoding.liveCategoryPercentOn20260805, locale),
+							pct(telemetry.aiCoding.sharePercentByWindow.lifetime, locale),
+							audit.checkedOn
+						)
+					]
+		);
 
 	return {
 		source: career.source,

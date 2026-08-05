@@ -21,18 +21,27 @@
  * shared helpers in src/data/telemetry.ts — never hand-typed.
  */
 import { ai, ayako, github, ihk, SNAPSHOT_AS_OF, telemetry } from "~/data/snapshot";
-import { figure, formatHM, millionsPlus } from "~/data/telemetry";
+import { figure, formatHCoarse, formatHMCoarse, millionsPlus, pct } from "~/data/telemetry";
 
 /* ------------------------------------------------------------------ */
 /* Figure formatting — this wall's locale, applied at the source       */
 /* ------------------------------------------------------------------ */
+/* Every figure here goes through a helper, and every helper binds the
+ * figure to its unit with a no-break space — see telemetry.ts. The card
+ * faces print at the resolution the instrument identifies (whole hours
+ * above 1,000 h, floored, never rounded up); the exact figures survive on
+ * the chart data tables and on the provenance card. */
 
 /** The locale every figure on this wall is formatted for. */
 const L = "en" as const;
 /** A grouped figure, e.g. 8,357. */
 const n = (value: number): string => figure(value, L);
-/** A duration from a seconds total, e.g. "5,432 h 47 m". */
-const hm = (seconds: number): string => formatHM(seconds, L);
+/** A duration from a seconds total: "5,432 h" · "5 h 53 m". */
+const hm = (seconds: number): string => formatHMCoarse(seconds, L);
+/** An hours figure: "2,800 h" · "102.4 h". */
+const h = (hours: number): string => formatHCoarse(hours, L);
+/** A share with its unit bound to it: "90.6 %". */
+const pc = (value: number): string => pct(value, L);
 /** The two headline product figures, formatted once. */
 const users = millionsPlus(ayako.users, L);
 const servers = n(ayako.servers);
@@ -321,6 +330,20 @@ export const sectionStrings = {
 		 * verbatim, and the thread still passes through a single pin.
 		 */
 		schooling: "Schooling",
+		/**
+		 * The card's sentence.
+		 *
+		 * NOT YET RENDERED — Timeline.astro prints `<h3>{ts.schooling}</h3>`
+		 * and then the rows, so this is the one card on the wall with no
+		 * sentence on it: three date·institution lines, one of them two
+		 * months long, left to speak for themselves. The inference a reader
+		 * draws unaided is not the flattering one, and the wall's answer to
+		 * an unflattering fact everywhere else is to state it rather than to
+		 * let it be guessed. It adds no fact the dates do not already carry.
+		 * Render it directly under the heading.
+		 */
+		schoolingNote:
+			"General schooling before the apprenticeship, listed in full — including the two entries that lasted a few months. The record is complete or it is not.",
 		/** One schooling line: its span, then the institution. */
 		schoolLine: (dates: string, institution: string) => `${dates} · ${institution}`,
 		/** Flagship card: prefix of the stack line. */
@@ -412,7 +435,7 @@ export const chartStrings = {
 	/** Row label of the snapshot projects chart. */
 	ayakoFamilyRow: "Ayako family",
 	/** ECharts axis-label template — keep the {value} placeholder. */
-	axisHours: "{value} h",
+	axisHours: "{value} h",
 	/** Alt-text intros/sentences; ranked intros are completed by the
 	 *  data rows ("<intro>: name time (share); ….") in getCharts. A screen
 	 *  reader never sees the wall's date stamps, so alt text keeps its own. */
@@ -475,7 +498,7 @@ export const chartStrings = {
 		projectsDerived: (asOf: string) =>
 			`* Derived from the published lifetime total and the Ayako-family figure, both as of ${asOf}.`,
 		languagesDerived: (asOf: string) =>
-			`* Share derived from published hours over the lifetime total; the "everything else" row is that total minus the published rows. Both as of ${asOf}.`
+			`* Share derived from published hours over the lifetime total; the “everything else” row is that total minus the published rows. Both as of ${asOf}.`
 	},
 	/** Handwritten margin notes: each carries the CONSEQUENCE the sheet
 	 *  cannot draw — a note that repeats the bar it hangs beside is
@@ -486,18 +509,18 @@ export const chartStrings = {
 		   what the hours are running as, which no bar on this sheet shows. */
 		projectLeads: (_name: string, _time: string) =>
 			`${servers} servers run on what these hours built`,
-		ayakoShare: (percent: number) => `${users} users, ${servers} servers — and ${n(percent)} % of the record`,
+		ayakoShare: (percent: number) => `${users} users, ${servers} servers — and ${pc(percent)} of the record`,
 		languageTop: (name: string, time: string) => `the product runs on ${name} — ${time} of it`,
 		weekTotal: (total: string, leadName: string) =>
 			`${leadName} is still being built — ${total} of it this week`,
 		weekDaily: (average: string, leadName: string) =>
 			`the changes still land in ${leadName} — ${average} a day`,
 		habitRate: (ratePercent: number, sinceYear: string) =>
-			`${n(ratePercent)} % of all days since ${sinceYear} produced code`
+			`${pc(ratePercent)} of all days since ${sinceYear} produced code`
 	},
 	habit: {
 		line: (active: string, elapsed: string, ratePercent: string) =>
-			`${active} of ${elapsed} elapsed days with tracked coding — ${ratePercent} %.`,
+			`${active} of ${elapsed} elapsed days with tracked coding — ${ratePercent} %.`,
 		/* Load-bearing: the cells fill in SEQUENCE, so any wording that
 		   invites a left-to-right calendar reading makes the hollow block
 		   look like a four-month gap at the end. There is no such gap —
@@ -516,7 +539,19 @@ export const chartStrings = {
 		snapshot: (asOf: string) =>
 			`Checked-in figures from the ${asOf} WakaTime API pull — live builds fetch at build time and add the seven-day charts.`,
 		currentlyJuly2026: (display: string) =>
-			`Currently (July 2026): ${display} tracked coding per day.`
+			`Currently (July 2026): ${display} tracked coding per day.`,
+		/** Why the card faces print whole hours, and what the exact figure is. */
+		precision: (shown: string, exact: string) =>
+			`Lifetime total, exactly as pulled: ${exact}. The cards print ${shown}. WakaTime does not measure a duration, it builds one by joining heartbeats that fall inside a 15-minute keystroke timeout — so at this size the minutes digit is not something the instrument can identify, and printing it would offer a precision the method does not have. Nothing is rounded up; the data tables keep every exact figure.`,
+		/** The address the card named an instrument for and never gave. */
+		endpoint: (url: string) => `Check it yourself — public, no key required: ${url}`,
+		/** What that endpoint settles, and the one thing it cannot. */
+		checkable: (o: { reconstructed: string; shortfall: string; checkedOn: string }) =>
+			`It confirms the language shares to two decimals. It cannot confirm the total: coding activity is private on that profile, so the API withholds the total and the only reconstruction left — adding up the per-language rows — comes to ${o.reconstructed}, ${o.shortfall} short, because those rows do not carry the “Other” bucket. That gap is the bucket, not a number in my favour, and it is the one figure here you cannot check today. Re-checked unauthenticated on ${o.checkedOn}.`,
+		/** A dated snapshot drifts from a live pull; say so before a reader
+		 *  finds the difference and reads it as staleness. */
+		drift: (live: string, printed: string, checkedOn: string) =>
+			`A dated snapshot drifts from a live pull, and it should: on ${checkedOn} that same endpoint reported AI Coding at ${live} where this wall prints ${printed}, measured two days earlier.`
 	},
 	/** Telemetry section chrome around the charts (Telemetry.astro). */
 	telemetrySection: {
@@ -540,7 +575,7 @@ export const chartStrings = {
 			start: string;
 			end: string;
 		}) =>
-			`${o.active} of ${o.elapsed} days active — ${o.ratePercent} %, ${o.start} to ${o.end}.`,
+			`${o.active} of ${o.elapsed} days active — ${o.ratePercent} %, ${o.start} to ${o.end}.`,
 		dailyAverage: (average: string) => `Lifetime daily average: ${average}.`,
 		sourceLine: (sourceNote: string, mode: string) => `Source: ${sourceNote} — ${mode}.`,
 		modeLive: "pulled at build",
@@ -591,7 +626,11 @@ const qualifiedYear = ihk.apprenticeship.examCycle.replace(/\D+/g, "");
 
 export const hero = {
 	/** Rendered by the Lottie animation; keep as accessible fallback text. */
-	greeting: "Hi, I'm Lars",
+	/* Curly apostrophe: the English page carried six straight marks beside
+	   six curly double quotes, while the German page had zero straight marks
+	   — inconsistency, not ignorance, and this one is the second word a
+	   reader sees. */
+	greeting: "Hi, I’m Lars",
 	greetingSubline: "since December 2019",
 	/** Lottie asset for the handwritten greeting. */
 	lottieAsset: "src/assets/Hi.json",
@@ -608,9 +647,37 @@ export const hero = {
 	 * signature stays ASCII on purpose — see `person` in `meta`).
 	 */
 	intro: [
-		"Fachinformatiker für Anwendungsentwicklung (IHK) and full-stack developer at Raleo Digital GmbH, remote.",
+		/* THE ENGLISH WALL LED WITH AN UNTRANSLATED GERMAN CREDENTIAL AND
+		   NEVER GLOSSED IT. The only gloss anywhere sat ~3,600 px down and
+		   glossed the TRACK, not the credential — so the first line of the
+		   record card, and the most important string on a German developer's
+		   English CV, was also the least intelligible one on the page.
+		   The gloss is inline and em-dashed, inside intro[0] rather than in a
+		   fourth paragraph: this line carries the card's only weight contrast,
+		   and a new body paragraph would dilute the run instead of qualifying
+		   it. "vocational" is in it deliberately — "state-recognised
+		   qualification" alone reads against a degree, and a screener who
+		   discovers the difference later feels handled.
+		   wall.de.ts is NOT glossed and must not be: a German reader needs
+		   none, and that asymmetry is correct bilingual practice. */
+		"Fachinformatiker für Anwendungsentwicklung (IHK) — the German state-recognised vocational qualification in application development — and full-stack developer at Raleo Digital GmbH, remote.",
 		`I run a Discord bot with ${users} users on ${servers} servers — solo, in production since ${ayako.inProductionSince}.`,
-		`That is ${productionSpan} in production, ${PRODUCTION_START.display} to ${SNAPSHOT_AS_OF}; qualified ${qualifiedYear}, after three years of in-company training.`
+		/* NO SENTENCE ON THIS PAGE MADE LARS THE SUBJECT OF A DURATION, and
+		   that is why the apprenticeship letterhead kept winning the seniority
+		   argument: it was the only line whose subject was a person with a
+		   span attached. This line opened "That is …" — an anaphoric
+		   reformulator, the *i.e.* construction, whose discourse function is
+		   to mark what follows as a RESTATEMENT of the sentence above it. So
+		   the wall's strongest experience claim was syntactically flagged
+		   "nothing new here". Worse, strip the connective and the residue
+		   still predicated the bot: "6 years 8 months in production" has the
+		   deployment as its subject.
+		   Now the subject is the person, the verb is what he did, and the
+		   referent, the figures and the printed span are all unchanged, so the
+		   arithmetic stays checkable on the card. Deliberately NOT widened to
+		   "production systems": Kiyu is labelled unverified and active only to
+		   2026-06, so the plural would outrun the evidence. */
+		`I have built and operated it for ${productionSpan} — ${PRODUCTION_START.display} to ${SNAPSHOT_AS_OF}. Qualified ${qualifiedYear}, after three years of in-company training.`
 	],
 	location: "Bodensee-Oberschwaben region (Lake Constance), Germany — fully remote.",
 	languages: "German (native) · English (working language)",
@@ -641,7 +708,7 @@ export const hero = {
 		lines: [
 			`In production since ${ayako.inProductionSince} — through ${ayako.generations} generations and ${ayako.discordLibraries} Discord libraries.`,
 			`${hm(telemetry.lifetime.total.seconds)} tracked coding behind it, as of ${SNAPSHOT_AS_OF}.`,
-			`${n(telemetry.lifetime.activeDays.active)} of ${n(telemetry.lifetime.activeDays.elapsed)} days active — ${n(telemetry.lifetime.activeDays.ratePercent)} %, ${telemetry.trackingStart} to ${telemetry.trackingEnd}.`
+			`${n(telemetry.lifetime.activeDays.active)} of ${n(telemetry.lifetime.activeDays.elapsed)} days active — ${pc(telemetry.lifetime.activeDays.ratePercent)}, ${telemetry.trackingStart} to ${telemetry.trackingEnd}.`
 		],
 		sourceNote: "WakaTime API",
 		annotation: { text: "the 164 zero days are counted too", ink: "teal" } satisfies Annotation
@@ -695,10 +762,10 @@ export const timeline: TimelineEntry[] = [
 		body: [
 			`${telemetry.trackingStart}: WakaTime telemetry starts recording and has run continuously since.`,
 			"The Angel-Bots era: single-purpose Discord bots in JavaScript, one job each — the origin of most of the JavaScript in the record " +
-				`(${n(telemetry.lifetime.languages[1].hours)} h lifetime).`
+				`(${h(telemetry.lifetime.languages[1].hours)} lifetime).`
 		],
 		annotation: {
-			text: `TypeScript: ${n(github.typescriptByteSharePercent.in2021)} % of pushed code bytes in 2021 → ${n(github.typescriptByteSharePercent.in2026)} % in repos pushed 2026`,
+			text: `TypeScript: ${pc(github.typescriptByteSharePercent.in2021)} of pushed code bytes in 2021 → ${pc(github.typescriptByteSharePercent.in2026)} in repos pushed 2026`,
 			ink: "violet"
 		}
 	},
@@ -709,7 +776,7 @@ export const timeline: TimelineEntry[] = [
 		title: "Three years at Columbus Interactive GmbH",
 		body: [
 			`${ihk.apprenticeship.start}: three years employed at ${ihk.trainingCompany}, training as ${ihk.profession} (IHK, ${ihk.track}).`,
-			`${ihk.weeklyReports} countersigned weekly training records, Nr. 0–71 — every one of them read and signed by someone else. Vocational school: ${ihk.vocationalSchool}. Final exam cycle: ${ihk.apprenticeship.examCycle}.`
+			`${ihk.weeklyReports} countersigned weekly training records, Nr. 0–71 — every one of them read and signed by someone else. Vocational school: ${ihk.vocationalSchool} (${ihk.vocationalSchoolEn}). Final exam cycle: ${ihk.apprenticeship.examCycle}.`
 		]
 	},
 	{
@@ -718,10 +785,10 @@ export const timeline: TimelineEntry[] = [
 		sort: "2025-05",
 		title: `IHK final project: »${ihk.finalProject.title}«`,
 		body: [
-			`The training company assessed the work: ${ihk.finalProject.certification}, signed company confirmation dated 2025-06-01. ${ihk.finalProject.hours} h, ${ihk.finalProject.window.start} to ${ihk.finalProject.window.end}.`,
+			`The training company assessed the work: ${ihk.finalProject.certification}, signed company confirmation dated 2025-06-01. ${h(ihk.finalProject.hours)}, ${ihk.finalProject.window.start} to ${ihk.finalProject.window.end}.`,
 			`Measured under load: ${n(ihk.finalProject.loadTestServers)} simulated Discord servers.`
 		],
-		annotation: { text: "80 h is the IHK's ceiling for the project", ink: "teal" }
+		annotation: { text: `${h(ihk.finalProject.hours)} is the IHK’s ceiling for the project`, ink: "teal" }
 	},
 	{
 		id: "raleo-2025",
@@ -756,20 +823,43 @@ export const careerStats = {
 	sourceNote: "WakaTime API pull",
 	lines: [
 		`${hm(telemetry.lifetime.total.seconds)} tracked coding.`,
-		`TypeScript: ${n(telemetry.lifetime.languages[0].hours)} h — ${n(telemetry.lifetime.languages[0].percent)} % of tracked time.`,
+		`TypeScript: ${h(telemetry.lifetime.languages[0].hours)} — ${pc(telemetry.lifetime.languages[0].percent)} of tracked time.`,
 		`${telemetry.lifetime.projectsTracked} projects · ${telemetry.lifetime.languagesTracked} languages · ${n(telemetry.lifetime.dependenciesTracked)} dependencies tracked.`,
-		`${n(telemetry.lifetime.remoteSshPercent)} % of coding time on remote servers over SSH; ${n(telemetry.lifetime.linuxInclWslPercent)} % of OS time on Linux (incl. WSL).`
+		`${pc(telemetry.lifetime.remoteSshPercent)} of coding time on remote servers over SSH; ${pc(telemetry.lifetime.linuxInclWslPercent)} of OS time on Linux (incl. WSL).`
 	]
 } as const;
 
+/**
+ * NOT RENDERED — and the claim inside it was false until now.
+ *
+ * `is:pr author:Larsundso is:merged` returns 37, and this card was ready to
+ * publish that as "merged upstream". 26 of the 37 are merges into
+ * repositories the owner owns, so the number fails the first check a
+ * sceptic can run — the same class of error as "the 4 most-tracked
+ * languages", on a wall whose entire argument is that its figures survive
+ * being checked.
+ *
+ * The claim is now the one that holds: 11 merged into 8 repositories he
+ * does not own, verified against the GitHub search API on 2026-08-05, with
+ * `search` carrying the query that reproduces it. These are also the only
+ * claims on this wall that a third party attested to — every charted figure
+ * is self-instrumented — which is why the card is worth wiring up rather
+ * than deleting.
+ */
 export const githubStats = {
 	title: "GitHub record",
 	asOf: SNAPSHOT_AS_OF,
 	sourceNote: "GitHub authenticated pull",
 	lines: [
 		`${n(github.contributions.lifetime)} contributions since ${github.accountCreated} — peak year ${github.contributions.peakYear.year}: ${n(github.contributions.peakYear.contributions)}; rolling 12 months: ${n(github.contributions.rolling12Months)}.`,
-		`${github.pullRequestsAuthored} pull requests authored, lifetime. Merged upstream in ${github.mergedUpstream.join(", ")}.`
-	]
+		`${github.pullRequestsAuthored} pull requests authored, lifetime.`,
+		`${github.mergedUpstream.count} of them merged into ${github.mergedUpstream.repositories.length} repositories I do not own: ${github.mergedUpstream.repositories.map((r) => r.repo).join(", ")}. Checked ${github.mergedUpstream.checkedOn}.`
+	],
+	/** The query that returns the eleven — run it rather than trust it. */
+	search: {
+		label: "the search that returns them",
+		href: github.mergedUpstream.searchUrl
+	} satisfies WallLink
 } as const;
 
 /* ------------------------------------------------------------------ */
@@ -788,11 +878,18 @@ export const projects: ProjectEntry[] = [
 		],
 		facts: [
 			`${servers} servers · ${users} users · ${ayako.rating.value} on ${ayako.rating.platform}, as of ${SNAPSHOT_AS_OF}.`,
-			`Monorepo-wide: ${n(ayako.monorepo.files)} source files, ${n(ayako.monorepo.linesOfCode)} lines of code (TypeScript, Svelte, Rust).`,
-			`${ayako.workspace.packagesAndApps} packages and apps · ${ayako.workspace.dockerComposeServices} Docker Compose services · ${ayako.workspace.prismaModels} Prisma models.`,
-			`${n(telemetry.lifetime.ayakoFamily.hours)} h across ${ayako.generations} generations and ${ayako.discordLibraries} Discord libraries — ${n(telemetry.lifetime.ayakoFamily.percent)} % of all tracked coding time.`,
-			`${n(github.ayakoAuthorship.v2Percent)} % of v2 default-branch commits self-authored (${n(github.ayakoAuthorship.v2Commits.own)} of ${n(github.ayakoAuthorship.v2Commits.total)}).`,
-			`v3: ${ayako.v3.commits} commits, 100 % self-authored · ${ayako.v3.featurePlugins} feature plugins · ${ayako.v3.testFiles} colocated test files.`
+			/* A CENSUS, NOT AN ESTIMATE. This line printed "221,133 lines of
+			   code" — the largest figure on the wall and the softest, because
+			   a line count is a construct (what counts as a line, blank lines,
+			   generated files) rather than a thing counted. The file count and
+			   the package count are both censuses: they answer to a directory
+			   listing. The line figure is not lost — it stays in
+			   snapshot.ts — it is simply not the number this card leads on. */
+			`Monorepo-wide: ${n(ayako.monorepo.files)} source files across ${ayako.workspace.packagesAndApps} packages (TypeScript, Svelte, Rust).`,
+			`${ayako.workspace.dockerComposeServices} Docker Compose services · ${ayako.workspace.prismaModels} Prisma models.`,
+			`${h(telemetry.lifetime.ayakoFamily.hours)} across ${ayako.generations} generations and ${ayako.discordLibraries} Discord libraries — ${pc(telemetry.lifetime.ayakoFamily.percent)} of all tracked coding time.`,
+			`${pc(github.ayakoAuthorship.v2Percent)} of v2 default-branch commits self-authored (${n(github.ayakoAuthorship.v2Commits.own)} of ${n(github.ayakoAuthorship.v2Commits.total)}).`,
+			`v3: ${ayako.v3.commits} commits, ${pc(100)} self-authored · ${ayako.v3.featurePlugins} feature plugins · ${ayako.v3.testFiles} colocated test files.`
 		],
 		stack: [
 			"TypeScript",
@@ -828,11 +925,11 @@ export const projects: ProjectEntry[] = [
 			"Support staff authenticate with a Discord application's token and inspect permission configuration, roles, and channels across all of its servers — real-time UI over Server-Sent Events, backed by a typed Redis cache layer and a sharded bot backend."
 		],
 		facts: [
-			`${ihk.finalProject.hours} h, ${ihk.finalProject.window.start} to ${ihk.finalProject.window.end} — ${ihk.finalProject.certification}.`,
+			`${h(ihk.finalProject.hours)}, ${ihk.finalProject.window.start} to ${ihk.finalProject.window.end} — ${ihk.finalProject.certification}.`,
 			`Load-tested to ${n(ihk.finalProject.loadTestServers)} simulated Discord servers (project documentation, 2025-06).`,
 			`${ihk.finalProject.performance.initialLoad} · ${ihk.finalProject.performance.serverSwitch} · ${ihk.finalProject.performance.cacheHitRate} · ${ihk.finalProject.performance.fps} (project documentation, 2025-06).`,
-			`${ihk.finalProject.code.typescript.files} TypeScript files (${n(ihk.finalProject.code.typescript.linesOfCode)} LOC) + ${ihk.finalProject.code.svelte.files} Svelte files (${n(ihk.finalProject.code.svelte.linesOfCode)} LOC).`,
-			`${n(ihk.finalProject.trackedHours)} h tracked on the repo.`
+			`${ihk.finalProject.code.typescript.files} TypeScript files (${n(ihk.finalProject.code.typescript.linesOfCode)} LOC) + ${ihk.finalProject.code.svelte.files} Svelte files (${n(ihk.finalProject.code.svelte.linesOfCode)} LOC).`,
+			`${h(ihk.finalProject.trackedHours)} tracked on the repo.`
 		],
 		stack: [
 			"SvelteKit",
@@ -855,11 +952,11 @@ export const projects: ProjectEntry[] = [
 		oneLiner:
 			"Second production Discord bot, private codebase: giveaways with message- and voice-minute entry requirements, welcome flows, logging, booster tracking, embed builder, online-peak statistics.",
 		body: [
-			"Runs on hybrid sharding with a custom V8 memory monitor: 30-second heap sampling with a garbage-collection trigger at 85 %."
+			"Runs on hybrid sharding with a custom V8 memory monitor: 30-second heap sampling with a garbage-collection trigger at 85 %."
 		],
 		facts: [
 			"Self-described “10,000+ servers” — repo metadata, unverified.",
-			`332 files · ${n(17_250)} LOC · 128 commits, 100 % self-authored.`,
+			`332 files · ${n(17_250)} LOC · 128 commits, 100 % self-authored.`,
 			"Active through 2026-06."
 		],
 		stack: ["TypeScript", "discord.js 14", "Prisma", "discord-hybrid-sharding", "socket.io"],
@@ -878,7 +975,7 @@ export const projects: ProjectEntry[] = [
 		body: [
 			"Discord RPC implemented directly over the local IPC pipe — no bot token. Ships as a single self-contained executable with license, privacy policy, terms, and a release workflow."
 		],
-		facts: [`${n(4_059)} LOC across 15 files.`],
+		facts: [`${n(4_059)} LOC across 15 files.`],
 		stack: ["C#/.NET 8", "SkiaSharp", "DirectX 11 (Vortice)", "OpenVR", "Kestrel", "WebSocket"],
 		links: []
 	},
@@ -890,7 +987,7 @@ export const projects: ProjectEntry[] = [
 		body: [
 			"Spec-first: the design document is dated 2026-04-16, before implementation. DPAPI-encrypted credentials, a loopback-only web dashboard, and SQLite persistence."
 		],
-		facts: [`${n(4_481)} LOC across 55 files · 7-module xUnit suite.`],
+		facts: [`${n(4_481)} LOC across 55 files · 7-module xUnit suite.`],
 		stack: ["C#/.NET 8", "Svelte 5", "SQLite", "xUnit", "Kestrel"],
 		links: []
 	},
@@ -903,7 +1000,7 @@ export const projects: ProjectEntry[] = [
 		body: [
 			"The Discord IPC RPC client — OAuth handshake and frame protocol included — is hand-rolled rather than pulled from a library."
 		],
-		facts: [`${n(2_436)} LOC across 36 files · vitest suite with undici MockAgent.`],
+		facts: [`${n(2_436)} LOC across 36 files · vitest suite with undici MockAgent.`],
 		stack: ["TypeScript", "Node.js", "vitest"],
 		links: []
 	},
@@ -916,7 +1013,7 @@ export const projects: ProjectEntry[] = [
 		body: [
 			"Speech is recognized locally with Faster-Whisper and routed to the VRChat chatbox over OSC; the overlay renders dashboard, HUD, and wrist views in-headset."
 		],
-		facts: [`${n(32_427)} LOC across 121 files · 15 backend service modules · 19 test files.`],
+		facts: [`${n(32_427)} LOC across 121 files · 15 backend service modules · 19 test files.`],
 		stack: ["Python", "FastAPI", "Faster-Whisper", "Electron", "React", "OpenVR", "WebSocket", "OSC"],
 		links: []
 	},
@@ -929,7 +1026,7 @@ export const projects: ProjectEntry[] = [
 		body: [
 			"Run as a real open-source project: strict TypeScript, compression with SSH/HTTP upload fallback, Docker packaging, and a SECURITY.md."
 		],
-		facts: [`${n(3_264)} LOC of strict TypeScript across 75 files.`],
+		facts: [`${n(3_264)} LOC of strict TypeScript across 75 files.`],
 		stack: ["TypeScript", "ffmpeg", "youtube-dl-exec", "SWC", "Docker"],
 		links: [],
 		license: "CC BY-NC 4.0"
@@ -948,13 +1045,13 @@ export const breadth: { text: string; link?: WallLink }[] = [
 		link: { label: "npm", href: "https://www.npmjs.com/package/waifu-pics-api" }
 	},
 	{
-		text: `vr-diag — three PowerShell forensic scripts (${n(1_202)} LOC): VR crash forensics across event logs, WHEA, and minidumps; a VR lag monitor; a bugcheck analyzer. 48 captured run datasets.`
+		text: `vr-diag — three PowerShell forensic scripts (${n(1_202)} LOC): VR crash forensics across event logs, WHEA, and minidumps; a VR lag monitor; a bugcheck analyzer. 48 captured run datasets.`
 	},
 	{
 		text: "Restart-VR.bat — idempotent Windows batch orchestrator that boots a VR streaming stack via tasklist, CIM, and UDP-port probes."
 	},
 	{
-		text: "Car electronics — camera install and a 12 V LiFePO₄ second-battery build in a Smart 450; ESP8266 + MQTT height map."
+		text: "Car electronics — camera install and a 12 V LiFePO₄ second-battery build in a Smart 450; ESP8266 + MQTT height map."
 	}
 ];
 
@@ -975,13 +1072,16 @@ export const aiPractice = {
 	   not quote the Governance card below it — a lead-in that repeats the
 	   card it introduces is the same restatement fault the wall bans in its
 	   margin notes. */
-	intro: "Agents draft; I decide, review, and commit. Here are the numbers, and the rules they run under.",
+	/* "…and the rules they run under" left `they` to bind to the nearest
+	   plural, which was "the numbers". The agents run under the rules; the
+	   numbers do not. */
+	intro: "Agents draft; I decide, review, and commit. Here are the numbers, and the rules the agents run under.",
 	entries: [
 		{
 			id: "volume",
 			title: "Volume",
 			lines: [
-				`${n(ai.transcripts.count)} Claude Code transcripts (${ai.transcripts.sizeMb} MB, ${n(ai.transcripts.events)} logged events) across ${ai.transcripts.days} days, ${ai.transcripts.window.start} to ${ai.transcripts.window.end} — ${n(ai.sessionsPerDay)} top-level sessions per day.`,
+				`${n(ai.transcripts.count)} Claude Code transcripts (${ai.transcripts.sizeMb} MB, ${n(ai.transcripts.events)} logged events) across ${ai.transcripts.days} days, ${ai.transcripts.window.start} to ${ai.transcripts.window.end} — ${n(ai.sessionsPerDay)} top-level sessions per day.`,
 				`Session indexes evidence use since at least ${ai.transcripts.evidencedSince}.`
 			]
 		},
@@ -989,18 +1089,28 @@ export const aiPractice = {
 			id: "orchestration",
 			title: "Orchestration",
 			lines: [
-				`${n(ai.subagentShare.percent)} % of transcripts (${n(ai.subagentShare.count)} of ${n(ai.subagentShare.of)}) are subagent and workflow runs nested under parent sessions.`,
+				`${pc(ai.subagentShare.percent)} of transcripts (${n(ai.subagentShare.count)} of ${n(ai.subagentShare.of)}) are subagent and workflow runs nested under parent sessions.`,
 				`Sampled prompt-to-response ratio: ${ai.promptRatio} — long autonomous runs, steered now and then.`,
 				"Multiple concurrent sessions run on one checkout under written conventions: atomic claim locks for shared logs, commit-by-pathspec against index races, mtime-based attribution checks before reverts."
 			]
 		},
 		{
 			id: "adoption",
-			title: "Measured adoption curve",
+			/* NOT A CURVE, and the old title said "curve" over four windows
+			   joined with arrows — which invites a reader to see four
+			   successive periods rising. They are not successive: they
+			   overlap, and one of them contains the others. Same class of
+			   error as "71.5 % of the top 4". The arrows are gone, each
+			   window is labelled with what it spans, and the relation between
+			   them is stated rather than drawn. */
+			title: "Measured AI adoption",
 			lines: [
-				`AI-Coding share of tracked time: ${n(telemetry.aiCoding.sharePercentByWindow.lifetime)} % lifetime → ${n(telemetry.aiCoding.sharePercentByWindow.last12Months)} % last 12 months → ${n(telemetry.aiCoding.sharePercentByWindow.july2026)} % July 2026 → ${n(telemetry.aiCoding.sharePercentByWindow.last7Days)} % last 7 days. ${hm(telemetry.aiCoding.lifetime.seconds)} lifetime.`,
-				`Claude Code: ${n(telemetry.windowJuly2026.claudeCodeEditorPercent)} % of July-2026 editor time.`,
-				`Markdown rose from ${n(telemetry.lifetime.markdownPercent)} % of lifetime language time to ${n(telemetry.windowJuly2026.markdownPercent)} % in July 2026 — the signature of spec-driven, agentic work.`
+				"“AI Coding” is a WakaTime category of tracked time: how much of the measured coding time ran in AI-assisted sessions — not how much of the codebase an AI wrote.",
+				`Lifetime (${telemetry.trackingStart} to ${telemetry.trackingEnd}): ${pc(telemetry.aiCoding.sharePercentByWindow.lifetime)}. The 12 months to ${SNAPSHOT_AS_OF}: ${pc(telemetry.aiCoding.sharePercentByWindow.last12Months)}. July 2026, the calendar month: ${pc(telemetry.aiCoding.sharePercentByWindow.july2026)}. The 7 days to ${SNAPSHOT_AS_OF}: ${pc(telemetry.aiCoding.sharePercentByWindow.last7Days)}.`,
+				"Four windows, not four periods — they overlap. The lifetime window contains all of them, and both July 2026 and the last seven days sit inside the last 12 months. Read them as four zoom levels on one record, not as a curve.",
+				`${pc(telemetry.aiCoding.last12MonthsShareOfLifetimePercent)} of all AI-Coding time ever tracked falls in the last 12 months. ${hm(telemetry.aiCoding.lifetime.seconds)} lifetime.`,
+				`Claude Code: ${pc(telemetry.windowJuly2026.claudeCodeEditorPercent)} of July-2026 editor time.`,
+				`Markdown rose from ${pc(telemetry.lifetime.markdownPercent)} of lifetime language time to ${pc(telemetry.windowJuly2026.markdownPercent)} in July 2026 — the signature of spec-driven, agentic work.`
 			]
 		},
 		{
@@ -1071,7 +1181,7 @@ export const houseRules = {
  * code, so it may not wear it. */
 
 export const inkKey = {
-	title: "a note's ink names its claim",
+	title: "a note’s ink names its claim",
 	rows: [
 		{ ink: "magenta", job: "mine alone", q: "who owns this, and how big is it?" },
 		{ ink: "violet", job: "the method", q: "how is the work done?" },
@@ -1093,11 +1203,21 @@ export const contact = {
 	 *  the wall that states it. No notice period: none was supplied, and
 	 *  none may be inferred.
 	 *
-	 *  Order is load-bearing. The card used to open on "Not urgently
-	 *  looking", so the first thing read in the one block a screener came
-	 *  for was a brake. The offer opens the card; the candid qualifier
-	 *  closes it, immediately after the promise it makes credible. Nothing
-	 *  was deleted — the honesty is the reason the rest is believed.
+	 *  ORDER IS LOAD-BEARING, AND THE LAST FIX MOVED THE BRAKE TO A LOUDER
+	 *  SLOT. The card used to OPEN on "Not urgently looking" — right
+	 *  diagnosis, wrong remedy: initial position is theme, terminal position
+	 *  is END-FOCUS, the most emphatic slot in a block. The qualifier was
+	 *  moved from the weaker emphatic position to the stronger one, and it
+	 *  displaced the highest-converting sentence on the page out of the last
+	 *  word. The genuinely weak slot is medial, and that is where it now
+	 *  sits: offer → qualifier → terms → promise. Nothing was deleted; the
+	 *  qualifier is still on the card, still unhedged, and the candour is
+	 *  still the reason the rest is believed.
+	 *
+	 *  The promise also gets its agent back. "Every mail to this address is
+	 *  answered" was agentless passive inside a card that is otherwise
+	 *  first-person and imperative — the one promise on the wall whose
+	 *  promiser was grammatically absent.
 	 *
 	 *  Location is stated at REGION level only, matching hero.location and
 	 *  the footer. "Bodensee-Ravensburg" named a town and put a third
@@ -1106,9 +1226,9 @@ export const contact = {
 		title: "Right now",
 		lines: [
 			"Open to TypeScript/Node product work — backend or full-stack. Tell me about it.",
+			"Full-stack developer at Raleo Digital GmbH since 2025. Not urgently looking.",
 			"Remote, or on site in the Bodensee-Oberschwaben region.",
-			"Every mail to this address is answered.",
-			"Full-stack developer at Raleo Digital GmbH since 2025. Not urgently looking."
+			"I answer every mail to this address."
 		]
 	},
 	entries: [
@@ -1183,24 +1303,34 @@ export const education: EducationEntry[] = [
 		end: "2025",
 		logo: "/CI.webp"
 	},
+	/* GERMAN INSTITUTIONS KEEP THEIR GERMAN NAMES, GLOSSED. Three of these
+	   were filed under machine-translated names — "Electronics School
+	   Tettnang", "Ravensburg Technical High School", "1-Year Vocational
+	   School for Electrical Engineering" — and nothing is registered,
+	   accredited or findable under any of them. A translated institution
+	   name is not a translation, it is a different institution. The name is
+	   the record; the gloss is the courtesy, and it goes in the slot that
+	   renders beside it. */
 	{
 		id: "est",
-		institution: "Electronics School Tettnang",
-		detail: "Vocational school (Berufsschule) of the apprenticeship.",
+		institution: "Elektronikschule Tettnang",
+		detail: "The apprenticeship’s vocational school (Berufsschule).",
 		start: "2022-09",
 		end: "2025-07",
 		logo: "/EST.webp"
 	},
 	{
 		id: "bfe",
-		institution: "1-Year Vocational School for Electrical Engineering",
+		institution: "Einjährige Berufsfachschule für Elektrotechnik",
+		detail: "One-year full-time vocational school, electrical engineering.",
 		start: "2019-08",
 		end: "2020-02",
 		logo: "/GSR.webp"
 	},
 	{
 		id: "tg",
-		institution: "Ravensburg Technical High School",
+		institution: "Technisches Gymnasium Ravensburg",
+		detail: "Technical upper-secondary school.",
 		start: "2018-08",
 		end: "2018-10",
 		logo: "/GSR.webp"

@@ -628,6 +628,24 @@ const links = layout.map(({ side }, i) => {
 		pointer-events: none;
 	}
 
+	/* THE ENTRY LINE WALKED PAST THE FIRST DISTRICT SIGN. A dead-straight
+	   drop at `--spine-x` left `WERDEGANG`'s flyer pin 341.1px off the
+	   nearest drawn thread at 1440 and 70.6px at 390 — the one sign where
+	   the reader learns the grammar the other four obey.
+	   WallPage.astro rebuilds this stretch at runtime as a taut run
+	   hero edge → sign → first card (it needs `--spine-x`'s used value and
+	   the flyer's measured pin, neither of which a static SVG has), sets
+	   `data-routed` when it has, and this span stands down. Measured after:
+	   0.4–3.4px at every width in both locales.
+	   Ink only — the BOX stays, because the runtime run reads this span's
+	   `offsetTop`/`offsetHeight` for its lower endpoint, and `offset*`
+	   rather than a client rect because this element carries the reveal's
+	   `scale: 1 0`. With no JS the plain drop is what renders, which is the
+	   state this file shipped for a year. */
+	.rf-line[data-routed] {
+		background: none;
+	}
+
 	@supports (animation-timeline: view()) {
 		@media (prefers-reduced-motion: no-preference) {
 			/* `entry 0% entry 85%`, the wall's one reveal law — see
@@ -843,9 +861,24 @@ const links = layout.map(({ side }, i) => {
 	}
 
 	/* the two peaks — the IHK final project and the job it led to */
+	/* THE STEP-UP HIT THE RULING AND THE RULING DID NOT MOVE. `--step-2`
+	   resolves to 24px at ≥1200px against `--lh-1`'s fixed 24px: measured
+	   24/24 = ratio 1.000 at 1200, 1440 and 2560 on both peaks, in both
+	   locales, with both titles wrapping to two lines. On the German wall
+	   the `ü` of »für« then sat inside the descenders of »Abschlussprojekt«
+	   on the line above. Before the step-up these titles were --step-1 on
+	   the same 24px rule — ratio 1.20.
+	   A card on a 24px ruling cannot take an arbitrary leading, so the
+	   answer is not a ratio but the next rule down: 48px is a typist
+	   skipping a line, and the sheet stays registered to its rules at every
+	   width. It is deliberately unconditional — the narrow widths resolve
+	   --step-2 to 21px on the same 24px pitch (ratio 1.14, also under the
+	   1.20 these titles used to have), and one value keeps the two peaks
+	   from being set differently on either side of a breakpoint. */
 	.rf-row--peak .rf-cardwrap h3,
 	.rf-row--flagship .rf-cardwrap h3 {
 		font-size: var(--step-2);
+		line-height: calc(var(--baseline) * 6);
 	}
 
 	/* A SCHOOL is a record and nothing else: a name and a span. It steps

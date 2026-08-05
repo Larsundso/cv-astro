@@ -209,7 +209,21 @@ const JOIN_STACK = {
 
 	<!-- the wall's only persistent chrome: the thread itself, with the
 	     brass pin riding it at scroll progress and the five sections as
-	     ticks. Signage made of the wall's own material. -->
+	     ticks. Signage made of the wall's own material.
+
+	     IT USED TO EXIST ON DESKTOP ONLY. Below 64rem `.rail__line` and
+	     `.rail__ticks` were both `display: none`, so all five ticks
+	     computed 0 × 0 at 390 and the rail collapsed to a single 44 × 44
+	     back-to-top pin: on a 20,000px page whose only conversion event is
+	     at the bottom, the one persistent control pointed BACKWARDS, and
+	     the longest run with no landmark of any kind measured 6,528px —
+	     7.7 phone screens. The rail now exists at every width; what
+	     changes below 64rem is its AXIS and one added element. See the
+	     style block for why.
+
+	     The address chip is narrow-only and it is the point of the
+	     exercise: on the phone the first mailto on the page sits past
+	     80 % depth, so the strip carries the address itself. -->
 	<nav class="rail" id="rail" aria-label={ui.navAria} data-visible="false">
 		<span class="rail__line" aria-hidden="true"></span>
 		<ul class="rail__ticks" role="list">
@@ -235,6 +249,7 @@ const JOIN_STACK = {
 					stroke-linejoin="round"></path>
 			</svg>
 		</button>
+		<a class="rail__mail" href="mailto:jobs@lars-dev.org">jobs@lars-dev.org</a>
 	</nav>
 
 	<!-- the contact section signs the wall (© stamp); keep the footer quiet -->
@@ -278,7 +293,22 @@ const JOIN_STACK = {
 		--thread-w: 4px;
 	}
 
-	@media (min-width: 48rem) {
+	/* 48.0625rem = 769px, NOT 48rem. `wall.css` and `Projects.astro` gate
+	   their narrow branches on `max-width: 48rem`, and `max-width: 48rem`
+	   and `min-width: 48rem` are BOTH TRUE at exactly 768 CSS px — iPad
+	   portrait, a width people hold in their hands. Measured document
+	   heights before this rule: 767 → 17,692 · 768 → 18,772 · 769 → 18,473.
+	   768 was 1,080px taller than the width one pixel narrower and 299px
+	   taller than the width one pixel wider, because the timeline took its
+	   wide shape while Projects kept its narrow one and `.act-break` jumped
+	   128 → 200px: a hybrid layout that existed at exactly one width.
+	   The 64rem pair on this wall is already disjoint (63.9375 / 64); this
+	   copies that convention on the other side, so 768 resolves NARROW
+	   everywhere — which is what the files that own `max-width: 48rem`
+	   already say it is. Every `min-width: 48rem` on the wall moves
+	   together: this one, `.act-break` below, and Timeline.astro's
+	   armature. */
+	@media (min-width: 48.0625rem) {
 		:root {
 			--spine-x: calc(50% - 152px);
 			--spine-x-r: calc(50% + 152px);
@@ -416,6 +446,18 @@ const JOIN_STACK = {
 	   twice. */
 	#to-top {
 		display: none;
+	}
+
+	/* THE STRIP LIES ON THE BOARD, NOT ON THE DOCUMENT. Below 64rem the
+	   rail is a fixed 60px strip 12px off the bottom edge, so without this
+	   the last 72px of the wall would sit permanently under it — and the
+	   last 72px of this wall is the end of the contact section. The page
+	   gives that height back at the foot of the document; the strip is
+	   then the only thing that has ever been over the paper. */
+	@media (max-width: 63.9375rem) {
+		body {
+			padding-bottom: 72px;
+		}
 	}
 </style>
 
@@ -679,7 +721,10 @@ const JOIN_STACK = {
 		pointer-events: none;
 	}
 
-	@media (min-width: 48rem) {
+	/* 48.0625rem — see the `--spine-x` block above: the 48rem pair was not
+	   disjoint, and this was one of the two rules that made 768 taller than
+	   both of its neighbours. */
+	@media (min-width: 48.0625rem) {
 		.act-break {
 			height: calc(var(--baseline) * 25);
 		}
@@ -742,30 +787,46 @@ const JOIN_STACK = {
 		background: var(--thread);
 	}
 
+	/* the ticks' track. Absolute and coincident with the rail on desktop,
+	   so nothing about the tick geometry changes; below 64rem it shortens
+	   to leave the address chip its own end of the strip, and the ticks
+	   and the pin both measure themselves against it. */
 	.rail__ticks {
+		position: absolute;
+		inset: 0;
 		list-style: none;
 		margin: 0;
 		padding: 0;
 	}
 
-	/* 24×24 target, 10px of visible mark crossing the thread */
+	/* 24×24 target, a 14px dash standing CLEAR OF THE DISC.
+	   The tick used to sit at `--rail-line - 24px`, i.e. its right edge on
+	   the thread — which is also where the 28px brass pin rides. The pin
+	   occludes anything within 14px of its centre, so the tick that says
+	   where you are was the one tick you could not see, and from progress
+	   ≈0.93 to the end BOTH the last two ticks (22px apart) were under it.
+	   Moved to the rail's left edge the whole 24px target is disjoint from
+	   the disc's 28px column: the dash now reads as a graduation BESIDE the
+	   scale rather than a mark crossing it, which is what a scale drawing
+	   with a travelling index actually looks like. Reaching the line and
+	   staying clear of a disc centred on the line is not a thing that has a
+	   solution. */
 	.rail__tick {
 		position: absolute;
 		top: calc(var(--at, 0) * 100%);
-		left: calc(var(--rail-line) - 24px);
+		left: 0;
 		width: 24px;
 		height: 24px;
 		margin-top: -12px;
 		pointer-events: auto;
 		display: grid;
 		place-items: center end;
-		padding-right: 3px;
 	}
 
 	.rail__tick::after {
 		content: "";
 		display: block;
-		width: 10px;
+		width: 14px;
 		height: 2.5px;
 		border-radius: 2px;
 		background: color-mix(in oklab, var(--thread) 55%, transparent);
@@ -774,18 +835,55 @@ const JOIN_STACK = {
 	/* scale, not width: the current tick changes on every scroll frame
 	   that crosses a section boundary, and a width change re-lays out */
 	.rail__tick:hover::after,
+	.rail__tick:focus-visible::after,
 	.rail__tick[aria-current="true"]::after {
 		scale: 1.4 1;
 		background: var(--thread);
 	}
 
+	/* THE NAMES WERE EXPOSED TO EVERYONE EXCEPT THE PEOPLE LOOKING AT THEM.
+	   `.rail__label` was clipped to 1 × 1px permanently, with no hover
+	   reveal and no `title`, so assistive technology got five named
+	   destinations and a sighted mouse user got five identical dashes —
+	   the accessible name was better served than sight, which is a rare
+	   way round and not a good one. The name now slips out on hover and on
+	   keyboard focus as `paper-slip`, the wall's own material, opening
+	   LEFTWARDS into the cork margin so it never leaves the viewport.
+	   It is still `clip-path`-hidden at rest, so nothing is announced
+	   twice and the rail keeps its 52px footprint. */
 	.rail__label {
 		position: absolute;
+		right: calc(100% + var(--baseline));
+		top: 50%;
+		translate: 0 -50%;
 		width: 1px;
 		height: 1px;
 		overflow: hidden;
 		clip-path: inset(50%);
 		white-space: nowrap;
+		font-family: var(--font-display);
+		font-size: var(--step--1);
+		line-height: 1;
+		letter-spacing: var(--track-display);
+		text-transform: uppercase;
+		color: var(--ink);
+	}
+
+	.rail__tick:hover .rail__label,
+	.rail__tick:focus-visible .rail__label {
+		width: auto;
+		height: auto;
+		overflow: visible;
+		clip-path: none;
+		padding: calc(var(--baseline) * 0.5) var(--baseline);
+		background-color: var(--paper);
+		background-image: var(--lamp);
+		box-shadow: var(--pin-shadow);
+	}
+
+	/* the address chip: narrow walls only — see the media query below */
+	.rail__mail {
+		display: none;
 	}
 
 	/* the brass pin, riding the thread at scroll progress. Moved with
@@ -823,6 +921,21 @@ const JOIN_STACK = {
 		height: 15px;
 	}
 
+	/* A BRASS PIN IS 28px BECAUSE A BRASS PIN IS 28px. The disc's size is
+	   the wall's material, not a target size, so the target is bought
+	   separately: a transparent 44 × 44 pad centred on the head, which is
+	   the size the narrow build's old corner button had and the size a
+	   thumb wants. Nothing about the drawn object changes. */
+	.rail__pin::before {
+		content: "";
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 44px;
+		height: 44px;
+		translate: -50% -50%;
+	}
+
 	/* the press-in law: nothing lifts, nothing glows — the cast shrinks */
 	.rail__pin:hover {
 		box-shadow:
@@ -836,32 +949,151 @@ const JOIN_STACK = {
 			inset 0 0 0 1px oklch(var(--shade) / 0.2);
 	}
 
-	/* narrow walls have no margin to hang a rail in: the pin keeps its
-	   old corner and its old 44px target, the thread and ticks stand down */
+	/* ---- the rail on a narrow wall: same signage, turned 90° --------- */
+	/* IT WAS SWITCHED OFF HERE, WHICH IS WHERE IT WAS NEEDED MOST. This
+	   query used to read `.rail__line, .rail__ticks { display: none }`, so
+	   at 390 all five ticks computed 0 × 0 and the wall's only permanent
+	   control was a back-to-top pin: on a page 24 screens long whose only
+	   conversion event is at the bottom, the one thing always on screen
+	   pointed the wrong way, and the longest stretch with no landmark of
+	   any kind measured 6,528px — 7.7 screens.
+	   The reason given was that a narrow wall has no margin to hang a rail
+	   in, and that reason is correct: at 390 the cards span 23–366 of a
+	   390px viewport, so the right-hand cork is 24px wide and the fixed pin
+	   was measured sitting on paper at 79 % of sampled scroll depths (0 %
+	   at 1440). What was wrong was the conclusion. A wall with no vertical
+	   margin still has a HORIZONTAL one, and the strip below is the same
+	   four objects — thread, riding brass pin, five district ticks, and now
+	   the address — laid along the axis that has 366px instead of the axis
+	   that has 24.
+	   IT IS STILL THE RAIL, not a borrowed progress bar: the line is the
+	   wall's thread at the wall's reduction, the index is the brass pin
+	   riding it at true scroll progress, and the ticks stand at the
+	   districts' true proportional offsets — so pin and ticks agree about
+	   where the reader is. Even spacing would have bought 44px targets and
+	   made the two devices contradict each other on the one surface where
+	   the scale drawing is the whole point.
+	   And it is a pinned artefact: paper stock, the lamp, the wall's own
+	   cast shadow, lying along the bottom edge of the board. */
 	@media (max-width: 63.9375rem) {
 		.rail {
-			--rail-line: 30px;
-			--rail-h: 44px;
-			width: 44px;
-			right: calc(var(--baseline) * 3);
+			/* the chip's own width plus a gutter — the ticks' track and the
+			   pin's travel both stop here, so the address never has a tick
+			   or the index under it */
+			--mail-slot: calc(9rem + var(--baseline));
+			container-type: inline-size;
+			left: calc(var(--baseline) * 1.5);
+			right: calc(var(--baseline) * 1.5);
+			bottom: calc(var(--baseline) * 1.5);
+			width: auto;
+			height: 60px;
+			pointer-events: auto;
+			background-color: var(--paper);
+			background-image: var(--lamp);
+			box-shadow: var(--pin-shadow);
 		}
 
-		.rail__line,
+		/* the thread, along the top of the strip; the pin rides it there and
+		   the ticks hang below it, so the 28px disc can never sit on a tick's
+		   target — the defect this same file has on the desktop rail, not
+		   reproduced at half scale here. */
+		.rail__line {
+			top: 11px;
+			bottom: auto;
+			left: 0;
+			right: var(--mail-slot);
+			width: auto;
+			height: 2.5px;
+		}
+
 		.rail__ticks {
-			display: none;
+			inset: 0 var(--mail-slot) 0 0;
+		}
+
+		/* 24 × 36 targets — over the AA floor of 24 × 24, and as wide as the
+		   districts' own spacing allows: the last two sections are 12 % of
+		   the page apart, so a 44px target could only be bought by giving up
+		   the proportional placement that makes this a scale at all. */
+		.rail__tick {
+			top: 26px;
+			left: calc(var(--at, 0) * 100%);
+			margin-top: 0;
+			margin-left: calc(var(--at, 0) * -24px);
+			width: 24px;
+			height: 34px;
+			place-items: start center;
+		}
+
+		/* the mark turns with the axis: a graduation dropping off the thread */
+		.rail__tick::after {
+			width: 2.5px;
+			height: 12px;
+		}
+
+		.rail__tick:hover::after,
+		.rail__tick:focus-visible::after,
+		.rail__tick[aria-current="true"]::after {
+			scale: 1 1.4;
+		}
+
+		/* the name opens upward here, into the cork above the strip */
+		.rail__label {
+			right: auto;
+			left: 50%;
+			top: auto;
+			bottom: calc(100% - 12px);
+			translate: -50% 0;
 		}
 
 		.rail__pin {
-			top: 0;
+			top: -3px;
 			left: 0;
-			translate: none;
-			width: 44px;
-			height: 44px;
+			/* travel is the TRACK's width, measured from the strip itself, so
+			   the index and the ticks share one scale at every narrow width */
+			translate: calc(var(--progress, 0) * (100cqi - var(--mail-slot) - 28px)) 0;
 		}
 
-		.rail__pin svg {
-			width: 20px;
-			height: 20px;
+		/* THE ONE THING THAT HAD TO SURVIVE. The first mailto on the phone
+		   build sits past 80 % of a 20,000px page; every route to it was a
+		   scroll. It is now a pinned chit at the end of the strip, at the
+		   strip's full height — the largest target in the rail, which is
+		   the correct ranking for the only conversion event on the wall. */
+		.rail__mail {
+			display: grid;
+			place-items: center;
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			right: 0;
+			/* 9rem holds all seventeen characters of the address at the top of
+			   `--step--1`'s clamp (13.59px at 1023px, Courier's 0.6em advance =
+			   138.6px), so it never has to ellipsize or wrap */
+			width: 9rem;
+			pointer-events: auto;
+			white-space: nowrap;
+			font-family: var(--font-typed);
+			font-size: var(--step--1);
+			line-height: var(--lh--1);
+			color: var(--ink);
+			text-decoration: underline;
+			text-decoration-color: var(--thread);
+			text-decoration-thickness: 2px;
+			text-underline-offset: 4px;
+		}
+
+		.rail__mail:hover {
+			text-decoration-thickness: 2.5px;
+		}
+	}
+
+	/* At 22.5rem the districts' last two offsets are 17px apart and a 24px
+	   target cannot stand between them. Below that width the strip drops the
+	   five ticks and keeps the thread, the index and the address — the
+	   degradation states the priority: if one control survives, it is the
+	   route to the address. 22.5rem is also 400 % zoom on a 1280px window. */
+	@media (max-width: 22.5rem) {
+		.rail__ticks {
+			display: none;
 		}
 	}
 </style>

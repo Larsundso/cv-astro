@@ -167,9 +167,24 @@ export const meta = {
 		`since ${ayako.inProductionSince}. ${hm(telemetry.lifetime.total.seconds)} tracked coding, ` +
 		`as of ${SNAPSHOT_AS_OF}.`,
 	locale: "en",
+	/* THE MACHINE-READABLE IDENTITY, AND IT IS THE ONLY ONE. `main.astro`
+	   used to hand-type a second Person object beside this one: it published
+	   `name: "Lars Boese"` under a `<title>` of *Böse*, and a LinkedIn
+	   `sameAs` carrying a raw `ö` in the path — an unencoded non-ASCII
+	   character in a URL literal, next to the correctly encoded copy that was
+	   already sitting here. The layout now reads this record, so the wall
+	   states its owner's name once.
+	   The drawn signature stays ASCII on purpose (`hero.signature`): a
+	   signature legitimately may be, and the Lottie swash is measured against
+	   that exact string. The legal form is carried by the identity card, the
+	   title, the footer stamp and this record. */
 	person: {
 		name: "Lars Böse",
-		alternateName: "Larsundso",
+		givenName: "Lars",
+		familyName: "Böse",
+		/* both the ASCII form a recruiter may search on and the handle every
+		   profile is filed under */
+		alternateName: ["Lars Boese", "Larsundso"],
 		jobTitle: "Full-stack developer (Fachinformatiker für Anwendungsentwicklung, IHK)",
 		email: "jobs@lars-dev.org",
 		addressRegion: "Bodensee-Oberschwaben region, Baden-Württemberg, Germany",
@@ -182,6 +197,70 @@ export const meta = {
 		]
 	}
 } as const;
+
+/* ------------------------------------------------------------------ */
+/* German runs inside English prose                                    */
+/* ------------------------------------------------------------------ */
+/* THE ORNAMENT WAS TAGGED AND THE CONTENT WAS NOT. On the English wall
+ * `lang="de"` was already correct on "Der Rote Faden" and on "Werdegang" —
+ * decoration — while four SUBSTANTIVE German runs inherited `lang="en"`,
+ * the first of them being the opening line of the hero record card and
+ * therefore the first thing a screen reader reads inside `main`. Read with
+ * an English voice, "Fachinformatiker für Anwendungsentwicklung" is the
+ * least intelligible string on the page and it is also the single most
+ * important one on a German developer's English CV.
+ *
+ * These are the runs, listed once and matched at render time, so a copy
+ * edit cannot leave a `<span>` wrapped around the wrong words: the strings
+ * in the data layer stay plain text and nothing here emits markup.
+ *
+ * NOT LISTED, deliberately: "Bodensee-Oberschwaben" and "Ravensburg" are
+ * proper nouns — a place name is not a foreign-language passage — and
+ * "IHK" is an initialism a screen reader spells out identically in either
+ * voice. "Werdegang", "Der Rote Faden" and the rail's own tick label carry
+ * their own `lang` attributes at their render sites already.
+ *
+ * The German wall exports this as an empty list: `<html lang="de">` there,
+ * so nothing inside it is a foreign-language passage. */
+export const germanRuns: readonly string[] = [
+	"Fachinformatiker für Anwendungsentwicklung",
+	"User Interface für Discord Bots",
+	"Sommer 2025"
+];
+
+/** One run of text and whether it is German. */
+export type LangRun = { text: string; de: boolean };
+
+/**
+ * Split a string into alternating native / German runs, longest match first
+ * at any given position. Pure, and locale-agnostic: the run list is the
+ * locale's business, this is only the scanner.
+ */
+export const splitLangRuns = (text: string, runs: readonly string[] = germanRuns): LangRun[] => {
+	if (runs.length === 0) return [{ text, de: false }];
+	const parts: LangRun[] = [];
+	let i = 0;
+	while (i < text.length) {
+		let at = -1;
+		let hit = "";
+		for (const run of runs) {
+			const found = text.indexOf(run, i);
+			if (found === -1) continue;
+			if (at === -1 || found < at || (found === at && run.length > hit.length)) {
+				at = found;
+				hit = run;
+			}
+		}
+		if (at === -1) {
+			parts.push({ text: text.slice(i), de: false });
+			break;
+		}
+		if (at > i) parts.push({ text: text.slice(i, at), de: false });
+		parts.push({ text: hit, de: true });
+		i = at + hit.length;
+	}
+	return parts.filter((part) => part.text.length > 0);
+};
 
 /* ------------------------------------------------------------------ */
 /* UI chrome — nav, skip link, language switcher, a11y strings         */
@@ -229,6 +308,21 @@ export const sectionStrings = {
 		headDates: "2010 – today",
 		/** Education card date line while ongoing, e.g. "since 2022-09". */
 		since: (start: string) => `since ${start}`,
+		/**
+		 * Title of the ONE schooling card.
+		 *
+		 * Three general-education records — a secondary school, a technical
+		 * high school and a one-year vocational school — used to stand as
+		 * three separate pinned cards, and they occupied the whole of
+		 * desktop screen 2, the top of screen 3, and a full phone viewport,
+		 * inside the two screenfuls that receive most of the reading. The
+		 * chronology is not the problem and is not touched: the ALLOCATION
+		 * was. One card, one pin, every institution and every date kept
+		 * verbatim, and the thread still passes through a single pin.
+		 */
+		schooling: "Schooling",
+		/** One schooling line: its span, then the institution. */
+		schoolLine: (dates: string, institution: string) => `${dates} · ${institution}`,
 		/** Flagship card: prefix of the stack line. */
 		stackLabel: "Stack:",
 		/** Flagship card: performance figures + provenance suffix. */
@@ -240,8 +334,19 @@ export const sectionStrings = {
 		licenseLabel: "License:",
 		vrBenchTitle: "The VR bench",
 		vrBenchNote: "desktop tools for the headset I wear myself",
-		vrSketchCaption: "wireframe headset, sketched in three.js — drag to spin",
-		vrSketchAria: "Wireframe sketch of a VR headset. Drag it, or press the arrow keys, to spin it.",
+		/* SIDEWAYS, and unconditionally. The canvas now carries
+		   `touch-action: pan-y` so a vertical swipe over it scrolls the page
+		   instead of being swallowed; the axis the drag still owns is the
+		   horizontal one, which is also the axis the spin weights. Written
+		   once rather than swapped under `(pointer: coarse)`: a caption that
+		   says one thing to a mouse and another to a thumb is two strings to
+		   keep true, and "sideways" is true of both. */
+		vrSketchCaption: "wireframe headset, sketched in three.js — drag sideways to spin",
+		/* The canvas is `role="img"`: assistive tech announces "graphic" and
+		   offers no operation, so a label may not promise one. It is also no
+		   longer focusable — WCAG 2.5.7 wants a single-pointer alternative to
+		   a drag, and arrow keys are a keyboard alternative, not that. */
+		vrSketchAria: "Wireframe sketch of a VR headset.",
 		breadthTitle: "Also pinned"
 	},
 	contact: {
@@ -447,6 +552,43 @@ export const chartStrings = {
 /* Hero cluster                                                        */
 /* ------------------------------------------------------------------ */
 
+/* ------------------------------------------------------------------ */
+/* The seniority anchor — arithmetic, not adjective                    */
+/* ------------------------------------------------------------------ */
+/* THE WALL LET THE WEAKEST INFERENCE ARRIVE FIRST. The hero record card
+ * stated role, employer, region and languages and NO duration and NO
+ * level, so the first level statement a screener met was the Columbus
+ * letterhead — "Apprentice application developer · 2022-09 – 2025", at
+ * 17.8 % of the page — and from it they computed one year past
+ * qualification. The 2019 → 2026 operating record was already on the wall,
+ * measured and dated, but filed as a PROJECT rather than as EXPERIENCE.
+ *
+ * SEVEN YEARS WOULD BE WRONG. December 2019 to the snapshot's own
+ * 2026-08-03 is six years and eight months, and this wall does not round a
+ * figure to a friendlier one — that is the whole reason its other numbers
+ * are believed. So the months are COMPUTED from two literals, the
+ * production start and the snapshot date, and the span is printed beside
+ * the duration so a reader can check the arithmetic without leaving the
+ * card. It cannot drift when the snapshot moves and it cannot drift when
+ * the page is rebuilt on some later afternoon, because neither literal is
+ * a clock reading.
+ *
+ * It claims no title and no arrangement: a start month, a count of months,
+ * a qualification year and a training length, every one of them already
+ * published elsewhere on this wall. */
+const PRODUCTION_START = { display: "12/2019", year: 2019, month: 12 } as const;
+
+const productionMonths = (() => {
+	const [year, month] = SNAPSHOT_AS_OF.split("-").map(Number) as [number, number];
+	return (year - PRODUCTION_START.year) * 12 + (month - PRODUCTION_START.month);
+})();
+
+/** e.g. "6 years 8 months" — the wall's own figure shape, as in "5,432 h 47 m". */
+const productionSpan = `${Math.floor(productionMonths / 12)} years ${productionMonths % 12} months`;
+
+/** The year of the IHK qualification, from the exam cycle the wall states. */
+const qualifiedYear = ihk.apprenticeship.examCycle.replace(/\D+/g, "");
+
 export const hero = {
 	/** Rendered by the Lottie animation; keep as accessible fallback text. */
 	greeting: "Hi, I'm Lars",
@@ -456,10 +598,19 @@ export const hero = {
 	name: "Lars Böse",
 	signature: "Lars Boese",
 	handle: "Larsundso",
-	/** Typed intro card. */
+	/**
+	 * Typed intro card.
+	 *
+	 * `intro[2]` is the seniority anchor and it sits directly under the
+	 * sentence it quantifies, so "in production" has its referent one rule
+	 * above it. The credential and the employer keep the card's first rule
+	 * and its bold; the name above them is the LEGAL form (the drawn
+	 * signature stays ASCII on purpose — see `person` in `meta`).
+	 */
 	intro: [
 		"Fachinformatiker für Anwendungsentwicklung (IHK) and full-stack developer at Raleo Digital GmbH, remote.",
-		`I run a Discord bot with ${users} users on ${servers} servers — solo, in production since ${ayako.inProductionSince}.`
+		`I run a Discord bot with ${users} users on ${servers} servers — solo, in production since ${ayako.inProductionSince}.`,
+		`That is ${productionSpan} in production, ${PRODUCTION_START.display} to ${SNAPSHOT_AS_OF}; qualified ${qualifiedYear}, after three years of in-company training.`
 	],
 	location: "Bodensee-Oberschwaben region (Lake Constance), Germany — fully remote.",
 	languages: "German (native) · English (working language)",

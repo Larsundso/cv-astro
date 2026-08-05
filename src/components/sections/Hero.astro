@@ -62,11 +62,21 @@ import Thread from "~/components/wall/Thread.astro";
 import { tautPath } from "~/components/wall/taut";
 import { getWall, type Locale } from "~/data/i18n";
 import { figure, formatHM } from "~/data/telemetry";
+import { splitLangRuns } from "~/data/wall";
 import Greeting from "./hero/Greeting.astro";
 
 const locale = (Astro.currentLocale ?? "en") as Locale;
-const { hero, chartStrings } = getWall(locale);
+const { hero, chartStrings, germanRuns } = getWall(locale);
 const ht = chartStrings.heroTelemetry;
+
+/* The record card's first line opens "Fachinformatiker für
+   Anwendungsentwicklung" — a German credential inside English prose, and the
+   first string a screen reader meets inside `main`. It reads as gibberish in
+   an English voice unless the run is marked, which the wall's DECORATIVE
+   German ("Der Rote Faden", "Werdegang") already is. `runs()` marks the
+   content runs too, from the list in the data layer; on /de/ that list is
+   empty and this is one pass-through. */
+const runs = (text: string) => splitLangRuns(text, germanRuns);
 
 const stats = await getTotalTime();
 
@@ -141,23 +151,37 @@ type Station = { x: number; y: number; pin: boolean };
 const P = (x: number, y: number): Station => ({ x, y, pin: true });
 const BEND = (x: number, y: number): Station => ({ x, y, pin: false });
 
+/* RE-MEASURED 2026-08-05, after the record card took a name rule and the
+   seniority anchor. Band 1 grew 96px English / 96px German, which moved
+   every band-2 pin down AND stretched the board, so every vertex below
+   changed even though nothing moved sideways. Boards: 1248 × 795 en,
+   1248 × 823 de (were 699 / 727).
+   The BEND moved further than the pins did, and on purpose: it is the one
+   vertex whose job is VISIBILITY rather than registration. Held at its old
+   proportion it would have surfaced from under the record card at x ≈ 331
+   with the polaroid's own sheet starting at x = 323 — eight viewBox units
+   of visible thread on the wall's highest-value leg, which is the defect
+   this vertex was added to fix. Dropped to 330 / 370 the leg runs in open
+   cork from the greeting pin down to the record card's right edge and
+   again below the card's bottom edge: 408 of 694 units visible (59 %) on
+   the English wall, against 11 % before the vertex existed. */
 const DESKTOP_STATIONS: Record<Locale, Station[]> = {
 	en: [
-		P(308, 1),
+		P(309, 1),
 		P(892, 1),
-		BEND(905, 300),
-		P(211, 364),
-		P(646, 394),
-		P(1041, 517),
+		BEND(905, 330),
+		P(211, 426),
+		P(646, 453),
+		P(1041, 561),
 		P(802, 880)
 	],
 	de: [
-		P(309, 1),
+		P(310, 1),
 		P(892, 1),
-		BEND(905, 340),
-		P(211, 408),
-		P(646, 437),
-		P(1041, 556),
+		BEND(905, 370),
+		P(211, 463),
+		P(646, 489),
+		P(1041, 593),
 		P(802, 880)
 	]
 };
@@ -199,7 +223,7 @@ const THREAD_DESKTOP = {
    going around an obstacle is the metaphor working, not an exception to
    it.
 
-   THE viewBox IS 2000 TALL, NOT 1600, AND THAT IS LOAD-BEARING. Every
+   THE viewBox IS 2400 TALL, NOT 2000, AND THAT IS LOAD-BEARING. Every
    thread on this wall is dashed with `stroke-dasharray: 1` against
    `pathLength="1"`, i.e. one dash exactly as long as the path — and it is
    stroked with `vector-effect: non-scaling-stroke`, which makes the
@@ -210,24 +234,39 @@ const THREAD_DESKTOP = {
    simply never paints. At 1600 the stacked board (1,699px English,
    1,859px German over a 390px-wide viewport) stretched y by 1.16 and the
    thread died 14 % short — it stopped between the evidence sheet and the
-   stamp and never reached the board's bottom edge to hand over. At 2000
-   the y scale is 0.85–0.93 at every stacked width, the rendered path is
-   SHORTER than its dash, and the run completes. The desktop box is safe
-   for the same reason (measured rendered/authored length 0.995). Any
-   future edit that shortens this viewBox re-opens the defect. */
+   stamp and never reached the board's bottom edge to hand over.
+
+   AND 2000 STOPPED BEING ENOUGH THE MOMENT THE RECORD CARD GREW. The name
+   rule and the seniority anchor put the German stacked board at 2,035px
+   against a 2,000-unit box: ratio 1.0175, the defect back on the one wall
+   that had the least headroom, with no symptom at any other width. Raised
+   to 2400 the measured rendered/authored ratio is 0.785 English and 0.848
+   German — the rendered path is SHORTER than its dash at both, with room
+   for the card to grow another ~360px before the question is live again.
+   The desktop box is safe for the same reason (0.903 en / 0.935 de). Any
+   future edit that shortens this viewBox, OR that lengthens this column,
+   has to be measured against that ratio.
+
+   RE-MEASURED 2026-08-05 at 2400 units. The x values did not move — the
+   x scale did not change and the column's pins stand where they stood —
+   and the y values are the two locales' measurements averaged, which is
+   legitimate here for the reason the paragraph above gives: on a vertical
+   run a y error slides ALONG the line instead of off it. The one y that is
+   not an average is the stamp detour, whose whole job is clearance, and it
+   is set against the LATER of the two stamps (German, box bottom 2333). */
 const THREAD_MOBILE = {
 	width: 400,
-	height: 2000,
+	height: 2400,
 	path: tautPath(
 		[
-			[204, 0],
-			[198, 491],
-			[205, 739],
-			[196, 1314],
-			[136, 1813],
-			[136, 1941],
-			[200, 1948],
-			[200, 2000]
+			[205, 0],
+			[198, 697],
+			[204, 967],
+			[196, 1594],
+			[136, 2180],
+			[136, 2334],
+			[200, 2342],
+			[200, 2400]
 		],
 		6
 	)
@@ -264,8 +303,24 @@ const THREAD_MOBILE = {
 			     that does not need it and none on the claim that does. -->
 			<div class="hero__intro-slot">
 				<PinCard variant="typed" rotate={1}>
-					<p class="hero__intro-lead">{hero.intro[0]}</p>
-					<p>{hero.intro[1]}</p>
+					{/* THE NAME IN ITS LEGAL FORM, ON THE RECORD CARD. The drawn
+					    signature beside this card reads "Lars Boese" and stays that
+					    way: a signature may legitimately be ASCII, and the Lottie
+					    swash is measured against that exact string. But the title,
+					    the footer stamp and the schema.org record all say *Böse*, so
+					    a wall that never typed the umlaut anywhere a recruiter could
+					    copy it offered three spellings and no canonical one. A typed
+					    record card is where a name belongs; it takes the rule above
+					    the credential, and the two read as one title block. */}
+					<p class="hero__intro-name">{hero.name}</p>
+					<p class="hero__intro-lead">
+						{runs(hero.intro[0]).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.text))}
+					</p>
+					<p>{runs(hero.intro[1]).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.text))}</p>
+					{/* the seniority anchor — the duration a screener would otherwise
+					    compute from the apprenticeship letterhead alone, and compute
+					    wrongly. It sits directly under the sentence it quantifies. */}
+					<p>{runs(hero.intro[2]).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.text))}</p>
 					<p>{hero.location}</p>
 					<p class="hero__intro-langs">{hero.languages}</p>
 				</PinCard>
@@ -407,9 +462,14 @@ const THREAD_MOBILE = {
 		margin: 0;
 	}
 
-	/* The claim: the card's first line, given the only blank rule on the
-	   sheet and struck at the typewriter's bold — at the CARD'S OWN SIZE,
-	   because on a monospace sheet a second size is a second machine. */
+	/* The name and the claim are ONE title block, typed on two consecutive
+	   rules and struck at the typewriter's bold — at the CARD'S OWN SIZE,
+	   because on a monospace sheet a second size is a second machine. The
+	   blank rule falls after the pair, not between them. */
+	.hero__intro-slot :global(.pin-card) p.hero__intro-name {
+		font-weight: 700;
+	}
+
 	.hero__intro-slot :global(.pin-card) p.hero__intro-lead {
 		margin-bottom: calc(var(--baseline) * 3);
 		font-weight: 700;

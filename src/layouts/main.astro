@@ -22,14 +22,31 @@ const ogLocale = locale === "de" ? "de_DE" : "en_US";
 const ogLocaleAlternate = locale === "de" ? "en_US" : "de_DE";
 const inLanguage = locale === "de" ? "de-DE" : "en-US";
 
+/* ONE IDENTITY RECORD, READ — NOT RE-TYPED.
+   This block used to hand-type its own Person: `name: "Lars Boese"` under a
+   `<title>` of *Böse*, `alternateName` as a bare handle, and a LinkedIn
+   `sameAs` carrying a RAW `ö` in the path — while `meta.person` in the data
+   layer already held the correct name and the correctly percent-encoded URL
+   (`lars-b%C3%B6se-217272351`). Two records for one man is how the
+   machine-readable identity ends up disagreeing with the human-readable one,
+   and it is also how a recruiter copying the name out of the page fails to
+   find him in a search. The record is now read from the wall module, so both
+   locales and every consumer of `meta.person` state the same name.
+   The drawn hero signature stays "Lars Boese" on purpose — a signature may
+   legitimately be ASCII, and the Lottie swash measures against that exact
+   string. `alternateName` is what carries it into the graph. */
+const person = wall.meta.person;
+
 const personSchema = {
 	"@context": "https://schema.org",
 	"@type": "Person",
-	name: "Lars Boese",
-	alternateName: "Larsundso",
+	name: person.name,
+	givenName: person.givenName,
+	familyName: person.familyName,
+	alternateName: person.alternateName,
 	url: "https://lars-dev.org",
-	email: "mailto:jobs@lars-dev.org",
-	jobTitle: "Full-Stack Developer",
+	email: `mailto:${person.email}`,
+	jobTitle: person.jobTitle,
 	description:
 		"Builds and operates Ayako, a Discord bot with 2.4M+ users on 8,357 servers (as of 2026-08-03), solo and in production since 2019. Full-stack developer at Raleo Digital GmbH, fully remote.",
 	worksFor: {
@@ -64,11 +81,7 @@ const personSchema = {
 		"Discord API",
 		"Prometheus"
 	],
-	sameAs: [
-		"https://github.com/Larsundso",
-		"https://www.linkedin.com/in/lars-Böse-217272351",
-		"https://www.xing.com/profile/Lars_Boese"
-	]
+	sameAs: person.sameAs
 };
 
 const websiteSchema = {
@@ -76,9 +89,8 @@ const websiteSchema = {
 	"@type": "WebSite",
 	name: "lars-dev.org",
 	url: "https://lars-dev.org",
-	description:
-		"Portfolio and CV of Lars Boese. Every figure carries its unit and an as-of date.",
-	author: { "@type": "Person", name: "Lars Boese" },
+	description: `Portfolio and CV of ${person.name}. Every figure carries its unit and an as-of date.`,
+	author: { "@type": "Person", name: person.name },
 	inLanguage
 };
 ---
@@ -97,7 +109,7 @@ const websiteSchema = {
 		<title>{title}</title>
 		<meta name="title" content={title} />
 		<meta name="description" content={description} />
-		<meta name="author" content="Lars Boese" />
+		<meta name="author" content={person.name} />
 		<meta name="robots" content="index, follow" />
 		<link rel="canonical" href={canonical} />
 
@@ -161,7 +173,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 						<p>{ui.footerLine}</p>
 					) : (
 						<p>
-							Lars Boese · <a href="mailto:jobs@lars-dev.org">jobs@lars-dev.org</a> · {year}
+							{person.name} · <a href={`mailto:${person.email}`}>{person.email}</a> · {year}
 						</p>
 					)
 				}

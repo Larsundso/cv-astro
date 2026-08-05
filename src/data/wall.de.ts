@@ -78,9 +78,14 @@ export const meta = {
 		`im Produktivbetrieb. ${hm(telemetry.lifetime.total.seconds)} erfasste Programmierzeit, ` +
 		`Stand ${SNAPSHOT_AS_OF}.`,
 	locale: "de",
+	/* siehe wall.ts: die maschinenlesbare Identität steht nur hier. Das
+	   Layout tippte sie früher ein zweites Mal ab — mit „Lars Boese“ und
+	   einem rohen »ö« in der LinkedIn-URL. */
 	person: {
 		name: "Lars Böse",
-		alternateName: "Larsundso",
+		givenName: "Lars",
+		familyName: "Böse",
+		alternateName: ["Lars Boese", "Larsundso"],
 		jobTitle: "Full-Stack-Entwickler (Fachinformatiker für Anwendungsentwicklung, IHK)",
 		email: "jobs@lars-dev.org",
 		addressRegion: "Region Bodensee-Oberschwaben, Baden-Württemberg, Deutschland",
@@ -98,6 +103,30 @@ export const meta = {
 /* Hero cluster                                                        */
 /* ------------------------------------------------------------------ */
 
+/* ------------------------------------------------------------------ */
+/* Der Senioritäts-Anker — Rechnung, kein Adjektiv                     */
+/* ------------------------------------------------------------------ */
+/* Siehe wall.ts: die Karte nannte Rolle, Arbeitgeber, Region und Sprachen
+ * und KEINE Dauer — die erste Aussage über das Niveau war damit der
+ * Columbus-Briefkopf, „Auszubildender … 2022-09 – 2025“, und daraus rechnet
+ * ein Screener ein Jahr nach dem Abschluss. Dezember 2019 bis 2026-08-03
+ * sind sechs Jahre und acht Monate, nicht sieben: auf dieser Wand wird
+ * keine Zahl freundlicher gerundet. Die Monate werden aus zwei Literalen
+ * gerechnet, der Zeitraum steht daneben, damit die Rechnung nachprüfbar
+ * ist — kein Wert kommt aus einer Uhr. */
+const PRODUCTION_START = { display: "12/2019", year: 2019, month: 12 } as const;
+
+const productionMonths = (() => {
+	const [year, month] = SNAPSHOT_AS_OF.split("-").map(Number) as [number, number];
+	return (year - PRODUCTION_START.year) * 12 + (month - PRODUCTION_START.month);
+})();
+
+/** z. B. „6 Jahre 8 Monate“ — dieselbe Zahlenform wie „5.432 h 47 m“. */
+const productionSpan = `${Math.floor(productionMonths / 12)} Jahre ${productionMonths % 12} Monate`;
+
+/** Das Abschlussjahr, aus dem Prüfungstermin, den die Wand ohnehin nennt. */
+const qualifiedYear = ihk.apprenticeship.examCycle.replace(/\D+/g, "");
+
 export const hero = {
 	/** Brand fixture — die handschriftliche Begrüßung. */
 	greeting: "Hi, ich bin Lars",
@@ -107,10 +136,12 @@ export const hero = {
 	name: "Lars Böse",
 	signature: "Lars Boese",
 	handle: "Larsundso",
-	/** Typed intro card. */
+	/** Typed intro card. `intro[2]` ist der Senioritäts-Anker und steht
+	 *  direkt unter dem Satz, den er beziffert. */
 	intro: [
 		"Fachinformatiker für Anwendungsentwicklung (IHK) und Full-Stack-Entwickler bei der Raleo Digital GmbH, remote.",
-		`Ich betreibe einen Discord-Bot mit ${users} Nutzern auf ${servers} Servern — allein, seit ${ayako.inProductionSince} im Produktivbetrieb.`
+		`Ich betreibe einen Discord-Bot mit ${users} Nutzern auf ${servers} Servern — allein, seit ${ayako.inProductionSince} im Produktivbetrieb.`,
+		`Das sind ${productionSpan} im Produktivbetrieb, ${PRODUCTION_START.display} bis ${SNAPSHOT_AS_OF}; Abschluss ${qualifiedYear}, davor drei Jahre betriebliche Ausbildung.`
 	],
 	location: "Region Bodensee-Oberschwaben, Deutschland — vollständig remote.",
 	languages: "Deutsch (Muttersprache) · Englisch (Arbeitssprache)",
@@ -714,6 +745,19 @@ export const education: EducationEntry[] = [
 ];
 
 /* ------------------------------------------------------------------ */
+/* Fremdsprachige Passagen                                             */
+/* ------------------------------------------------------------------ */
+/* Auf der englischen Wand stehen vier deutsche Fachbegriffe mitten im
+ * englischen Fließtext; sie werden dort mit `lang="de"` ausgezeichnet
+ * (siehe wall.ts). Diese Wand steht komplett unter `<html lang="de">` —
+ * es gibt hier keine fremdsprachige Passage, also ist die Liste leer.
+ * Der Scanner selbst ist Logik, keine Übersetzung, und wird geteilt. */
+export const germanRuns: readonly string[] = [];
+
+export { splitLangRuns } from "./wall";
+export type { LangRun } from "./wall";
+
+/* ------------------------------------------------------------------ */
 /* UI strings — shared interface contract                              */
 /* ------------------------------------------------------------------ */
 
@@ -751,6 +795,11 @@ export const sectionStrings = {
 		headDates: "2010 – heute",
 		/** Education card date line while ongoing, e.g. "seit 2022-09". */
 		since: (start: string) => `seit ${start}`,
+		/** Titel der EINEN Schulzeit-Karte — siehe wall.ts: aus drei Karten
+		 *  wird eine, alle Institutionen und alle Daten bleiben stehen. */
+		schooling: "Schulzeit",
+		/** Eine Schulzeile: Zeitraum, dann Institution. */
+		schoolLine: (dates: string, institution: string) => `${dates} · ${institution}`,
 		/** Flagship card: prefix of the stack line. */
 		stackLabel: "Stack:",
 		/** Flagship card: performance figures + provenance suffix. */
@@ -762,9 +811,15 @@ export const sectionStrings = {
 		licenseLabel: "Lizenz:",
 		vrBenchTitle: "Die VR-Werkbank",
 		vrBenchNote: "Desktop-Tools für das Headset, das ich selbst trage",
-		vrSketchCaption: "Wireframe-Headset, in three.js skizziert — zum Drehen ziehen",
-		vrSketchAria:
-			"Wireframe-Skizze eines VR-Headsets. Zum Drehen ziehen oder die Pfeiltasten drücken.",
+		/* siehe wall.ts: das Canvas trägt jetzt `touch-action: pan-y`, der
+		   Zug gehört also nur noch der Waagerechten — und genau die gewichtet
+		   die Drehung. Eine Beschriftung, nicht zwei. */
+		vrSketchCaption: "Wireframe-Headset, in three.js skizziert — seitwärts ziehen zum Drehen",
+		/* `role="img"` kündigt eine Grafik an und bietet keine Bedienung an;
+		   das Canvas ist außerdem nicht mehr fokussierbar (WCAG 2.5.7 will
+		   eine Ein-Zeiger-Alternative, keine Tastatur-Alternative). Also
+		   benennt die Beschriftung nur noch, was zu sehen ist. */
+		vrSketchAria: "Wireframe-Skizze eines VR-Headsets.",
 		breadthTitle: "Auch angepinnt"
 	},
 	contact: {

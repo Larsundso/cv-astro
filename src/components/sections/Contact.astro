@@ -53,8 +53,18 @@ const channels = contact.entries.filter((entry) => !entry.primary);
 /* Channel icons come from the hand-inked local set in src/icons/;
    filenames match entry ids (github, linkedin, xing, indeed, wakatime). */
 
-/** Neighbors never share a tilt: 1, 0, -1, 1, 0 … */
-const tilt = (index: number) => ([1, 0, -1] as const)[index % 3];
+/**
+ * Neighbors never share a tilt: 1, -1, 1, -1 …
+ *
+ * It alternates rather than cycling through 0, because a slip pinned dead
+ * straight has a shorter bounding box than its tilted neighbours and
+ * therefore hangs a couple of pixels lower than a row it is level with.
+ * Two of the five channels used to do that, and the row stopped reading
+ * left to right: measured centre-to-centre, the eye went 488px, 244px,
+ * 488px, 732px across five slips that are 244px apart. One tilt step for
+ * every slip, and the row is a row again.
+ */
+const tilt = (index: number) => (index % 2 === 0 ? 1 : -1);
 
 /* UI chrome, not record: the caption on the empty pin. It states nothing
    about the owner, so it does not belong in the frozen data files — it is
@@ -238,6 +248,17 @@ const year = new Date().getFullYear();
 		gap: calc(var(--baseline) * 4);
 	}
 
+	/* The opening band is two artifacts wide, so it has to say which one it
+	   opens with. The rail hangs one step below the availability card:
+	   status, then the invitation and the address it belongs to. Left to
+	   its own devices the wider card wins by 3px of rotated bounding box,
+	   which is not a reading order, it is a rounding error. */
+	@media (min-width: 64rem) {
+		.contact-main {
+			margin-block-start: calc(var(--baseline) * 2);
+		}
+	}
+
 	.contact-title-card {
 		align-self: start;
 	}
@@ -253,12 +274,18 @@ const year = new Date().getFullYear();
 		overflow: visible;
 	}
 
+	/* The slip keeps its distance from the address card below it, because
+	   the thread's knot is tied ON that card's pin and stands roughly 100px
+	   proud of it. The run now arrives from the right-hand column of the
+	   act above, which swings the knot up under this slip; without the
+	   clearance the wall's one cut end is a straight stub behind paper. */
 	.contact-annotation {
 		display: flex;
 		flex-direction: column;
 		align-items: end;
 		max-width: 24rem;
 		margin-left: calc(var(--baseline) * 2);
+		margin-bottom: calc(var(--baseline) * 6);
 		color: var(--ink-amber);
 	}
 

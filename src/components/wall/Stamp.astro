@@ -22,13 +22,19 @@ const { label, sub, rotate = 0, class: className } = Astro.props;
 
 <style>
 	.stamp {
-		/* Darkening the cork this cycle cost the stamps their footing: at the
-		   old 85/15 mix the legend measured 3.82:1 on bare board, under the
-		   4.5:1 floor for type this small. Pulling the mix toward --ink keeps
-		   it unmistakably the stamp red while putting it back over the line
-		   on cork AND on paper — a stamp overhangs its card, so it has to
-		   pass on both. */
-		--stamp-ink: color-mix(in oklab, var(--thread) 62%, var(--ink));
+		/* Measured against the DARKEST PAINTED BOARD, not against --cork.
+		   That distinction is the whole finding: at the 62/38 mix this ink
+		   measures 4.770:1 against the median board — which is where the
+		   "0 failures" audit stopped, and it is a genuine pass — but only
+		   4.185:1 against the darkest pixel the wash actually paints, and
+		   every stamp on bare cork sits somewhere on that gradient. The old
+		   audit survived by luck of placement: all 13 bare-cork stamps
+		   happen to be pinned in the top third, where the lamp is bright.
+		   At 44/56 the ink holds 4.977:1 on the darkest board and 5.673:1 on
+		   the median, and is still unmistakably the stamp red. A stamp
+		   overhangs its card, so it has to pass on paper too — it does, by
+		   a wide margin. */
+		--stamp-ink: color-mix(in oklab, var(--thread) 44%, var(--ink));
 		position: relative;
 		display: inline-flex;
 		flex-direction: column;

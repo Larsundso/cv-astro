@@ -13,8 +13,17 @@
      bare cork stops reading as deliberate space. At 87% the ground was
      1.38:1 against paper — the same value — which is why the empty areas
      read as unfilled rather than as field. At 78% it is 1.87:1. */
-  --cork: oklch(78% 0.045 75);
-  --cork-deep: oklch(72% 0.05 72);
+  /* The board is the floor for every stamp pinned to bare cork, so its
+     DARKEST painted pixel — not this token — is what the contrast budget has
+     to be measured against. Measured against the token, stamp ink is
+     4.771:1 and passes; measured against the rendered wash it fell to
+     4.32:1 under the telemetry stamp and 3.96:1 under the footer one, and
+     every stamp failed on its darkest local pixel. The old audit passed only
+     because all 13 bare-cork stamps happen to sit in the top third.
+     --cork-deep is therefore floored so the wash never drops below the
+     luminance a 4.5:1 stamp needs. */
+  --cork: oklch(76.5% 0.045 75);
+  --cork-deep: oklch(75% 0.048 72);
   --paper: oklch(97.5% 0.008 90);
   --paper-aged: oklch(94% 0.02 85);
   --ink: oklch(25% 0.015 60);
@@ -137,24 +146,43 @@ body {
      at, falling to --cork-deep in the far corner — and the grain gives
      the board its tooth. The old grain was 0.05 alpha on a 87% ground:
      measured σ = 0.65/255, i.e. invisible. It is now legible as cork. */
+  /* Cork has TWO scales and a colour. The old single layer had neither: one
+     octave set at baseFrequency 0.62 puts its energy at 31-248 cycles per
+     degree, against a human contrast-sensitivity peak of 2-5 cpd and an
+     acuity limit near 60 — so it was real noise placed where the eye cannot
+     resolve it. Measured, its lightness sigma survived downsampling as
+     0.148 (the 1/s signature of white noise) and its chroma variance was
+     0.0008, because feColorMatrix saturate 0 removes exactly the property
+     that makes granules look like granules. The board was, perceptually,
+     a flat fill.
+     Real pressed cork: granules 0.5-3mm, i.e. 4-20px on screen, i.e.
+     2.5-12 cpd. That is what 0.09 buys. The second layer is the
+     sheet-to-sheet mottle that stops the tooth reading as sandpaper, and
+     both keep some chroma so the flecks are warmer and cooler than the
+     ground rather than merely lighter and darker. */
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23grain)' opacity='0.13'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='chip' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.055' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0.35'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='gamma' amplitude='1.35' exponent='0.75'/%3E%3CfeFuncG type='gamma' amplitude='1.3' exponent='0.8'/%3E%3CfeFuncB type='gamma' amplitude='1.15' exponent='0.9'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23chip)' opacity='0.55'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='fleck' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.19' numOctaves='1' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23fleck)' opacity='0.22'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='800'%3E%3Cfilter id='mottle' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.01' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0.4'/%3E%3C/filter%3E%3Crect width='800' height='800' filter='url(%23mottle)' opacity='0.38'/%3E%3C/svg%3E"),
     linear-gradient(
-      105deg,
+      90deg,
       oklch(80.5% 0.042 78) 0%,
-      var(--cork) 48%,
+      var(--cork) 45%,
       var(--cork-deep) 100%
     );
-  /* The wash runs ACROSS the board, not down it. A vertical falloff has to
-     choose between two bad options on a 12,000px page: viewport-fixed, which
-     seams at every screen edge in a full-page capture, or document-sized,
-     which puts the whole wall below the fold in shadow. A near-horizontal
-     gradient reads identically at every scroll position, still says the lamp
-     is up and to the left, and agrees with the direction every shadow and
-     every brass specular already falls. */
+  /* The wash runs ACROSS the board, not down it — and at exactly 90deg, so
+     the vertical component is zero. At 105deg on a 1440x13073 box the
+     gradient line is 1440*sin105 + 13073*|cos105| = 1391 + 3386px, i.e. 71%
+     of the falloff was VERTICAL after all: paper-on-cork measured 1.711:1 at
+     the top of the page and 2.328:1 at the bottom, so the wash was running
+     against the reading order and the first screen was the palest thing on
+     the site. At 90deg the claim this comment makes is finally true. */
   background-attachment: scroll;
+  background-blend-mode: overlay, multiply, soft-light, normal;
   background-size:
-    280px 280px,
+    400px 400px,
+    400px 400px,
+    800px 800px,
     100% 100%;
   color: var(--ink);
   font-family: var(--font-body);

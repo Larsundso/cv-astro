@@ -16,7 +16,11 @@
  * Figures that are BANNED site-wide and must never re-enter this file:
  * the stale pre-2026-08 lifetime-hours total; the approximate Ayako-hours
  * estimate; any editor-time percentage stated as a lifetime claim; any
- * WakaTime leaderboard rank.
+ * WakaTime leaderboard rank; "37 merged upstream pull requests" (see
+ * `github.mergedUpstream`); and "6.75 % AI" (see
+ * `telemetry.aiCoding.sharePercentByWindow`). The last two are banned for
+ * the same reason: each is a real number attached to the wrong
+ * denominator, and each fails the first check a sceptic can run.
  *
  * Window discipline: "currently" copy uses the July-2026 window
  * (`windowJuly2026`), career copy uses the lifetime window — never mixed.
@@ -60,9 +64,48 @@ export const telemetry = {
 	trackingStart: "2021-10-29" as IsoDate,
 	trackingEnd: SNAPSHOT_AS_OF,
 
+	/**
+	 * WHAT A SCEPTIC CAN CHECK WITHOUT A KEY — and what he cannot.
+	 *
+	 * The wall promises, in the ink reserved for provenance, that it can show
+	 * the source for every figure "including the ones that do not flatter me".
+	 * It then named the instrument and gave no address. This is the address,
+	 * plus the honest limit, because the obvious attempt to verify the
+	 * headline currently produces evidence AGAINST the owner:
+	 *
+	 * Re-run 2026-08-05, unauthenticated: `GET /stats/all_time` → HTTP 200,
+	 * but `is_coding_activity_visible: false`, so `total_seconds`,
+	 * `daily_average`, `start` and `end` are absent from the payload. The
+	 * per-language SHARES are published and they match this snapshot within
+	 * 0.05 pp (live TypeScript 55.64 vs published 55.59; JavaScript 13.38 vs
+	 * 13.39; Svelte 5.55 vs 5.56; Vue.js 3.24 vs 3.24).
+	 *
+	 * The only reconstruction of the TOTAL left to a reader is to add up the
+	 * per-language `ai_coding_seconds + manual_coding_seconds`. That sums to
+	 * 18,958,694 s — 599,326 s short of the published total, because those
+	 * rows do not carry the "Other" bucket (published share 4.09 %, implying
+	 * ~222 h, against 47 h of ai + manual in that row). A reader who does the
+	 * arithmetic therefore lands 166 h low and concludes the headline is
+	 * overstated. That is worse than unverifiable, so the provenance card
+	 * states it.
+	 *
+	 * Making the coding-activity flag public would retire the whole block —
+	 * a profile setting, not a code change, and the owner's to make.
+	 */
+	publicApi: {
+		endpoint: "https://wakatime.com/api/v1/users/Larsundso/stats/all_time",
+		checkedOn: "2026-08-05" as IsoDate,
+		/** `total_seconds` is withheld while coding activity is private. */
+		totalIsPublic: false,
+		/** Σ per-language (ai + manual) — the only reconstruction available. */
+		reconstructedTotalSeconds: 18_958_694,
+		/** Published total minus that reconstruction: the "Other" bucket. */
+		shortfallSeconds: 599_326
+	},
+
 	lifetime: {
 		/** Designated headline figure — includes the "Other" bucket. */
-		total: { seconds: 19_558_020, display: "5,432 h 47 m" } satisfies Measured,
+		total: { seconds: 19_558_020, display: "5,432 h 47 m" } satisfies Measured,
 		/**
 		 * ACTIVE-DAY CONVENTION, stated once because it is not the obvious
 		 * one: WakaTime's daily average divides by days WORKED, not by days
@@ -75,12 +118,12 @@ export const telemetry = {
 		 * instrument and presumably the same rule, but that has NOT been
 		 * checked against a July day count. Verify before labelling it.
 		 */
-		dailyAverage: { seconds: 12_420, display: "3 h 27 m" } satisfies Measured,
+		dailyAverage: { seconds: 12_420, display: "3 h 27 m" } satisfies Measured,
 		activeDays: { active: 1_575, elapsed: 1_739, ratePercent: 90.6 },
 		bestDay: {
 			date: "2026-07-14" as IsoDate,
 			seconds: 46_560,
-			display: "12 h 56 m"
+			display: "12 h 56 m"
 		},
 		projectsTracked: 338,
 		languagesTracked: 72,
@@ -127,7 +170,7 @@ export const telemetry = {
 
 	/** "Currently" window — July 2026. Never mix with lifetime figures. */
 	windowJuly2026: {
-		dailyAverage: { seconds: 21_180, display: "5 h 53 m" } satisfies Measured,
+		dailyAverage: { seconds: 21_180, display: "5 h 53 m" } satisfies Measured,
 		aiCodingSharePercent: 68.56,
 		/** Claude Code share of editor time within July 2026 only. */
 		claudeCodeEditorPercent: 81.7,
@@ -144,16 +187,42 @@ export const telemetry = {
 	},
 
 	aiCoding: {
-		lifetime: { seconds: 1_224_720, display: "340 h 12 m" } satisfies Measured,
+		lifetime: { seconds: 1_224_720, display: "340 h 12 m" } satisfies Measured,
 		/** 98.1 % of lifetime AI-Coding time falls within the last 12 months. */
 		last12MonthsShareOfLifetimePercent: 98.1,
-		/** Share of tracked time per window: the measured adoption curve. */
+		/**
+		 * Share of tracked time per window.
+		 *
+		 * NOT A TIME SERIES, and copy that joins these four with arrows is
+		 * wrong: the windows OVERLAP. `lifetime` contains all three others;
+		 * `july2026` (the calendar month, 2026-07-01 to 2026-07-31) and
+		 * `last7Days` (the seven days to the pull date, so 2026-07-28 to
+		 * 2026-08-03) both sit inside `last12Months` but neither contains the
+		 * other — they straddle the month boundary. They are four zoom levels
+		 * on one record; the movement between them is real and is stated by
+		 * `last12MonthsShareOfLifetimePercent`, not by reading the row as a
+		 * curve.
+		 *
+		 * BANNED FIGURE: "6.75 % AI, lifetime". That is Σ ai ÷ Σ (ai + manual)
+		 * over the public per-language rows — a denominator this site does not
+		 * use and, because coding activity is private on the profile, cannot
+		 * reproduce. The API publishes `categories: [{ name: "AI Coding",
+		 * percent: … }]` directly, which is the same construct as the 6.26 %
+		 * below. Checked unauthenticated on 2026-08-05, that live entry read
+		 * 6.53 % — a two-day forward drift in the expected direction, which is
+		 * why the provenance card says so rather than leaving a reader to find
+		 * a mismatch and conclude the wall is stale.
+		 */
 		sharePercentByWindow: {
 			lifetime: 6.26,
 			last12Months: 32.46,
 			july2026: 68.56,
 			last7Days: 69.76
-		}
+		},
+		/** What the live public endpoint read two days after the pull, same
+		 *  construct (`categories` → "AI Coding"). Published only as the
+		 *  drift clause on the provenance card, with its own date. */
+		liveCategoryPercentOn20260805: 6.53
 	}
 } as const;
 
@@ -177,16 +246,43 @@ export const github = {
 	},
 	/** Pull requests authored across all repositories, lifetime. */
 	pullRequestsAuthored: 130,
-	/** Upstream projects with merged PRs (public record). */
-	mergedUpstream: [
-		"discord.js (26,773 stars)",
-		"discord-api-types",
-		"UnoCSS",
-		"tsx",
-		"discordeno (5 PRs)",
-		"discord-userdoccers",
-		"captcha-canvas"
-	],
+	/**
+	 * Merged pull requests into repositories the owner does NOT own.
+	 *
+	 * BANNED FIGURE, site-wide: "37 merged upstream pull requests." The
+	 * search `is:pr author:Larsundso is:merged` does return 37 — and 26 of
+	 * those 37 are merges into his own repositories (Larsundso/*,
+	 * AyakoBot/*), which is not what "upstream" claims. It fails the first
+	 * check a sceptic can run, and it is the same class of error as the
+	 * "4 most-tracked languages" label the last cycle retired.
+	 *
+	 * The checkable claim is 11, across 8 repositories he does not own.
+	 * Verified unauthenticated against the GitHub search API on 2026-08-05
+	 * with `-user:Larsundso -org:AyakoBot` appended: total_count 11, the
+	 * per-repository counts below. `searchUrl` is the same query in the web
+	 * UI, so a reader re-runs the check rather than taking the number.
+	 *
+	 * The old list also carried a star count inside a repository name
+	 * ("discord.js (26,773 stars)") and folded `discordeno/cache-proxy`
+	 * into `discordeno` as "discordeno (5 PRs)" — one repository too few,
+	 * and a figure that would need its own as-of date.
+	 */
+	mergedUpstream: {
+		count: 11,
+		checkedOn: "2026-08-05" as IsoDate,
+		repositories: [
+			{ repo: "discordeno/discordeno", merged: 3 },
+			{ repo: "discordeno/cache-proxy", merged: 2 },
+			{ repo: "discordjs/discord.js", merged: 1 },
+			{ repo: "discordjs/discord-api-types", merged: 1 },
+			{ repo: "unocss/unocss", merged: 1 },
+			{ repo: "privatenumber/tsx", merged: 1 },
+			{ repo: "Shashank3736/captcha-canvas", merged: 1 },
+			{ repo: "discord-userdoccers/discord-userdoccers", merged: 1 }
+		],
+		searchUrl:
+			"https://github.com/search?q=is%3Apr+author%3ALarsundso+is%3Amerged+-user%3ALarsundso+-org%3AAyakoBot&type=pullrequests"
+	},
 	ayakoAuthorship: {
 		/** Share of Ayako-v2 default-branch commits; remainder is dependabot. */
 		v2Percent: 99.8,
@@ -242,7 +338,12 @@ export const ihk = {
 	professionEn: "IT specialist for application development",
 	track: "application-development track, DQR level 4",
 	trainingCompany: "Columbus Interactive GmbH, Ravensburg",
-	vocationalSchool: "Electronics School Tettnang",
+	/* The institution's own name. It was filed here in translation
+	   ("Electronics School Tettnang") — a name nothing is registered under
+	   and nothing can be looked up by. The English wall glosses it; it does
+	   not rename it. */
+	vocationalSchool: "Elektronikschule Tettnang",
+	vocationalSchoolEn: "technical vocational school",
 	apprenticeship: { start: "2022-09-01" as IsoDate, examCycle: "Sommer 2025" },
 	weeklyReports: 72,
 	finalProject: {
@@ -256,10 +357,10 @@ export const ihk = {
 		trackedHours: 102.4,
 		loadTestServers: 7_000,
 		performance: {
-			initialLoad: "<5 s initial load at 100 servers",
-			serverSwitch: "<200 ms server switch",
-			cacheHitRate: ">95 % cache hit rate",
-			fps: "constant 30 FPS"
+			initialLoad: "<5 s initial load at 100 servers",
+			serverSwitch: "<200 ms server switch",
+			cacheHitRate: ">95 % cache hit rate",
+			fps: "constant 30 FPS"
 		},
 		code: {
 			typescript: { files: 108, linesOfCode: 5_485 },

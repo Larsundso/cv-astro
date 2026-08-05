@@ -18,7 +18,7 @@
  * for an English reader. "HEUTE" is correct here and stays here.
  */
 import { ai, ayako, github, ihk, SNAPSHOT_AS_OF, telemetry } from "~/data/snapshot";
-import { figure, formatHM, millionsPlus } from "~/data/telemetry";
+import { figure, formatHCoarse, formatHMCoarse, millionsPlus, pct } from "~/data/telemetry";
 import type {
 	AiPracticeEntry,
 	Annotation,
@@ -57,8 +57,12 @@ export type {
 const L = "de" as const;
 /** Eine gruppierte Zahl, z. B. 8.357. */
 const n = (value: number): string => figure(value, L);
-/** Eine Dauer aus Sekunden, z. B. „5.432 h 47 m“. */
-const hm = (seconds: number): string => formatHM(seconds, L);
+/** Eine Dauer aus Sekunden: „5.432 h“ · „5 h 53 m“ — siehe telemetry.ts. */
+const hm = (seconds: number): string => formatHMCoarse(seconds, L);
+/** Eine Stundenzahl: „2.800 h“ · „102,4 h“. */
+const h = (hours: number): string => formatHCoarse(hours, L);
+/** Ein Anteil, fest mit seiner Einheit verbunden: „90,6 %“. */
+const pc = (value: number): string => pct(value, L);
 /** Die beiden Produkt-Kennzahlen, einmal formatiert. */
 const users = millionsPlus(ayako.users, L);
 const servers = n(ayako.servers);
@@ -121,8 +125,15 @@ const productionMonths = (() => {
 	return (year - PRODUCTION_START.year) * 12 + (month - PRODUCTION_START.month);
 })();
 
-/** z. B. „6 Jahre 8 Monate“ — dieselbe Zahlenform wie „5.432 h 47 m“. */
-const productionSpan = `${Math.floor(productionMonths / 12)} Jahre ${productionMonths % 12} Monate`;
+/** Die Spanne im Dativ, für „seit …“: „6 Jahren und 8 Monaten“.
+ *  (Die Nominativform „6 Jahre 8 Monate“, die die englische Wand als
+ *  Zahlenform führt, wird hier nicht mehr gebraucht: nach „seit“ steht der
+ *  Dativ, und der Satz beginnt jetzt bei der Person, nicht beim Bot.)
+ *  Der Numerus wird mitgeführt, damit aus einem künftigen Abstand nicht
+ *  „seit 1 Jahren“ wird. */
+const declined = (count: number, one: string, many: string): string =>
+	`${count} ${count === 1 ? one : many}`;
+const productionSpanSince = `${declined(Math.floor(productionMonths / 12), "Jahr", "Jahren")} und ${declined(productionMonths % 12, "Monat", "Monaten")}`;
 
 /** Das Abschlussjahr, aus dem Prüfungstermin, den die Wand ohnehin nennt. */
 const qualifiedYear = ihk.apprenticeship.examCycle.replace(/\D+/g, "");
@@ -137,11 +148,26 @@ export const hero = {
 	signature: "Lars Boese",
 	handle: "Larsundso",
 	/** Typed intro card. `intro[2]` ist der Senioritäts-Anker und steht
-	 *  direkt unter dem Satz, den er beziffert. */
+	 *  direkt unter dem Satz, den er beziffert.
+	 *
+	 *  KEINE ÜBERSETZUNG DER BERUFSBEZEICHNUNG, absichtlich: die englische
+	 *  Wand erklärt „Fachinformatiker für Anwendungsentwicklung“ inzwischen
+	 *  in einem Einschub, weil sie es muss. Hier braucht es keinen — und
+	 *  diese Asymmetrie ist korrekte zweisprachige Praxis, keine
+	 *  Inkonsistenz. */
 	intro: [
 		"Fachinformatiker für Anwendungsentwicklung (IHK) und Full-Stack-Entwickler bei der Raleo Digital GmbH, remote.",
 		`Ich betreibe einen Discord-Bot mit ${users} Nutzern auf ${servers} Servern — allein, seit ${ayako.inProductionSince} im Produktivbetrieb.`,
-		`Das sind ${productionSpan} im Produktivbetrieb, ${PRODUCTION_START.display} bis ${SNAPSHOT_AS_OF}; Abschluss ${qualifiedYear}, davor drei Jahre betriebliche Ausbildung.`
+		/* Siehe wall.ts: kein Satz dieser Seite machte Lars zum Subjekt einer
+		   Dauer. „Das sind …“ ist kein Bindewort, sondern eine anaphorische
+		   Umformulierung — die „das heißt“-Konstruktion, deren Funktion es
+		   ist, das Folgende als WIEDERHOLUNG des Vorhergehenden zu
+		   kennzeichnen. Und nimmt man sie weg, bleibt als Subjekt der Bot
+		   übrig. Jetzt steht die Person davor, im Präsens mit „seit“ — die
+		   deutsche Form für eine laufende Spanne —, Bezug, Zahlen und
+		   Zeitraum unverändert, die Rechnung bleibt auf der Karte
+		   nachprüfbar. */
+		`Ich baue und betreibe ihn seit ${productionSpanSince} — ${PRODUCTION_START.display} bis ${SNAPSHOT_AS_OF}. Abschluss ${qualifiedYear}, davor drei Jahre betriebliche Ausbildung.`
 	],
 	location: "Region Bodensee-Oberschwaben, Deutschland — vollständig remote.",
 	languages: "Deutsch (Muttersprache) · Englisch (Arbeitssprache)",
@@ -165,7 +191,7 @@ export const hero = {
 		lines: [
 			`Seit ${ayako.inProductionSince} im Produktivbetrieb — über ${ayako.generations} Generationen und ${ayako.discordLibraries} Discord-Bibliotheken hinweg.`,
 			`${hm(telemetry.lifetime.total.seconds)} erfasste Programmierzeit dahinter, Stand ${SNAPSHOT_AS_OF}.`,
-			`${n(telemetry.lifetime.activeDays.active)} von ${n(telemetry.lifetime.activeDays.elapsed)} Tagen aktiv — ${n(telemetry.lifetime.activeDays.ratePercent)} %, ${telemetry.trackingStart} bis ${telemetry.trackingEnd}.`
+			`${n(telemetry.lifetime.activeDays.active)} von ${n(telemetry.lifetime.activeDays.elapsed)} Tagen aktiv — ${pc(telemetry.lifetime.activeDays.ratePercent)}, ${telemetry.trackingStart} bis ${telemetry.trackingEnd}.`
 		],
 		sourceNote: "WakaTime API",
 		annotation: {
@@ -224,10 +250,10 @@ export const timeline: TimelineEntry[] = [
 			   Code. Lückenlos ist die AUFZEICHNUNG. */
 			`${telemetry.trackingStart}: Ab hier zeichnet WakaTime auf — die Aufzeichnung läuft seitdem ohne Unterbrechung.`,
 			"Die Angel-Bots-Ära: Discord-Bots in JavaScript, jeder für genau eine Aufgabe — daher stammt der Großteil des JavaScripts in der Aufzeichnung " +
-				`(${n(telemetry.lifetime.languages[1].hours)} h insgesamt).`
+				`(${h(telemetry.lifetime.languages[1].hours)} insgesamt).`
 		],
 		annotation: {
-			text: `TypeScript: ${n(github.typescriptByteSharePercent.in2021)} % der gepushten Code-Bytes 2021 → ${n(github.typescriptByteSharePercent.in2026)} % in 2026 gepushten Repos`,
+			text: `TypeScript: ${pc(github.typescriptByteSharePercent.in2021)} der gepushten Code-Bytes 2021 → ${pc(github.typescriptByteSharePercent.in2026)} in 2026 gepushten Repos`,
 			ink: "violet"
 		}
 	},
@@ -237,8 +263,8 @@ export const timeline: TimelineEntry[] = [
 		sort: "2022-09",
 		title: "Drei Jahre bei der Columbus Interactive GmbH",
 		body: [
-			`${ihk.apprenticeship.start}: drei Jahre angestellt bei ${ihk.trainingCompany}, in Ausbildung zum ${ihk.profession} (IHK, Fachrichtung Anwendungsentwicklung, DQR-Niveau 4).`,
-			`${ihk.weeklyReports} gegengezeichnete wöchentliche Ausbildungsnachweise, Nr. 0–71 — jeder einzelne von jemand anderem gelesen und unterschrieben. Berufsschule: Elektronikschule Tettnang. Abschlussprüfung: ${ihk.apprenticeship.examCycle}.`
+			`${ihk.apprenticeship.start}: drei Jahre angestellt bei der ${ihk.trainingCompany}, in Ausbildung zum ${ihk.profession} (IHK, DQR-Niveau 4).`,
+			`${ihk.weeklyReports} gegengezeichnete wöchentliche Ausbildungsnachweise, Nr. 0–71 — jeder einzelne von jemand anderem gelesen und unterschrieben. Berufsschule: ${ihk.vocationalSchool}. Abschlussprüfung: ${ihk.apprenticeship.examCycle}.`
 		]
 	},
 	{
@@ -247,10 +273,10 @@ export const timeline: TimelineEntry[] = [
 		sort: "2025-05",
 		title: `IHK-Abschlussprojekt: »${ihk.finalProject.title}«`,
 		body: [
-			`Der Ausbildungsbetrieb hat die Arbeit beurteilt: als »selbstständig ausgeführt« abgezeichnet, unterschrieben am 2025-06-01. ${ihk.finalProject.hours} h, ${ihk.finalProject.window.start} bis ${ihk.finalProject.window.end}.`,
+			`Der Ausbildungsbetrieb hat die Arbeit beurteilt: als »selbstständig ausgeführt« abgezeichnet, Unterschriftsdatum 2025-06-01. ${h(ihk.finalProject.hours)}, ${ihk.finalProject.window.start} bis ${ihk.finalProject.window.end}.`,
 			`Unter Last gemessen: ${n(ihk.finalProject.loadTestServers)} simulierte Discord-Server.`
 		],
-		annotation: { text: "80 h ist die Obergrenze, die die IHK für das Projekt setzt", ink: "teal" }
+		annotation: { text: `${h(ihk.finalProject.hours)} ist die Obergrenze, die die IHK für das Projekt setzt`, ink: "teal" }
 	},
 	{
 		id: "raleo-2025",
@@ -267,7 +293,7 @@ export const timeline: TimelineEntry[] = [
 		sort: "2026-08",
 		title: "Der Stich von heute",
 		body: [
-			`Juli 2026: ${hm(telemetry.windowJuly2026.dailyAverage.seconds)} erfasste Programmierzeit pro Tag. Bester Einzeltag: ${hm(telemetry.lifetime.bestDay.seconds)} am ${telemetry.lifetime.bestDay.date}.`,
+			`Juli 2026: ${hm(telemetry.windowJuly2026.dailyAverage.seconds)} erfasste Programmierzeit pro Tag. Bester Einzeltag: ${telemetry.lifetime.bestDay.date} mit ${hm(telemetry.lifetime.bestDay.seconds)}.`,
 			`Der Ayako-v3-Rewrite ist in aktiver Entwicklung: ${ayako.v3.commits} Commits, ${ayako.v3.featurePlugins} Feature-Plugins, ${ayako.v3.testFiles} Testdateien direkt neben dem Code.`
 		],
 		annotation: { text: "der erste Pin und dieser sind derselbe Bot", ink: "green" }
@@ -284,9 +310,9 @@ export const careerStats = {
 	sourceNote: "WakaTime-API-Abruf",
 	lines: [
 		`${hm(telemetry.lifetime.total.seconds)} erfasste Programmierzeit.`,
-		`TypeScript: ${n(telemetry.lifetime.languages[0].hours)} h — ${n(telemetry.lifetime.languages[0].percent)} % der erfassten Zeit.`,
+		`TypeScript: ${h(telemetry.lifetime.languages[0].hours)} — ${pc(telemetry.lifetime.languages[0].percent)} der erfassten Zeit.`,
 		`${telemetry.lifetime.projectsTracked} Projekte · ${telemetry.lifetime.languagesTracked} Sprachen · ${n(telemetry.lifetime.dependenciesTracked)} Abhängigkeiten erfasst.`,
-		`${n(telemetry.lifetime.remoteSshPercent)} % der Programmierzeit auf Remote-Servern über SSH; ${n(telemetry.lifetime.linuxInclWslPercent)} % der OS-Zeit unter Linux (inkl. WSL).`
+		`${pc(telemetry.lifetime.remoteSshPercent)} der Programmierzeit auf Remote-Servern über SSH; ${pc(telemetry.lifetime.linuxInclWslPercent)} der OS-Zeit unter Linux (inkl. WSL).`
 	]
 } as const;
 
@@ -296,8 +322,14 @@ export const githubStats = {
 	sourceNote: "Authentifizierter GitHub-Abruf",
 	lines: [
 		`${n(github.contributions.lifetime)} Beiträge seit ${github.accountCreated} — Spitzenjahr ${github.contributions.peakYear.year}: ${n(github.contributions.peakYear.contributions)}; letzte 12 Monate: ${n(github.contributions.rolling12Months)}.`,
-		`${github.pullRequestsAuthored} Pull Requests insgesamt verfasst. Upstream gemerged in ${github.mergedUpstream.join(", ")}.`
-	]
+		`${github.pullRequestsAuthored} Pull Requests insgesamt verfasst.`,
+		`${github.mergedUpstream.count} davon gemerged in ${github.mergedUpstream.repositories.length} Repositories, die mir nicht gehören: ${github.mergedUpstream.repositories.map((r) => r.repo).join(", ")}. Geprüft ${github.mergedUpstream.checkedOn}.`
+	],
+	/** Die Suche, die genau diese elf zurückgibt — nachlaufen statt glauben. */
+	search: {
+		label: "die Suche, die sie zurückgibt",
+		href: github.mergedUpstream.searchUrl
+	} satisfies WallLink
 } as const;
 
 /* ------------------------------------------------------------------ */
@@ -317,11 +349,14 @@ export const projects: ProjectEntry[] = [
 		],
 		facts: [
 			`${servers} Server · ${users} Nutzer · ${ayako.rating.value} auf ${ayako.rating.platform}, Stand ${SNAPSHOT_AS_OF}.`,
-			`Monorepo-weit: ${n(ayako.monorepo.files)} Quelldateien, ${n(ayako.monorepo.linesOfCode)} Zeilen Code (TypeScript, Svelte, Rust).`,
-			`${ayako.workspace.packagesAndApps} Packages und Apps · ${ayako.workspace.dockerComposeServices} Docker-Compose-Services · ${ayako.workspace.prismaModels} Prisma-Modelle.`,
-			`${n(telemetry.lifetime.ayakoFamily.hours)} h über ${ayako.generations} Generationen und ${ayako.discordLibraries} Discord-Bibliotheken — ${n(telemetry.lifetime.ayakoFamily.percent)} % der gesamten erfassten Programmierzeit.`,
-			`${n(github.ayakoAuthorship.v2Percent)} % der v2-Commits auf dem Default-Branch selbst verfasst (${n(github.ayakoAuthorship.v2Commits.own)} von ${n(github.ayakoAuthorship.v2Commits.total)}).`,
-			`v3: ${ayako.v3.commits} Commits, 100 % selbst verfasst · ${ayako.v3.featurePlugins} Feature-Plugins · ${ayako.v3.testFiles} Testdateien direkt neben dem Code.`
+			/* siehe wall.ts: eine Zählung, keine Schätzung. Die Zeilenzahl bleibt
+			   in snapshot.ts stehen — sie ist nur nicht die Zahl, mit der diese
+			   Karte aufmacht. */
+			`Monorepo-weit: ${n(ayako.monorepo.files)} Quelldateien in ${ayako.workspace.packagesAndApps} Packages (TypeScript, Svelte, Rust).`,
+			`${ayako.workspace.dockerComposeServices} Docker-Compose-Services · ${ayako.workspace.prismaModels} Prisma-Modelle.`,
+			`${h(telemetry.lifetime.ayakoFamily.hours)} über ${ayako.generations} Generationen und ${ayako.discordLibraries} Discord-Bibliotheken — ${pc(telemetry.lifetime.ayakoFamily.percent)} der gesamten erfassten Programmierzeit.`,
+			`${pc(github.ayakoAuthorship.v2Percent)} der v2-Commits auf dem Default-Branch selbst verfasst (${n(github.ayakoAuthorship.v2Commits.own)} von ${n(github.ayakoAuthorship.v2Commits.total)}).`,
+			`v3: ${ayako.v3.commits} Commits, 100 % selbst verfasst · ${ayako.v3.featurePlugins} Feature-Plugins · ${ayako.v3.testFiles} Testdateien direkt neben dem Code.`
 		],
 		stack: [
 			"TypeScript",
@@ -363,11 +398,11 @@ export const projects: ProjectEntry[] = [
 			"Support-Mitarbeitende authentifizieren sich mit dem Token einer Discord-Anwendung und prüfen Berechtigungskonfiguration, Rollen und Kanäle über alle ihre Server hinweg — Echtzeit-UI über Server-Sent Events, getragen von einer typisierten Redis-Cache-Schicht und einem Bot-Backend mit Sharding."
 		],
 		facts: [
-			`${ihk.finalProject.hours} h, ${ihk.finalProject.window.start} bis ${ihk.finalProject.window.end} — vom Ausbildungsbetrieb als »selbstständig ausgeführt« abgezeichnet.`,
+			`${h(ihk.finalProject.hours)}, ${ihk.finalProject.window.start} bis ${ihk.finalProject.window.end} — vom Ausbildungsbetrieb als »selbstständig ausgeführt« abgezeichnet.`,
 			`Lasttest mit ${n(ihk.finalProject.loadTestServers)} simulierten Discord-Servern (Projektdokumentation, 2025-06).`,
-			"<5 s Erstladezeit bei 100 Servern · <200 ms Serverwechsel · >95 % Cache-Trefferquote · konstant 30 FPS (Projektdokumentation, 2025-06).",
-			`${ihk.finalProject.code.typescript.files} TypeScript-Dateien (${n(ihk.finalProject.code.typescript.linesOfCode)} LOC) + ${ihk.finalProject.code.svelte.files} Svelte-Dateien (${n(ihk.finalProject.code.svelte.linesOfCode)} LOC).`,
-			`${n(ihk.finalProject.trackedHours)} h auf dem Repo erfasst.`
+			"<5 s Erstladezeit bei 100 Servern · <200 ms Serverwechsel · >95 % Cache-Trefferquote · konstant 30 FPS (Projektdokumentation, 2025-06).",
+			`${ihk.finalProject.code.typescript.files} TypeScript-Dateien (${n(ihk.finalProject.code.typescript.linesOfCode)} LOC) + ${ihk.finalProject.code.svelte.files} Svelte-Dateien (${n(ihk.finalProject.code.svelte.linesOfCode)} LOC).`,
+			`${h(ihk.finalProject.trackedHours)} auf dem Repo erfasst.`
 		],
 		stack: [
 			"SvelteKit",
@@ -390,12 +425,12 @@ export const projects: ProjectEntry[] = [
 		oneLiner:
 			"Zweiter Discord-Bot im Produktivbetrieb, private Codebasis: Giveaways mit Teilnahmebedingungen (Nachrichten, Voice-Minuten), Willkommens-Flows, Logging, Booster-Tracking, Embed-Builder, Online-Peak-Statistiken.",
 		body: [
-			"Läuft auf Hybrid-Sharding mit einem eigenen V8-Speichermonitor: Heap-Sampling alle 30 Sekunden mit Garbage-Collection-Trigger bei 85 %."
+			"Läuft auf Hybrid-Sharding mit einem eigenen V8-Speichermonitor: Heap-Sampling alle 30 Sekunden mit Garbage-Collection-Trigger bei 85 %."
 		],
 		facts: [
 			/* Fremdzitat: die Angabe des Repos, unverändert übernommen. */
 			"Eigenangabe „10,000+ servers“ — Repo-Metadaten, nicht verifiziert.",
-			`332 Dateien · ${n(17_250)} LOC · 128 Commits, 100 % selbst verfasst.`,
+			`332 Dateien · ${n(17_250)} LOC · 128 Commits, 100 % selbst verfasst.`,
 			"Aktiv bis 2026-06."
 		],
 		stack: ["TypeScript", "discord.js 14", "Prisma", "discord-hybrid-sharding", "socket.io"],
@@ -414,7 +449,7 @@ export const projects: ProjectEntry[] = [
 		body: [
 			"Discord RPC direkt über die lokale IPC-Pipe implementiert — ohne Bot-Token. Ausgeliefert als einzelne self-contained Executable mit Lizenz, Datenschutzerklärung, Nutzungsbedingungen und Release-Workflow."
 		],
-		facts: [`${n(4_059)} LOC in 15 Dateien.`],
+		facts: [`${n(4_059)} LOC in 15 Dateien.`],
 		stack: ["C#/.NET 8", "SkiaSharp", "DirectX 11 (Vortice)", "OpenVR", "Kestrel", "WebSocket"],
 		links: []
 	},
@@ -426,7 +461,7 @@ export const projects: ProjectEntry[] = [
 		body: [
 			"Spec-first: Das Designdokument trägt das Datum 2026-04-16 — geschrieben vor der Implementierung. DPAPI-verschlüsselte Zugangsdaten, ein Web-Dashboard nur auf Loopback, SQLite-Persistenz."
 		],
-		facts: [`${n(4_481)} LOC in 55 Dateien · xUnit-Suite mit 7 Modulen.`],
+		facts: [`${n(4_481)} LOC in 55 Dateien · xUnit-Suite mit 7 Modulen.`],
 		stack: ["C#/.NET 8", "Svelte 5", "SQLite", "xUnit", "Kestrel"],
 		links: []
 	},
@@ -439,7 +474,7 @@ export const projects: ProjectEntry[] = [
 		body: [
 			"Der Discord-IPC-RPC-Client — inklusive OAuth-Handshake und Frame-Protokoll — ist von Hand geschrieben, nicht aus einer Bibliothek übernommen."
 		],
-		facts: [`${n(2_436)} LOC in 36 Dateien · vitest-Suite mit undici MockAgent.`],
+		facts: [`${n(2_436)} LOC in 36 Dateien · vitest-Suite mit undici MockAgent.`],
 		stack: ["TypeScript", "Node.js", "vitest"],
 		links: []
 	},
@@ -452,7 +487,7 @@ export const projects: ProjectEntry[] = [
 		body: [
 			"Sprache wird lokal mit Faster-Whisper erkannt und über OSC an die VRChat-Chatbox geleitet; das Overlay rendert Dashboard-, HUD- und Handgelenks-Ansichten im Headset."
 		],
-		facts: [`${n(32_427)} LOC in 121 Dateien · 15 Backend-Service-Module · 19 Testdateien.`],
+		facts: [`${n(32_427)} LOC in 121 Dateien · 15 Backend-Service-Module · 19 Testdateien.`],
 		stack: ["Python", "FastAPI", "Faster-Whisper", "Electron", "React", "OpenVR", "WebSocket", "OSC"],
 		links: []
 	},
@@ -465,7 +500,7 @@ export const projects: ProjectEntry[] = [
 		body: [
 			"Geführt wie ein echtes Open-Source-Projekt: striktes TypeScript, Kompression mit SSH/HTTP-Upload-Fallback, Docker-Packaging und eine SECURITY.md."
 		],
-		facts: [`${n(3_264)} LOC striktes TypeScript in 75 Dateien.`],
+		facts: [`${n(3_264)} LOC striktes TypeScript in 75 Dateien.`],
 		stack: ["TypeScript", "ffmpeg", "youtube-dl-exec", "SWC", "Docker"],
 		links: [],
 		license: "CC BY-NC 4.0"
@@ -480,17 +515,17 @@ export const breadth: { text: string; link?: WallLink }[] = [
 			`${SNAPSHOT_AS_OF}) als Fallback.`
 	},
 	{
-		text: "waifu-pics-api — MIT-lizenzierter npm-Wrapper für die Bild-API von waifu.pics. Das letzte Release schlägt seit dem Auslaufen der Upstream-Domain beim Import bewusst fehl, statt leere Daten zu liefern. Deprecated am 2026-05-07.",
+		text: "waifu-pics-api — MIT-lizenzierter npm-Wrapper für die Bild-API von waifu.pics. Das letzte Release schlägt seit dem Auslaufen der Upstream-Domain beim Import bewusst fehl, statt leere Daten zu liefern. Deprecated: 2026-05-07.",
 		link: { label: "npm", href: "https://www.npmjs.com/package/waifu-pics-api" }
 	},
 	{
-		text: `vr-diag — drei forensische PowerShell-Skripte (${n(1_202)} LOC): VR-Crash-Forensik über Event-Logs, WHEA und Minidumps; ein VR-Lag-Monitor; ein Bugcheck-Analyzer. 48 erfasste Lauf-Datensätze.`
+		text: `vr-diag — drei forensische PowerShell-Skripte (${n(1_202)} LOC): VR-Crash-Forensik über Event-Logs, WHEA und Minidumps; ein VR-Lag-Monitor; ein Bugcheck-Analyzer. 48 erfasste Lauf-Datensätze.`
 	},
 	{
 		text: "Restart-VR.bat — idempotenter Windows-Batch-Orchestrator, der einen VR-Streaming-Stack über tasklist, CIM und UDP-Port-Probes hochfährt."
 	},
 	{
-		text: "Kfz-Elektronik — Kamera-Einbau und eine 12 V LiFePO₄ Zweitbatterie nachgerüstet in einem Smart 450; Höhenkarte per ESP8266 + MQTT."
+		text: "Kfz-Elektronik — Kamera-Einbau und eine 12 V LiFePO₄ Zweitbatterie nachgerüstet in einem Smart 450; Höhenkarte per ESP8266 + MQTT."
 	}
 ];
 
@@ -511,7 +546,7 @@ export const aiPractice = {
 			id: "volume",
 			title: "Volumen",
 			lines: [
-				`${n(ai.transcripts.count)} Claude-Code-Transkripte (${ai.transcripts.sizeMb} MB, ${n(ai.transcripts.events)} protokollierte Events) über ${ai.transcripts.days} Tage, ${ai.transcripts.window.start} bis ${ai.transcripts.window.end} — ${n(ai.sessionsPerDay)} Top-Level-Sessions pro Tag.`,
+				`${n(ai.transcripts.count)} Claude-Code-Transkripte (${ai.transcripts.sizeMb} MB, ${n(ai.transcripts.events)} protokollierte Events) über ${ai.transcripts.days} Tage, ${ai.transcripts.window.start} bis ${ai.transcripts.window.end} — ${n(ai.sessionsPerDay)} Top-Level-Sessions pro Tag.`,
 				`Session-Indizes belegen die Nutzung seit mindestens ${ai.transcripts.evidencedSince}.`
 			]
 		},
@@ -519,25 +554,31 @@ export const aiPractice = {
 			id: "orchestration",
 			title: "Orchestrierung",
 			lines: [
-				`${n(ai.subagentShare.percent)} % der Transkripte (${n(ai.subagentShare.count)} von ${n(ai.subagentShare.of)}) sind Subagenten- und Workflow-Läufe, verschachtelt unter übergeordneten Sessions.`,
+				`${pc(ai.subagentShare.percent)} der Transkripte (${n(ai.subagentShare.count)} von ${n(ai.subagentShare.of)}) sind Subagenten- und Workflow-Läufe, verschachtelt unter übergeordneten Sessions.`,
 				`Prompt-zu-Antwort-Verhältnis in der Stichprobe: ${promptRatio} — lange autonome Läufe, ab und zu nachgesteuert.`,
 				"Mehrere Sessions laufen gleichzeitig auf einem Checkout, nach schriftlichen Konventionen: atomare Claim-Locks für geteilte Logs, Commits per Pathspec gegen Index-Races, mtime-basierte Attributionsprüfung vor jedem Revert."
 			]
 		},
 		{
 			id: "adoption",
-			title: "Gemessene Adoptionskurve",
+			/* siehe wall.ts: keine Kurve. Vier Fenster, mit Pfeilen verbunden,
+			   luden dazu ein, vier aufeinanderfolgende Zeiträume zu lesen —
+			   sie überlappen sich aber, und eines enthält die anderen. */
+			title: "Gemessene KI-Nutzung",
 			lines: [
-				`AI-Coding-Anteil an der erfassten Zeit: ${n(telemetry.aiCoding.sharePercentByWindow.lifetime)} % Gesamtzeitraum → ${n(telemetry.aiCoding.sharePercentByWindow.last12Months)} % letzte 12 Monate → ${n(telemetry.aiCoding.sharePercentByWindow.july2026)} % Juli 2026 → ${n(telemetry.aiCoding.sharePercentByWindow.last7Days)} % letzte 7 Tage. ${hm(telemetry.aiCoding.lifetime.seconds)} insgesamt.`,
-				`Claude Code: ${n(telemetry.windowJuly2026.claudeCodeEditorPercent)} % der Editor-Zeit im Juli 2026.`,
-				`Markdown stieg von ${n(telemetry.lifetime.markdownPercent)} % der Sprachzeit im Gesamtzeitraum auf ${n(telemetry.windowJuly2026.markdownPercent)} % im Juli 2026 — die Signatur spezifikationsgetriebener, agentischer Arbeit.`
+				"„AI Coding“ ist eine WakaTime-Kategorie erfasster Zeit: wie viel der gemessenen Programmierzeit in KI-gestützten Sitzungen lief — nicht, wie viel des Codes eine KI geschrieben hat.",
+				`Gesamtzeitraum (${telemetry.trackingStart} bis ${telemetry.trackingEnd}): ${pc(telemetry.aiCoding.sharePercentByWindow.lifetime)}. Die 12 Monate bis ${SNAPSHOT_AS_OF}: ${pc(telemetry.aiCoding.sharePercentByWindow.last12Months)}. Juli 2026, der Kalendermonat: ${pc(telemetry.aiCoding.sharePercentByWindow.july2026)}. Die 7 Tage bis ${SNAPSHOT_AS_OF}: ${pc(telemetry.aiCoding.sharePercentByWindow.last7Days)}.`,
+				"Vier Fenster, keine vier Zeiträume — sie überlappen sich. Der Gesamtzeitraum enthält alle, und sowohl der Juli 2026 als auch die letzten sieben Tage liegen innerhalb der letzten 12 Monate. Vier Zoomstufen auf dieselbe Aufzeichnung, keine Kurve.",
+				`${pc(telemetry.aiCoding.last12MonthsShareOfLifetimePercent)} der jemals erfassten AI-Coding-Zeit fällt in die letzten 12 Monate. ${hm(telemetry.aiCoding.lifetime.seconds)} insgesamt.`,
+				`Claude Code: ${pc(telemetry.windowJuly2026.claudeCodeEditorPercent)} der Editor-Zeit im Juli 2026.`,
+				`Markdown stieg von ${pc(telemetry.lifetime.markdownPercent)} der Sprachzeit im Gesamtzeitraum auf ${pc(telemetry.windowJuly2026.markdownPercent)} im Juli 2026 — die Signatur spezifikationsgetriebener, agentischer Arbeit.`
 			]
 		},
 		{
 			id: "governance",
 			title: "Governance",
 			lines: [
-				"Agenten committen, stagen und pushen nie — jeden Commit prüfe und verfasse ich selbst.",
+				"Agenten committen, stagen und pushen nie — jeden Commit verfasse und prüfe ich selbst.",
 				"Read-only erzwinge ich, indem ich die Werkzeuge wegnehme. Ein Prompt, der höflich bittet, ist keine Kontrolle. Agenten-Output muss durch ein explizites tsc-Gate, weil eine Pipeline grün sein kann, während tsc fehlschlägt.",
 				"Produktionsänderungen: ein umkehrbarer Schritt nach dem anderen, Rollback im selben Zug wie jede Mutation, Blast-Radius-Prüfung nach jeder Änderung."
 			],
@@ -605,8 +646,12 @@ export const inkKey = {
 	rows: [
 		{ ink: "magenta", job: "meins allein", q: "wem gehört das, und wie groß ist es?" },
 		{ ink: "violet", job: "die Arbeitsweise", q: "wie wird gearbeitet?" },
-		{ ink: "teal", job: "die Herkunft", q: "woher weißt du das?" },
-		{ ink: "green", job: "was noch läuft", q: "seit wann, und läuft es noch?" },
+		/* „woher weißt du das?“ legte ein an den Eigentümer gerichtetes du in
+		   den Mund der Lesenden — die Legende spricht aber für sie, nicht zu
+		   ihm. */
+		{ ink: "teal", job: "die Herkunft", q: "woher kommt die Zahl?" },
+		/* die einzige Verbalphrase unter sechs Nominalphrasen */
+		{ ink: "green", job: "die Laufzeit", q: "seit wann, und läuft es noch?" },
 		{ ink: "amber", job: "die Grenze", q: "wo hört diese Aussage auf?" },
 		{ ink: "blue", job: "der Weg zu mir", q: "was mache ich als Nächstes?" }
 	] satisfies InkKeyRow[]
@@ -623,9 +668,16 @@ export const contact = {
 	 *  einzige Stelle der Wand, die es sagt. Keine Kündigungsfrist: es
 	 *  wurde keine genannt, und es wird keine unterstellt.
 	 *
-	 *  Die Reihenfolge trägt. Vorher stand die Bremse zuerst. Jetzt öffnet
-	 *  das Angebot, der offene Vorbehalt schließt — direkt hinter dem
-	 *  Versprechen, das er glaubwürdig macht. Gestrichen wurde nichts.
+	 *  DIE REIHENFOLGE TRÄGT, und der letzte Eingriff hat die Bremse an die
+	 *  lautere Stelle geschoben. Vorher stand sie zuerst — richtige
+	 *  Diagnose, falsches Mittel: die erste Position ist das Thema, die
+	 *  letzte ist der Fokus, die betonteste Stelle des Blocks. Schwach ist
+	 *  die Mitte, und dort steht der Vorbehalt jetzt: Angebot → Vorbehalt →
+	 *  Bedingungen → Versprechen. Gestrichen wurde nichts.
+	 *
+	 *  Und das Versprechen bekommt sein Subjekt zurück: „Jede Mail … wird
+	 *  beantwortet“ war das einzige Versprechen der Wand, dessen
+	 *  Versprechender grammatisch fehlte.
 	 *
 	 *  Der Ort steht nur auf REGIONS-Ebene, wie im Kopf und im Fuß der
 	 *  Seite. „Bodensee-Ravensburg“ nannte eine Stadt. */
@@ -633,9 +685,9 @@ export const contact = {
 		title: "Aktuell",
 		lines: [
 			"Offen für Produktarbeit mit TypeScript/Node — Backend oder Full-Stack. Erzähl mir davon.",
+			"Seit 2025 Full-Stack-Entwickler bei der Raleo Digital GmbH. Kein dringender Wechselwunsch.",
 			"Remote, oder vor Ort in der Region Bodensee-Oberschwaben.",
-			"Jede Mail an diese Adresse wird beantwortet.",
-			"Seit 2025 Full-Stack-Entwickler bei der Raleo Digital GmbH. Kein dringender Wechselwunsch."
+			"Ich beantworte jede Mail an diese Adresse."
 		]
 	},
 	entries: [
@@ -708,7 +760,11 @@ export const education: EducationEntry[] = [
 	{
 		id: "apprenticeship",
 		institution: "IHK-Ausbildung — Fachinformatiker für Anwendungsentwicklung",
-		detail: `Fachrichtung Anwendungsentwicklung, DQR-Niveau 4. Ausbildungsbetrieb: ${ihk.trainingCompany}. IHK-Abschlussprojekt »${ihk.finalProject.title}«, vom Betrieb als »selbstständig ausgeführt« abgezeichnet.`,
+		/* „Fachrichtung Anwendungsentwicklung“ stand hier ein zweites Mal —
+		   die Institution darüber heißt bereits „… für Anwendungsentwicklung“.
+		   Die englische Wand behält ihre Entsprechung: dort ist sie die
+		   einzige Erklärung der Fachrichtung, hier ist sie Wiederholung. */
+		detail: `DQR-Niveau 4. Ausbildungsbetrieb: ${ihk.trainingCompany}. IHK-Abschlussprojekt »${ihk.finalProject.title}«, vom Betrieb als »selbstständig ausgeführt« abgezeichnet.`,
 		start: "2022-09",
 		end: "2025",
 		logo: "/CI.webp"
@@ -798,6 +854,13 @@ export const sectionStrings = {
 		/** Titel der EINEN Schulzeit-Karte — siehe wall.ts: aus drei Karten
 		 *  wird eine, alle Institutionen und alle Daten bleiben stehen. */
 		schooling: "Schulzeit",
+		/** Der Satz dieser Karte — siehe wall.ts: NOCH NICHT GERENDERT,
+		 *  gehört direkt unter die Überschrift. Sie ist die einzige Karte der
+		 *  Wand ohne einen einzigen Satz, und die Schlussfolgerung, die man
+		 *  aus drei nackten Datumszeilen zieht, ist nicht die freundliche.
+		 *  Der Satz fügt keine Angabe hinzu, die nicht in den Daten steht. */
+		schoolingNote:
+			"Allgemeinbildende Schulzeit vor der Ausbildung, vollständig aufgeführt — auch die beiden Einträge, die nur wenige Monate gedauert haben. Entweder ist die Aufzeichnung vollständig oder sie ist es nicht.",
 		/** Eine Schulzeile: Zeitraum, dann Institution. */
 		schoolLine: (dates: string, institution: string) => `${dates} · ${institution}`,
 		/** Flagship card: prefix of the stack line. */
@@ -860,10 +923,12 @@ export const chartStrings = {
 	},
 	/** Unit + window lines (voice law). */
 	units: {
+		/* Das Komma der Apposition, das die englische Zeile führt und diese
+		   verlor: „Gesamtzeitraum, 2021-10-29 → 2026-08-03“. */
 		lifetimeHours: (window: string, asOf: string) =>
-			`Erfasste Zeit in Stunden · Gesamtzeitraum ${window}${asOfSuffix(window, asOf)}`,
+			`Erfasste Zeit in Stunden · Gesamtzeitraum, ${window}${asOfSuffix(window, asOf)}`,
 		lifetimeShare: (window: string, asOf: string) =>
-			`Anteil an der gesamten erfassten Programmierzeit · Gesamtzeitraum ${window}${asOfSuffix(window, asOf)}`,
+			`Anteil an der gesamten erfassten Programmierzeit · Gesamtzeitraum, ${window}${asOfSuffix(window, asOf)}`,
 		last12MonthsHours: (window: string, asOf: string) =>
 			`Erfasste Zeit in Stunden · letzte 12 Monate, ${window}${asOfSuffix(window, asOf)}`,
 		weekHoursPerDay: (window: string, asOf: string) =>
@@ -884,7 +949,7 @@ export const chartStrings = {
 	/** Row label of the snapshot projects chart. */
 	ayakoFamilyRow: "Ayako-Familie",
 	/** ECharts axis-label template — keep the {value} placeholder. */
-	axisHours: "{value} h",
+	axisHours: "{value} h",
 	/** Alt-text intros/sentences; ranked intros are completed by the
 	 *  data rows ("<intro>: name time (share); ….") in getCharts. Wer eine
 	 *  Wand hört statt sie zu sehen, sieht keine Stempel — die Alt-Texte
@@ -956,18 +1021,18 @@ export const chartStrings = {
 		projectLeads: (_name: string, _time: string) =>
 			`Auf dem, was in diesen Stunden entstand, laufen ${servers} Server`,
 		ayakoShare: (percent: number) =>
-			`${users} Nutzer, ${servers} Server — und ${n(percent)} % der Aufzeichnung`,
+			`${users} Nutzer, ${servers} Server — und ${pc(percent)} der Aufzeichnung`,
 		languageTop: (name: string, time: string) => `Das Produkt läuft auf ${name} — ${time} davon`,
 		weekTotal: (total: string, leadName: string) =>
 			`An ${leadName} wird weiter gebaut — ${total} davon diese Woche`,
 		weekDaily: (average: string, leadName: string) =>
 			`Die Änderungen landen weiter in ${leadName} — ${average} pro Tag`,
 		habitRate: (ratePercent: number, sinceYear: string) =>
-			`An ${n(ratePercent)} % aller Tage seit ${sinceYear} ist Code entstanden`
+			`An ${pc(ratePercent)} aller Tage seit ${sinceYear} ist Code entstanden`
 	},
 	habit: {
 		line: (active: string, elapsed: string, ratePercent: string) =>
-			`${active} von ${elapsed} vergangenen Tagen mit erfasster Programmierzeit — ${ratePercent} %.`,
+			`${active} von ${elapsed} vergangenen Tagen mit erfasster Programmierzeit — ${ratePercent} %.`,
 		/* siehe wall.ts: keine Kalender-Lesart zulassen — die Zellen werden
 		   der Reihe nach gefüllt, die leeren Tage verteilen sich über den
 		   gesamten Zeitraum und stehen nicht am Ende */
@@ -975,15 +1040,37 @@ export const chartStrings = {
 	},
 	/** Typed provenance-card lines (Telemetry "Quelle" card). */
 	provenance: {
-		/** Die Stand-Regel der Wand, einmal gesagt, damit keine Zahl sie wiederholen muss. */
+		/** Die Stand-Regel der Wand, einmal gesagt, damit keine Zahl sie
+		 *  wiederholen muss.
+		 *
+		 *  OHNE PRÄPOSITION VOR DEM ISO-DATUM: „am 2026-08-03“ ist die
+		 *  deutlichste Übersetzungsspur im deutschen Text — gesprochen wird
+		 *  „am dritten August“, geschrieben steht hier ein ISO-Datum, und die
+		 *  beiden passen nicht zusammen. Das ISO-Format bleibt (zwei
+		 *  Datumsformate auf einer Wand kosten mehr als die milde Fremdheit
+		 *  eines deutschen ISO-Datums); die Präposition geht. */
 		convention: (asOf: string) =>
-			`Wenn an einer Zahl kein anderes Datum steht, wurde sie am ${asOf} gemessen.`,
+			`Wenn an einer Zahl kein anderes Datum steht, gilt das Messdatum ${asOf}.`,
 		live: (asOf: string) =>
-			`Diagramme zur Build-Zeit von der WakaTime-API abgerufen; das Fenster endet am ${asOf}.`,
+			`Diagramme zur Build-Zeit von der WakaTime-API abgerufen; Fensterende: ${asOf}.`,
 		snapshot: (asOf: string) =>
 			`Eingecheckte Zahlen aus dem WakaTime-API-Abruf vom ${asOf} — Live-Builds rufen zur Build-Zeit ab und ergänzen die Sieben-Tage-Diagramme.`,
 		currentlyJuly2026: (display: string) =>
-			`Aktuell (Juli 2026): ${display} erfasste Programmierzeit pro Tag.`
+			`Aktuell (Juli 2026): ${display} erfasste Programmierzeit pro Tag.`,
+		/** Warum auf den Karten volle Stunden stehen — und wie der exakte
+		 *  Wert lautet. */
+		precision: (shown: string, exact: string) =>
+			`Gesamtwert, exakt wie abgerufen: ${exact}. Auf den Karten steht ${shown}. WakaTime misst keine Dauer, es baut sie: Heartbeats, die innerhalb eines Zeitfensters von 15 Minuten aufeinanderfolgen, werden zusammengezogen — in dieser Größenordnung ist die Minutenstelle also nichts, was das Instrument bestimmen kann, und sie zu drucken hieße, eine Genauigkeit anzubieten, die die Methode nicht hat. Aufgerundet wird nichts; in den Datentabellen steht jeder exakte Wert.`,
+		/** Die Adresse, für die die Karte bisher nur das Instrument nannte. */
+		endpoint: (url: string) => `Prüf es selbst — öffentlich, ohne Schlüssel: ${url}`,
+		/** Was dieser Endpunkt belegt — und das eine, was er nicht belegt. */
+		checkable: (o: { reconstructed: string; shortfall: string; checkedOn: string }) =>
+			`Er bestätigt die Sprachanteile auf zwei Nachkommastellen. Den Gesamtwert bestätigt er nicht: Die Programmieraktivität steht auf diesem Profil auf privat, die API hält den Gesamtwert also zurück, und die einzige verbleibende Rekonstruktion — die Sprachzeilen aufaddieren — kommt auf ${o.reconstructed} und damit ${o.shortfall} zu wenig, weil diese Zeilen den Sammelposten „Other“ nicht enthalten. Diese Lücke ist der Sammelposten, keine Zahl zu meinen Gunsten — und der eine Wert hier, den du heute nicht nachprüfen kannst. Nachgeprüft ohne Anmeldung, ${o.checkedOn}.`,
+		/** Ein datierter Snapshot driftet gegen einen Live-Abruf; sag es,
+		 *  bevor jemand den Unterschied findet und ihn für Nachlässigkeit
+		 *  hält. */
+		drift: (live: string, printed: string, checkedOn: string) =>
+			`Ein datierter Snapshot driftet gegen einen Live-Abruf, und das soll er: Stand ${checkedOn} meldete derselbe Endpunkt für AI Coding ${live}, wo diese Wand ${printed} druckt — zwei Tage früher gemessen.`
 	},
 	/** Telemetry section chrome around the charts (Telemetry.astro). */
 	telemetrySection: {
@@ -1008,7 +1095,7 @@ export const chartStrings = {
 			start: string;
 			end: string;
 		}) =>
-			`${o.active} von ${o.elapsed} Tagen aktiv — ${o.ratePercent} %, ${o.start} bis ${o.end}.`,
+			`${o.active} von ${o.elapsed} Tagen aktiv — ${o.ratePercent} %, ${o.start} bis ${o.end}.`,
 		dailyAverage: (average: string) =>
 			`Tagesdurchschnitt über den Gesamtzeitraum: ${average}.`,
 		sourceLine: (sourceNote: string, mode: string) => `Quelle: ${sourceNote} — ${mode}.`,

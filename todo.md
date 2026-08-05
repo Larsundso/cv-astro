@@ -78,6 +78,86 @@ none of them may be cited as a finding about the site.**
 - Personas for rounds 1–5 were never persisted, so per-judge continuity with those
   rounds is invalid in any case.
 
+## Cycle 1 applied (2026-08-05) — restore points 7-10
+
+Twelve discipline professors, each researching their field before judging, all 53 frames
+at asserted 100 % coverage. Four independent measurements found one cause for "still not
+incredibly happy with the look of it": **one band did all the work, so nothing had rank.**
+
+- [x] **The board was not a material.** Grain sat at 31-248 cycles/degree against a
+      contrast-sensitivity peak of 2-5 — real noise, placed where the eye cannot resolve
+      it. Three layers at cork's actual frequencies: sigma 1.15 -> 6.7/255, sigma16/sigma1
+      0.148 -> 0.43, chroma SD 0.2 -> 2.2.
+- [x] **The wash ran against the reading order.** At 105deg, 71 % of the falloff was
+      vertical, so paper-on-cork was 1.711:1 at the top and 2.328:1 at the bottom. At
+      90deg the vertical swing is 0.101.
+- [x] **Contrast was measured against the token, not the render.** Stamp ink was 4.771:1
+      against `--cork` and 4.185:1 against the darkest painted pixel; the old audit passed
+      only because all 13 bare-cork stamps sit in the top third. Now 4.736:1 on the
+      darkest board, cork/paper 1.881.
+- [x] **The thread was cut** at the hero->timeline junction at every width, in the
+      resolved state — `calc(50% - 76px)` against a spine at `calc(50% - 152px)`. One
+      `--spine-x` token; join-to-spine 0.0px at thirteen widths.
+- [x] **The thread never pointed forward.** It completed when its destination pin reached
+      55 % of viewport, so the bottom third of every screen had none and the tip sat
+      behind a card in 10 of 11 positions. Now `entry 0% entry 85%`: the tip reaches
+      >=101 % of viewport height at every sampled offset, motion on.
+- [x] **The thread was weightless** — 2.5px on a 1425px plane, behind every card. Now 4px
+      with a `.wall-tips` layer that lifts the last 90px onto the paper to wrap each pin.
+- [x] **Three of four faces spoke at 16px.** Bands restored: nodes at 16px 115/243 -> 85,
+      faces there 3 -> 2, Courier's glyph area 42.5 % -> 38.4 %. Cost +5.4 % page height.
+- [x] **The wall had no dark** — the mid-dark register held 1.46 %. Five section flyers on
+      dark stock (12.33:1), a dark mass every ~2,600px.
+- [x] **The lamp lit the wall and skipped the paper** — every sheet a flat fill, sampled
+      spread 0.00000. Now a translucent modulation plus a zero-offset contact shadow.
+- [x] **Shade was warmer than the surface it darkened.** `--shade` now cool: chroma drains
+      2.7x faster than lightness, no blue visible.
+- [x] **The focus ring failed on cork** (1.60-2.84:1) — the one a11y failure with no
+      fallback, on the conversion path. Paper halo: 5.94-6.19:1 across 33 focusables.
+- [x] **The phone had no wayfinding.** All five rail ticks computed 0x0; the only
+      persistent control pointed backwards. Bottom strip, proportional ticks, and a
+      permanent `jobs@lars-dev.org` chip.
+- [x] **A scroll dead zone** — `touch-action: none` on a 323x245 canvas at 60 % phone
+      depth, captioned "drag to spin". Now `pan-y`.
+- [x] **768px matched both `48rem` branches** — iPad portrait got a layout that existed at
+      exactly one width.
+- [x] **Identity** — schema.org published "Lars Boese" against a title of Böse, with a raw
+      non-ASCII byte in the LinkedIn URL. Now one record; the drawn signature stays ASCII.
+- [x] **Four German runs untagged on the English page**, including the credential a screen
+      reader reads first — while the decorative German was correctly tagged.
+- [x] **Schooling ate screens 2-3** (648px, three cards) — now one card, first employment
+      at 17.8 % depth.
+- [x] **No seniority anchor**, so screeners computed one year post-qualification from the
+      apprenticeship dates. Six years eight months, printed with its span. (HR proposed
+      "seven years"; that rounds up, and this wall does not.)
+- [x] **A raw NUL byte in `Timeline.astro`** made `file` report it as binary and `grep -r`
+      silently skip it — so any "grep returns zero in src/" finding needs Python to confirm.
+- [x] **Region-level violation** — "Bodensee-Ravensburg" named a town (5 disciplines).
+- [x] **German claimed uninterrupted uptime** four frames before admitting outages.
+- [x] **"The 4 most-tracked languages" was false** — Vue.js is rank 6; JSON at 4.79 % had
+      been removed by hand. Relabelled, and the missing 22.2 % of the record now has a row.
+
+## Carried into cycle 2 — found, measured, not yet applied
+
+- [ ] **Chart text collapses to 7.34px at 320** (the reflow target). Rendering the two bar
+      charts as HTML instead of SSR ECharts SVG would also *remove* a dependency.
+- [ ] **No `@media print` anywhere** — printing yields ~15 A4 pages of cork, and German
+      hiring moves `Bewerbungsunterlagen` as files.
+- [ ] **The Ayako caption sits 533px below its image on desktop**, outside the viewport, so
+      Projects opens on an uncaptioned portrait. The phone build already does this right.
+      Six disciplines say the mitigation is framing, never shrinking.
+- [ ] **The AI adoption curve is folded shut** (6.26 -> 32.46 -> 68.56 -> 69.76 %) while a
+      habit grid gets 757x665px. An argument behind a fold is forfeited; a table is not.
+- [ ] **37 merged upstream PRs render nowhere** — the only evidence on the wall that is
+      neither self-measured nor self-authored.
+- [ ] **Telemetry bar 2 is filled with paper cream**, so a 51.55:48.45 split reads as
+      100:0 pre-attentively.
+- [ ] **Amber — the ink declared for "where does this claim stop?" — is used once**, while
+      every real limit on the wall is set in grey.
+- [ ] The ink key's placement (three disciplines, three prescriptions); the duplicate
+      "Sections" landmark; `63.999rem` vs `63.9375rem` in two files; 26 elements
+      overflowing at 320px under `overflow-x: clip`.
+
 ## Open — owner decisions before public deploy
 
 - [ ] **The 35-item publication gate** — content pack §7, held at

@@ -220,6 +220,13 @@ export const sectionStrings = {
 		 *  employers, because a reader who does not count them reads this
 		 *  section as one job and a school record. */
 		headNote: "two employers since 2022 — career and education, stitched in order.",
+		/** The district sign's scope line, under the Werdegang rule. The
+		 *  proper noun WERDEGANG stays German on both walls — it is the one
+		 *  untranslated word on the route, and a landmark because of it —
+		 *  but a date range is not part of a proper noun. This used to be
+		 *  hard-set in the component as "2010 – heute", with lang="de", on
+		 *  the English wall. */
+		headDates: "2010 – today",
 		/** Education card date line while ongoing, e.g. "since 2022-09". */
 		since: (start: string) => `since ${start}`,
 		/** Flagship card: prefix of the stack line. */
@@ -311,8 +318,15 @@ export const chartStrings = {
 			`Bar chart of the Ayako project family against everything else, lifetime window, as of ${asOf}`,
 		topLanguagesYearIntro: (count: number, asOf: string) =>
 			`Bar chart of the ${count} most-tracked languages over the last 12 months, as of ${asOf}`,
-		topLanguagesLifetimeIntro: (count: number, asOf: string) =>
-			`Bar chart of the ${count} most-tracked languages, lifetime window, as of ${asOf}`,
+		/* The snapshot sheet charts a HAND-CURATED four, not a ranking: the
+		   public all_time endpoint ranks TypeScript, JavaScript, Svelte,
+		   JSON, Other, Vue.js, so "the 4 most-tracked languages" was false
+		   against the very instrument this wall names. The curation —
+		   application languages, data and markup formats excluded — is
+		   defensible, so the label states the curation. */
+		appLanguagesLifetimeIntro: (count: number, asOf: string) =>
+			`Bar chart of the ${count} most-tracked application languages, data and markup formats excluded, ` +
+			`with a final bar for everything else; lifetime window, as of ${asOf}`,
 		weekByProject: (o: {
 			start: string;
 			end: string;
@@ -356,7 +370,7 @@ export const chartStrings = {
 		projectsDerived: (asOf: string) =>
 			`* Derived from the published lifetime total and the Ayako-family figure, both as of ${asOf}.`,
 		languagesDerived: (asOf: string) =>
-			`* Share derived from published hours over the lifetime total, as of ${asOf}.`
+			`* Share derived from published hours over the lifetime total; the "everything else" row is that total minus the published rows. Both as of ${asOf}.`
 	},
 	/** Handwritten margin notes: each carries the CONSEQUENCE the sheet
 	 *  cannot draw — a note that repeats the bar it hangs beside is
@@ -481,15 +495,29 @@ export const hero = {
 		sourceNote: "WakaTime API",
 		annotation: { text: "the 164 zero days are counted too", ink: "teal" } satisfies Annotation
 	},
-	/** The pinned primary action. */
+	/**
+	 * The pinned primary action.
+	 *
+	 * UNRENDERED as of 2026-08-05: `grep -rn "primaryAction" src/` returns
+	 * this file and wall.de.ts and no component, and it appears zero times
+	 * in the served HTML of either locale. Kept, not deleted, for one
+	 * reason: the first visible mailto on the page sits at 86.7 % depth,
+	 * and the fix is a hero CTA that renders exactly this object. Deleting
+	 * it would only mean retyping it. Wire it up in Hero.astro — the copy,
+	 * the href and the note are ready and owner-approved.
+	 */
 	primaryAction: {
 		label: "Write to jobs@lars-dev.org",
 		href: "mailto:jobs@lars-dev.org",
 		annotation: { text: "this address reaches me directly", ink: "blue" } satisfies Annotation
 	},
-	/** Thread endpoint stamps. */
+	/** Thread endpoint stamps. "Werdegang" stays — it is the site's
+	 *  signature word and the section explains itself. The date stamps do
+	 *  not: "HEUTE" is a German word doing no work for an English reader,
+	 *  and it is furniture, not an artefact. Translated on this build only;
+	 *  wall.de.ts keeps HEUTE. */
 	threadStart: { stamp: "12/2019", label: "December 2019 — the first pin" },
-	threadEnd: { stamp: "HEUTE", label: "the latest stitch" }
+	threadEnd: { stamp: "TODAY", label: "the latest stitch" }
 } as const;
 
 /* ------------------------------------------------------------------ */
@@ -555,7 +583,8 @@ export const timeline: TimelineEntry[] = [
 	},
 	{
 		id: "current",
-		dateLabel: "HEUTE",
+		/** The rendered stamp at the end of the thread — see hero.threadEnd. */
+		dateLabel: "TODAY",
 		sort: "2026-08",
 		title: "The latest stitch",
 		body: [
@@ -786,7 +815,16 @@ export const aiPractice = {
 	/** Owner: "not what I want to be hired for exclusively." */
 	placement: "subordinate",
 	title: "How I work with agents",
-	intro: "Agents do a lot of my typing. Here are the numbers, and the rules I run them under.",
+	/* The old opener — "Agents do a lot of my typing." — sat ~30 px above
+	   "Agents never commit, stage, or push", so the first sentence of the
+	   section handed the 2026 screening objection over and only then
+	   disarmed it. Two corrections in one line: the division of labour is
+	   stated in a single breath with control in the end-focus position, and
+	   the noun is fixed. Agents do not type; they draft. The sentence does
+	   not quote the Governance card below it — a lead-in that repeats the
+	   card it introduces is the same restatement fault the wall bans in its
+	   margin notes. */
+	intro: "Agents draft; I decide, review, and commit. Here are the numbers, and the rules they run under.",
 	entries: [
 		{
 			id: "volume",
@@ -901,14 +939,25 @@ export const contact = {
 	title: "Write to me",
 	email: "jobs@lars-dev.org",
 	/** What he is actually after — owner-approved, and the only place on
-	 *  the wall that states it. No notice period: none was supplied. */
+	 *  the wall that states it. No notice period: none was supplied, and
+	 *  none may be inferred.
+	 *
+	 *  Order is load-bearing. The card used to open on "Not urgently
+	 *  looking", so the first thing read in the one block a screener came
+	 *  for was a brake. The offer opens the card; the candid qualifier
+	 *  closes it, immediately after the promise it makes credible. Nothing
+	 *  was deleted — the honesty is the reason the rest is believed.
+	 *
+	 *  Location is stated at REGION level only, matching hero.location and
+	 *  the footer. "Bodensee-Ravensburg" named a town and put a third
+	 *  region name on a page that publishes one. */
 	rightNow: {
 		title: "Right now",
 		lines: [
-			"Full-stack developer at Raleo Digital GmbH since 2025. Not urgently looking.",
 			"Open to TypeScript/Node product work — backend or full-stack. Tell me about it.",
-			"Remote, or on site around Bodensee-Ravensburg.",
-			"Every mail to this address is answered."
+			"Remote, or on site in the Bodensee-Oberschwaben region.",
+			"Every mail to this address is answered.",
+			"Full-stack developer at Raleo Digital GmbH since 2025. Not urgently looking."
 		]
 	},
 	entries: [

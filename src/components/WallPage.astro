@@ -24,11 +24,13 @@
  * Thread handoffs (fixed by the section contracts):
  * — the hero exits its board's bottom edge at x = 802/1200 of the 78rem
  *   shell (≥64rem) resp. at 50 % of it (stacked column);
- * — the timeline spine sits at the shell center (≥48rem) resp. 48px from
- *   the viewport's left edge (<48rem); it enters at the section's top
- *   edge and exits at the bottom of its last row;
+ * — the timeline spine sits at `--spine-x`, the ONE place on this wall
+ *   that says where the thread stands when it runs straight down: 152px
+ *   left of the shell's centre at ≥48rem, 64px in from the wall's text
+ *   edge below that. It enters at the section's top edge and exits at
+ *   the bottom of its last row;
  * — the lower run picks the timeline's LAST PIN up directly (the
- *   timeline's own `rf-stitch--exit` stub is retired here), so the one
+ *   timeline's own exit stub is deleted, not merely hidden), so the one
  *   junction on the wall that was not covered by a pin head is gone.
  *
  * Draw machinery: stretched connector SVGs disable stroke-dasharray and
@@ -69,23 +71,37 @@ const NAV = [
 ];
 
 /* hero → timeline connectors, one per breakpoint state (see <style>).
-   wide/narrow stretch between two responsive anchors: the box's corners
-   ARE the endpoints, so any width keeps the junctions registered.
+   Both stretch between two responsive anchors: the box's corners ARE the
+   endpoints, so any width keeps the junctions registered.
    TAUT: a connector spans two pins with nothing between, so under
    tension it is one dead-straight run — no curvature at all. The
    direction changes at its ends belong to the pins in the neighboring
-   sections (the hero's last pin above, the spine's relay pin below). */
+   sections (the hero's last pin above, the spine's relay pin below).
+
+   THERE USED TO BE THREE OF THESE AND ALL THREE MISSED. Measured under
+   `reduce` at eight widths, join-end x minus spine-centre x:
+     1440 +76 · 1024 +76 (wide, bottom end in mid-air)
+      900 +76 ·  768 +76 (mid, BOTH ends in mid-air: −76 at the top too)
+      640 −24 ·  390 −24 (narrow, bottom end in mid-air)
+   The wide box was placed at `50% − 76px` against a spine at
+   `50% − 152px`: half the offset, written into a code comment that
+   claimed it "lands on the first timeline card's pin". The mid box
+   repeated the same 76 and, being a plain vertical, missed the hero's
+   exit by 76 in the other direction — it split the error rather than
+   crossing the gap. The narrow box used a literal 64px measured against
+   the viewport while the spine uses 64px INSIDE `.wall-max`, which
+   carries 24px of inline padding. Three numbers, none of them the
+   build's, and DESIGN.md quoted a fourth (48px).
+   The mid box is gone: below 64rem the hero always exits at the shell's
+   centre and the spine always stands to its left, so ONE diagonal
+   crosses that gap at every narrow width. And the offset is no longer
+   written anywhere in this file — it is `--spine-x`, declared once. */
 const JOIN_WIDE = {
 	width: 202,
 	height: 224,
 	path: "M 202 0 L 0 224"
 };
-const JOIN_MID = {
-	width: 48,
-	height: 224,
-	path: "M 24 0 L 24 224"
-};
-const JOIN_NARROW = {
+const JOIN_STACK = {
 	width: 200,
 	height: 224,
 	path: "M 200 0 L 0 224"
@@ -139,28 +155,36 @@ const JOIN_NARROW = {
 	     above the cork. -->
 	<div class="wall-stitch" aria-hidden="true"></div>
 
+	<!-- and the last stretch of every leg, lifted ABOVE the paper: see
+	     `.wall-tips`. Same legs, same boxes, same draw — clipped to a ring
+	     around each pin, so the thread climbs onto the sheet, wraps the
+	     head and drops back behind. -->
+	<div class="wall-tips" aria-hidden="true"></div>
+
 	<Hero />
 
-	<!-- hero board → timeline spine -->
+	<!-- hero board → timeline spine. The inner box exists so these
+	     connectors and the timeline's spine share ONE origin: it reproduces
+	     `.wall-max`'s content box, which is what `.rf-line` is positioned
+	     against, so `--spine-x` means the same x in both places. -->
 	<div class="stitch-join" aria-hidden="true">
-		<div class="stitch-join__wide">
-			<Thread
-				path={JOIN_WIDE.path}
-				width={JOIN_WIDE.width}
-				height={JOIN_WIDE.height}
-				draw={false}
-			/>
-		</div>
-		<div class="stitch-join__mid">
-			<Thread path={JOIN_MID.path} width={JOIN_MID.width} height={JOIN_MID.height} />
-		</div>
-		<div class="stitch-join__narrow">
-			<Thread
-				path={JOIN_NARROW.path}
-				width={JOIN_NARROW.width}
-				height={JOIN_NARROW.height}
-				draw={false}
-			/>
+		<div class="stitch-join__box">
+			<div class="stitch-join__wide">
+				<Thread
+					path={JOIN_WIDE.path}
+					width={JOIN_WIDE.width}
+					height={JOIN_WIDE.height}
+					draw={false}
+				/>
+			</div>
+			<div class="stitch-join__stack">
+				<Thread
+					path={JOIN_STACK.path}
+					width={JOIN_STACK.width}
+					height={JOIN_STACK.height}
+					draw={false}
+				/>
+			</div>
 		</div>
 	</div>
 
@@ -231,6 +255,36 @@ const JOIN_NARROW = {
 		scroll-margin-top: calc(var(--baseline) * 6);
 	}
 
+	/* ---- ONE SPINE, ONE NUMBER ------------------------------------- */
+	/* Where the thread stands when it is running straight down the wall.
+	   Consumed by `.rf-line` (the timeline's entry line), the timeline's
+	   own card-to-card stitches, and both hero→timeline connectors — so
+	   the seam between two sections cannot drift again by editing one of
+	   them. Every consumer positions against a box whose left edge is
+	   `.wall-max`'s CONTENT edge (`.rf-head`, `.rf-row`, and the
+	   `.stitch-join__box` built for exactly this reason), which is what
+	   makes one declaration legal in all of them.
+	   ≥48rem the spine is 152px left of the shell's centre — the pin
+	   column of the timeline's LEFT cards. Below that the wall is one
+	   column and every pin stands 64px in from the wall's text edge.
+	   Mirror value: the timeline's RIGHT card column. */
+
+	:root {
+		--spine-x: 64px;
+		--spine-x-r: 64px;
+		/* the thread's own weight — 4px on a 1,425px plane is 0.28 % of
+		   width, where real red twine on a 1m board is 0.3–0.4 %. At 2.5px
+		   (0.18 %) the wall's central metaphor was a hairline. */
+		--thread-w: 4px;
+	}
+
+	@media (min-width: 48rem) {
+		:root {
+			--spine-x: calc(50% - 152px);
+			--spine-x-r: calc(50% + 152px);
+		}
+	}
+
 	/* ---- the lower run: one measured layer ------------------------ */
 	/* main already isolates (wall.css) so that z-index: -1 paints above
 	   the cork and below the paper; it needs to be a containing block
@@ -240,10 +294,44 @@ const JOIN_NARROW = {
 		position: relative;
 	}
 
+	/* THE THREAD'S WEIGHT, DECLARED ONCE, FOR EVERY THREAD ON THE WALL.
+	   It was 2.5px: 0.18 % of a 1,425px plane, where real red twine on a
+	   1m board is 0.3–0.4 %. Every `.thread-path` reads the token — the
+	   hero's two runs, this connector, the timeline's card-to-card
+	   stitches and the 26 runtime legs — so the wall cannot end up with
+	   two thread weights in one frame. It is set in CSS rather than on
+	   each <path>, because a custom property inside an SVG PRESENTATION
+	   attribute is the one place `var()` is not reliably resolved, and the
+	   failure mode there is a 1px hairline. */
+	.thread-path {
+		stroke-width: var(--thread-w);
+	}
+
 	.wall-stitch {
 		position: absolute;
 		inset: 0;
 		z-index: -1;
+		pointer-events: none;
+	}
+
+	/* THE TIPS LAYER — the thread's only licence to be on top of paper.
+	   Behind every sheet without exception, 63 % of the lower run never
+	   reached the eye (measured: 8,352px of 13,309px hidden at 1440), and
+	   at every pin the thread simply stopped at the card's edge: 25 brass
+	   pins joined to nothing. Lifting the whole layer is not the fix —
+	   37 of 68 cards have thread crossing their interior, some diagonally
+	   over body copy.
+	   So only the LAST STRETCH is lifted, and only in a ring around the
+	   pin it is arriving at: same leg, same box, same 1:1 viewBox, same
+	   draw timing, clipped to an annulus of r 34px with the 8px pin head
+	   punched out of the middle. The thread climbs onto the sheet, runs
+	   under the head that is holding it, and drops back behind the paper.
+	   That is what a wrapped pin looks like, and it is the only reading
+	   under which a thread that vanishes at a card edge is not a cut. */
+	.wall-tips {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
 		pointer-events: none;
 	}
 
@@ -252,11 +340,13 @@ const JOIN_NARROW = {
 	   mapping is exactly 1:1 and the native dash draw is safe here
 	   (unlike the stretched section joins, which must clip-wipe). */
 	.wall-stitch .ws-leg,
-	.wall-stitch .ws-knot {
+	.wall-stitch .ws-knot,
+	.wall-tips .ws-leg {
 		position: absolute;
 	}
 
-	.wall-stitch svg {
+	.wall-stitch svg,
+	.wall-tips svg {
 		display: block;
 		width: 100%;
 		height: 100%;
@@ -281,27 +371,43 @@ const JOIN_NARROW = {
 			   Naming the timeline on the wrapper and referencing it from
 			   the path fixes the subject without giving up the dash draw. */
 			.wall-stitch .ws-leg,
-			.wall-stitch .ws-knot {
+			.wall-stitch .ws-knot,
+			.wall-tips .ws-leg,
+			.wall-tips .ws-knot {
 				view-timeline-name: --ws;
 				view-timeline-axis: block;
 			}
 
-			/* one range per leg, computed from the leg's own height so the
-			   stroke finishes just as its destination pin reaches reading
-			   height — the tip stays ahead of the eye for 6,000px instead
-			   of being spent in the first 91px */
-			.wall-stitch .thread-path--draw {
+			/* THE THREAD HAS TO POINT FORWARD, AND THIS IS THE WHOLE OF IT.
+			   The old rule computed a `cover` range per leg from the leg's
+			   own height and a lead of 0.45, which finishes a leg when its
+			   destination pin stands at 55 % of the viewport. Measured
+			   consequence at eleven scroll offsets: the lowest drawn ink sat
+			   at a mean of 69.6 % of viewport height at 1440 and 68.4 % at
+			   390, and NEVER below 80.3 % — the bottom fifth of every screen
+			   had no thread in it, ever. The drawing tip was behind a card
+			   at 8 of 11 offsets. A reader does not read that as "not yet
+			   drawn"; they read it as "this thread ends here", on a wall
+			   whose one idea is that it doesn't.
+			   `entry` is the range from the leg's top edge touching the
+			   viewport's bottom edge to the leg being contained by it, and
+			   its length is min(legHeight, viewportHeight). Finish at 85 %
+			   of it and the arithmetic guarantees what the old constant only
+			   approximated: at scroll travel s past the leg's appearance the
+			   drawn fraction is s/(0.85·min(h,vh)) and the leg's top sits at
+			   vh − s, so the tip is at vh + s·(h/(0.85·min(h,vh)) − 1) —
+			   never above the fold, for any leg height, at any viewport
+			   height. The reveal itself is untouched: what changed is where
+			   its edge is, not that it has one.
+			   It also drops the last consumer of `window.innerHeight` from
+			   the builder below, so the layer stops re-solving every time a
+			   mobile URL bar slides. */
+			.wall-stitch .thread-path--draw,
+			.wall-tips .thread-path--draw {
 				animation-timeline: --ws;
-				animation-range: cover var(--rs, 0%) cover var(--re, 100%);
+				animation-range: entry 0% entry 85%;
 			}
 		}
-	}
-
-	/* the timeline's exit stub handed the run over in mid-air; the run
-	   now starts on the timeline's last pin, so the stub is retired */
-	.rf-stitch--exit,
-	.rf-stitch--exit-m {
-		display: none;
 	}
 
 	/* the layout's fixed back-to-top pin is re-staged as the rail below.
@@ -422,19 +528,35 @@ const JOIN_NARROW = {
 	   viewBox fractions and board fractions coincide. */
 
 	.stitch-join {
-		position: relative;
 		width: 100%;
 		max-width: 78rem;
 		height: 224px;
 		margin-top: calc(var(--baseline) * -10);
 		margin-inline: auto;
+		/* the same inline padding `.wall-max` carries, so the box below
+		   reproduces the wall's content box exactly */
+		padding-inline: calc(var(--baseline) * 3);
 		pointer-events: none;
 		/* behind the paper: the taut connector overlaps the hero's bottom
 		   edge, and the thread never crosses printed ink */
 		z-index: -1;
+		position: relative;
 	}
 
-	.stitch-join > div {
+	/* THE COORDINATE FRAME, AND IT IS LOAD-BEARING. An absolutely
+	   positioned child resolves its offsets against its containing
+	   block's PADDING box, so padding on `.stitch-join` alone would not
+	   move anything: the frame has to be an element. This one's padding
+	   box IS `.wall-max`'s content box — the same box `.rf-line` and the
+	   timeline's card stitches are positioned in — which is the whole
+	   reason a single `--spine-x` can be read in both files and mean the
+	   same pixel. */
+	.stitch-join__box {
+		position: relative;
+		height: 100%;
+	}
+
+	.stitch-join__box > div {
 		position: absolute;
 		top: 0;
 		height: 100%;
@@ -445,41 +567,30 @@ const JOIN_NARROW = {
 		height: 100%;
 	}
 
-	/* ≥64rem: hero exits at 802/1200 of the shell, spine sits at 50 % */
+	/* ≥64rem: the wall's board is wide, the hero exits at 802/1200 of it
+	   and the spine stands at `--spine-x`. The hero's thread spans the
+	   board's PADDING box (`inset: 0` on `.hero__board`), so its exit
+	   fraction has to be re-expressed in this frame's content box:
+	   exit = 0.6683·(W + 48) − 24 = 0.6683·W + 8.08, hence a right offset
+	   of (1 − 0.6683)·W − 8.08. The 48 and the 24 are `.wall-max`'s own
+	   padding; the 802/1200 is Hero.astro's last station. Both ends of
+	   this box are therefore quoted from the contracts they meet, and
+	   neither is a number chosen here. */
 	.stitch-join__wide {
 		display: none;
-		/* lands on the first timeline card's pin: 50% - 76px */
-		left: calc(50% - 76px);
-		width: calc(16.8333% + 76px);
+		left: var(--spine-x);
+		right: calc(33.16667% - 8.08px);
 	}
 
-	/* 48–64rem: stacked hero exits center, spine sits center — 1:1 box */
-	.stitch-join__mid {
-		display: none;
-		/* vertical drop onto the first card's pin x */
-		left: calc(50% - 76px - 24px);
-		width: 48px;
-	}
-
-	/* <48rem: stacked hero exits center, spine sits 48px from the left */
-	.stitch-join__narrow {
-		/* lands on the mobile pin column at x = 64px */
-		left: 64px;
-		width: calc(50% - 64px);
-	}
-
-	@media (min-width: 48rem) {
-		.stitch-join__narrow {
-			display: none;
-		}
-
-		.stitch-join__mid {
-			display: block;
-		}
+	/* <64rem: the hero stacks and exits at the shell's centre, the spine
+	   stands to its left — one diagonal, at both narrow widths. */
+	.stitch-join__stack {
+		left: var(--spine-x);
+		right: 50%;
 	}
 
 	@media (min-width: 64rem) {
-		.stitch-join__mid {
+		.stitch-join__stack {
 			display: none;
 		}
 
@@ -491,7 +602,7 @@ const JOIN_NARROW = {
 	/* stretched boxes: disable the dash (Chromium dash-normalization bug
 	   under non-scaling-stroke) and wipe-reveal instead */
 	.stitch-join__wide :global(.thread-path),
-	.stitch-join__narrow :global(.thread-path) {
+	.stitch-join__stack :global(.thread-path) {
 		stroke-dasharray: none;
 	}
 
@@ -522,12 +633,17 @@ const JOIN_NARROW = {
 
 	@supports (animation-timeline: view()) {
 		@media (prefers-reduced-motion: no-preference) {
+			/* the same reveal law as the lower run and the timeline's own
+			   entry line — `entry 0% entry 85%`, so this seam is also drawn
+			   BELOW the fold rather than finishing at 55 % of the screen
+			   like the old `cover 38% cover 56%` did. Three mechanisms
+			   (clip wipe, scale, dash) now share one calibration. */
 			.stitch-join__wide,
-			.stitch-join__narrow {
+			.stitch-join__stack {
 				clip-path: inset(0 0 100% 0);
 				animation: stitch-wipe linear both;
 				animation-timeline: view();
-				animation-range: cover 38% cover 56%;
+				animation-range: entry 0% entry 85%;
 			}
 		}
 	}
@@ -536,11 +652,6 @@ const JOIN_NARROW = {
 		to {
 			clip-path: inset(-8px);
 		}
-	}
-
-	/* the 1:1 piece keeps the native dash draw, same pacing */
-	.stitch-join__mid :global(.thread-path--draw) {
-		animation-range: cover 38% cover 56%;
 	}
 
 	/* ---- the long run --------------------------------------------- */
@@ -615,6 +726,12 @@ const JOIN_NARROW = {
 		}
 	}
 
+	/* NOT `--thread-w`, and deliberately. The wall's thread went to 4px
+	   because 2.5 was a hairline at 1:1; this line is the same thread at
+	   68:1 — 12,173px of page compressed into 180px — and at that
+	   reduction the wall's own weight reads as a bar rather than as a
+	   thread. The rail is a scale drawing, so it keeps the scale's stroke.
+	   Its ticks are sized against this line, not against the token. */
 	.rail__line {
 		position: absolute;
 		top: 0;
@@ -788,7 +905,13 @@ const JOIN_NARROW = {
 	const MIN_STEP = 24;
 	const PAD = 8;
 
+	/* the ring of thread lifted above the paper at each pin, and the pin
+	   head punched out of the middle of it (7px radius + a hair) */
+	const TIP_R = 34;
+	const HEAD_R = 8;
+
 	const layer = document.querySelector<HTMLElement>(".wall-stitch");
+	const tips = document.querySelector<HTMLElement>(".wall-tips");
 	const wall = document.getElementById("main");
 
 	const centre = (el: Element): Pt => {
@@ -803,7 +926,6 @@ const JOIN_NARROW = {
 	};
 
 	const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
-	const pct = (n: number) => `${Math.round(n * 1000) / 10}%`;
 
 	/** the address pin: the run's terminus, wherever Contact puts it */
 	const terminus = (): Element | null => {
@@ -866,16 +988,16 @@ const JOIN_NARROW = {
 	let signature = "";
 
 	const build = () => {
-		if (!layer || !wall) return;
+		if (!layer || !tips || !wall) return;
 		const base = layer.getBoundingClientRect();
 		const ox = base.left + window.scrollX;
 		const oy = base.top + window.scrollY;
-		const vh = window.innerHeight || 900;
 
 		const pts = waypoints();
 		const end = terminus();
 		if (pts.length < 2 || !end) {
 			layer.replaceChildren();
+			tips.replaceChildren();
 			signature = "";
 			return;
 		}
@@ -884,46 +1006,65 @@ const JOIN_NARROW = {
 		const knot = solveKnot(pts[pts.length - 1]!, pin, KNOT.tail);
 		pts.push(knot.entry);
 
-		const sig = `${Math.round(vh)}|${pts.map((p) => `${Math.round(p[0])},${Math.round(p[1])}`).join(";")}`;
+		/* the viewport's HEIGHT is deliberately not in this signature. It
+		   used to be, because the reveal range was computed from it; the
+		   range is now `entry 0% entry 85%` and needs no measurement, so a
+		   mobile URL bar sliding up and down no longer rebuilds 26 SVGs. */
+		const sig = pts.map((p) => `${Math.round(p[0])},${Math.round(p[1])}`).join(";");
 		if (sig === signature) return;
 		signature = sig;
 
 		const legs = tautLegs(pts);
 		const svg: string[] = [];
-
-		/* one range per leg: the stroke starts as the source pin passes
-		   80 % of the viewport and finishes as the destination pin reaches
-		   55 % — reading height. Expressed as cover percentages of the
-		   leg's own box, which is what view() measures. */
-		const range = (h: number, lead = 0.45) => {
-			const span = h + vh;
-			const rs = clamp((0.2 * vh) / span, 0, 0.9);
-			const re = clamp((h + lead * vh) / span, rs + 0.05, 1);
-			return `--rs:${pct(rs)};--re:${pct(re)}`;
-		};
+		const tip: string[] = [];
 
 		const stroke = (d: string) =>
-			`<path class="thread-path thread-path--draw" d="${d}" pathLength="1" vector-effect="non-scaling-stroke" stroke="var(--thread)" stroke-width="2.5" stroke-linecap="round"/>`;
+			`<path class="thread-path thread-path--draw" d="${d}" pathLength="1" vector-effect="non-scaling-stroke" stroke="var(--thread)" stroke-linecap="round"/>`;
 
-		for (const leg of legs) {
+		/* an annulus, as one evenodd subpath pair: outer ring minus the pin
+		   head. Two of them per leg — one at each end — as separate <path>
+		   children, because a clipPath UNIONS its children while `evenodd`
+		   only ever applies within one of them: two rings that happen to
+		   overlap therefore merge, instead of punching each other out. */
+		const ring = (c: Pt, r: number) =>
+			`M ${c[0] - r} ${c[1]} a ${r} ${r} 0 1 0 ${r * 2} 0 a ${r} ${r} 0 1 0 ${-r * 2} 0`;
+		const annulus = (c: Pt) =>
+			`<path clip-rule="evenodd" d="${ring(c, TIP_R)} ${ring(c, HEAD_R)}"/>`;
+
+		legs.forEach((leg, i) => {
 			const x = leg.x - PAD;
 			const y = leg.y - PAD;
 			const w = leg.w + PAD * 2;
 			const h = leg.h + PAD * 2;
+			const box = `left:${x - ox}px;top:${y - oy}px;width:${w}px;height:${h}px`;
+			const view = `viewBox="${x} ${y} ${w} ${h}" preserveAspectRatio="none"`;
 			svg.push(
-				`<div class="ws-leg" style="left:${x - ox}px;top:${y - oy}px;width:${w}px;height:${h}px;${range(leg.h)}">` +
-					`<svg viewBox="${x} ${y} ${w} ${h}" preserveAspectRatio="none" fill="none" aria-hidden="true">${stroke(leg.d)}</svg>` +
+				`<div class="ws-leg" style="${box}">` +
+					`<svg ${view} fill="none" aria-hidden="true">${stroke(leg.d)}</svg>` +
 					`</div>`
 			);
-		}
+			const id = `ws-tip-${i}`;
+			/* the run's last vertex is the KNOT's entry, not a pin — there
+			   is no head there to wrap, and the knot is already on bare
+			   cork, so that end keeps its place behind the paper */
+			const ends = i === legs.length - 1 ? [pts[i]!] : [pts[i]!, pts[i + 1]!];
+			tip.push(
+				`<div class="ws-leg" style="${box}">` +
+					`<svg ${view} fill="none" aria-hidden="true">` +
+					`<clipPath id="${id}" clipPathUnits="userSpaceOnUse">${ends.map(annulus).join("")}</clipPath>` +
+					`<g clip-path="url(#${id})">${stroke(leg.d)}</g>` +
+					`</svg></div>`
+			);
+		});
 
 		svg.push(
-			`<div class="ws-knot" style="left:${knot.entry[0] - 80 - ox}px;top:${knot.entry[1] - oy}px;width:${KNOT.w}px;height:${KNOT.h}px;rotate:${Math.round(knot.angle * 100) / 100}deg;${range(KNOT.h, 0.35)}">` +
+			`<div class="ws-knot" style="left:${knot.entry[0] - 80 - ox}px;top:${knot.entry[1] - oy}px;width:${KNOT.w}px;height:${KNOT.h}px;rotate:${Math.round(knot.angle * 100) / 100}deg">` +
 				`<svg viewBox="0 0 ${KNOT.w} ${KNOT.h}" fill="none" aria-hidden="true">${stroke(KNOT.d)}<circle cx="124" cy="112" r="3.5" fill="var(--thread)"/></svg>` +
 				`</div>`
 		);
 
 		layer.innerHTML = svg.join("");
+		tips.innerHTML = tip.join("");
 	};
 
 	let queued = 0;
@@ -935,7 +1076,7 @@ const JOIN_NARROW = {
 		});
 	};
 
-	if (layer && wall) {
+	if (layer && tips && wall) {
 		build();
 		new ResizeObserver(schedule).observe(wall);
 		window.addEventListener("resize", schedule);

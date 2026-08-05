@@ -247,9 +247,9 @@ const repoLink = dashboard?.links[0];
    of the card corner the date stamp is now pressed onto, and the wider
    swing doubles the thread's horizontal excursion across the career.
    Mobile: every pin sits at x=64px, so connectors are plain vertical
-   2.5px divs; the exit still needs an SVG to reach the wall-run spine.
-   The last row exits toward the wall-run line (50% desktop / 48px
-   mobile) — the single junction on the wall not covered by a pin. */
+   2.5px divs. The LAST row exits nowhere: the lower run reads this
+   section's last pin directly, so there is no junction here that a pin
+   head does not cover. */
 
 type PinX = "L" | "R";
 const pinX = (side: Side): PinX => (side === "right" ? "R" : "L");
@@ -280,7 +280,11 @@ const links = layout.map(({ side }, i) => {
 							stroke-width="2.4"
 							stroke-linecap="round"></path>
 					</svg>
-					<p class="rf-headdates" lang="de">2010 – heute</p>
+					{/* WERDEGANG stays German on both walls; its DATE RANGE does
+					    not. This line was hard-set to "2010 – heute" and marked
+					    lang="de" on the English wall — the one district sign that
+					    states its scope, stating it in the wrong language. */}
+					<p class="rf-headdates" lang={locale === "de" ? "de" : undefined}>{ts.headDates}</p>
 				</PinCard>
 			</div>
 			<div class="rf-scrap rf-headscrap pinned" style="--tilt:1;">
@@ -340,7 +344,7 @@ const links = layout.map(({ side }, i) => {
 						const letterheadNamesCo =
 							letterheadCard &&
 							row.kind === "career" &&
-							!row.entry.title.includes(employer?.company ?? " ");
+							(!employer?.company || !row.entry.title.includes(employer.company));
 						return (
 							<li
 								id={row.entry.id}
@@ -371,24 +375,13 @@ const links = layout.map(({ side }, i) => {
 									/>
 								)}
 								{!link.isLast && <span class="rf-stitch rf-stitch--m" aria-hidden="true" />}
-								{link.isLast && (
-									<>
-										<div
-											class:list={["rf-stitch", "rf-stitch--exit", `rf-stitch--exit-${link.from.toLowerCase()}`]}
-											aria-hidden="true"
-										>
-											<Thread
-												path={link.from === "L" ? "M 0 0 L 100 100" : "M 100 0 L 0 100"}
-												width={100}
-												height={100}
-												draw={false}
-											/>
-										</div>
-										<div class="rf-stitch rf-stitch--exit-m" aria-hidden="true">
-											<Thread path="M 100 0 L 0 100" width={100} height={100} draw={false} />
-										</div>
-									</>
-								)}
+								{/* THE LAST ROW EMITS NO EXIT STUB. It used to emit two — one
+								    desktop, one mobile — aimed at a hand-written "wall-run spine"
+								    at 50 % / 48px. WallPage has hidden both since the lower run
+								    started reading this section's LAST PIN directly, and that 48px
+								    was the third of three different numbers in this repo claiming
+								    to be the spine's x. Dead markup that states a wrong constant is
+								    how the constant comes back. */}
 								<span class="brass-pin rf-pin" aria-hidden="true" />
 								{row.entry.id === STICKER_ROW_ID && (
 									<span class="rf-sticker" aria-hidden="true">
@@ -506,9 +499,10 @@ const links = layout.map(({ side }, i) => {
 <style>
 	/* ---- the thread: straight card-to-card connectors ---------------- */
 	/* Pin centers: y = 44px from row top (pin top 37px + 7px radius);
-	   x = 64px on mobile, 50%∓152px on desktop. Connectors span pin to
-	   pin: top: 44px into bottom: -44px reaches exactly the NEXT row's
-	   pin center (rows stack without gaps).
+	   x = `--spine-x` / `--spine-x-r`, the wall's ONE declaration of where
+	   the thread stands (WallPage.astro). Connectors span pin to pin:
+	   top: 44px into bottom: -44px reaches exactly the NEXT row's pin
+	   center (rows stack without gaps).
 	   z-index: -1, inside the `main { isolation: isolate }` context: a
 	   thread runs BEHIND paper and surfaces only on bare cork. At z-index 3
 	   it painted OVER the sheets it passes under — a thread puncturing
@@ -535,25 +529,17 @@ const links = layout.map(({ side }, i) => {
 		stroke-dasharray: none;
 	}
 
-	/* mobile: all pins share x = 64px — plain vertical thread */
+	/* mobile: every pin stands on the spine — plain vertical thread */
 	.rf-stitch--m {
-		left: calc(64px - 1.25px);
-		width: 2.5px;
+		left: calc(var(--spine-x) - var(--thread-w) / 2);
+		width: var(--thread-w);
 		border-radius: 2px;
 		background: var(--thread);
 	}
 
-	/* mobile exit: diagonal from the pin (x 64) to the wall-run spine (x 48) */
-	.rf-stitch--exit-m {
-		left: 48px;
-		right: calc(100% - 64px);
-		bottom: -80px;
-	}
-
 	/* desktop variants activate at 48rem (see media block below) */
 	.rf-stitch--span,
-	.rf-stitch--vert,
-	.rf-stitch--exit {
+	.rf-stitch--vert {
 		display: none;
 	}
 
@@ -564,8 +550,14 @@ const links = layout.map(({ side }, i) => {
 		position: absolute;
 		top: 0;
 		bottom: -44px;
-		left: calc(64px - 1.25px);
-		width: 2.5px;
+		/* `--spine-x` is declared ONCE, in WallPage.astro, and read here and
+		   by both hero→timeline connectors. It used to be re-typed in five
+		   places across two files as 64px, 48px, 152px and 76px; the
+		   connectors landed 76px off this line at every width above 48rem
+		   and 24px off below it. This rule and that one now cannot disagree,
+		   because there is nothing left to disagree about. */
+		left: calc(var(--spine-x) - var(--thread-w) / 2);
+		width: var(--thread-w);
 		border-radius: 2px;
 		background: var(--thread);
 		z-index: -1;
@@ -574,11 +566,16 @@ const links = layout.map(({ side }, i) => {
 
 	@supports (animation-timeline: view()) {
 		@media (prefers-reduced-motion: no-preference) {
+			/* `entry 0% entry 85%`, the wall's one reveal law — see
+			   WallPage.astro. Under the old `cover 0% cover 40%` this line
+			   finished growing while its lower end stood at 79 % of the
+			   viewport, so the spine, like every leg below it, stopped short
+			   of the fold and read as an end rather than as a frontier. */
 			.rf-line {
 				transform-origin: top;
 				animation: rf-line-grow linear both;
 				animation-timeline: view();
-				animation-range: cover 0% cover 40%;
+				animation-range: entry 0% entry 85%;
 			}
 		}
 	}
@@ -971,52 +968,33 @@ const links = layout.map(({ side }, i) => {
 	   emphasis ladder is measured in columns, not in taste. */
 
 	@media (min-width: 48rem) {
-		.rf-stitch--m,
-		.rf-stitch--exit-m {
+		.rf-stitch--m {
 			display: none;
 		}
 
 		.rf-stitch--span {
 			display: block;
-			left: calc(50% - 152px);
-			right: calc(50% - 152px);
+			left: var(--spine-x);
+			right: calc(100% - var(--spine-x-r));
 		}
 
 		.rf-stitch--vert {
 			display: block;
-			width: 2.5px;
+			width: var(--thread-w);
 			border-radius: 2px;
 			background: var(--thread);
 		}
 
 		.rf-stitch--vert-l {
-			left: calc(50% - 152px - 1.25px);
+			left: calc(var(--spine-x) - var(--thread-w) / 2);
 		}
 
 		.rf-stitch--vert-r {
-			left: calc(50% + 152px - 1.25px);
+			left: calc(var(--spine-x-r) - var(--thread-w) / 2);
 		}
 
-		/* exit: from the last card's pin to the wall-run spine at 50% */
-		.rf-stitch--exit {
-			display: block;
-			bottom: -80px;
-		}
-
-		.rf-stitch--exit-l {
-			left: calc(50% - 152px);
-			right: 50%;
-		}
-
-		.rf-stitch--exit-r {
-			left: 50%;
-			right: calc(50% - 152px);
-		}
-
-		/* the entry line lands on the first card's pin x (a LEFT row) */
-		.rf-line {
-			left: calc(50% - 152px - 1.25px);
-		}
+		/* the entry line needs no rule here any more: `--spine-x` already
+		   moves to the left card column at this breakpoint */
 
 		.rf-head,
 		.rf-row {

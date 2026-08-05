@@ -114,7 +114,12 @@ interface FindingCopy {
 	ayakoNote: string;
 	/** Languages sheet: how concentrated the charted hours are. */
 	languagesTitle: (name: string) => string;
-	languagesNote: (share: string, of: number) => string;
+	/** Live sheet: the top rows do NOT cover the record, so the note names
+	 *  the only denominator it has — the bars on the sheet. */
+	languagesNoteOfChart: (share: string, of: number) => string;
+	/** Snapshot sheet: the remainder row makes the sheet total the whole
+	 *  record, so the note can state the share of everything tracked. */
+	languagesNoteOfRecord: (share: string) => string;
 	/** Habit sheet. */
 	habitTitle: (daysInTen: number, sinceYear: string) => string;
 	habitNote: (idle: string, startYear: string, endYear: string) => string;
@@ -126,14 +131,22 @@ interface FindingCopy {
 const FINDINGS: Record<Locale, FindingCopy> = {
 	en: {
 		ayakoTitle: "One project family outweighs all the rest",
-		ayakoNote: "mine end to end — and bigger than every other project put together",
+		/* The note used to read "mine end to end — and bigger than every
+		   other project put together", which is the title again in other
+		   words, pinned 40 px from it. Under the wall's own law
+		   (wall.ts:48-49) a note must carry what the sheet cannot. The bars
+		   can draw the size; nothing on the sheet can draw who built it and
+		   who else touched it. That is what the note now says, and it is
+		   what the two bars are actually evidence about. */
+		ayakoNote: "mine end to end — no team, no handover",
 		/* Outcome, not effort. "…is where the hours went" was the last
 		   headline on the wall that measured expenditure rather than result —
 		   three blind judges attacked precisely that framing. Same figure,
 		   same denominator, same provenance; it now names what the language
 		   BUILT rather than what it consumed. */
 		languagesTitle: (name) => `The product is written in ${name}`,
-		languagesNote: (share, of) => `one language, ${share} of the top ${of}`,
+		languagesNoteOfChart: (share, of) => `one language, ${share} of these ${of} bars`,
+		languagesNoteOfRecord: (share) => `one language, ${share} of everything tracked`,
 		habitTitle: (daysInTen, sinceYear) =>
 			`Coded on ${daysInTen} days out of 10 since ${sinceYear}`,
 		habitNote: (idle, startYear, endYear) =>
@@ -143,10 +156,13 @@ const FINDINGS: Record<Locale, FindingCopy> = {
 	},
 	de: {
 		ayakoTitle: "Eine Projektfamilie wiegt schwerer als alle anderen",
-		ayakoNote: "von vorn bis hinten meins — und größer als alle anderen Projekte zusammen",
+		/* siehe en: die Notiz wiederholte den Titel daneben. Die Balken
+		   zeigen die Größe; wer es gebaut hat, zeigt kein Balken. */
+		ayakoNote: "von vorn bis hinten meins — kein Team, keine Übergabe",
 		/* siehe en: das Ergebnis benennen, nicht den Aufwand */
 		languagesTitle: (name) => `Das Produkt ist in ${name} geschrieben`,
-		languagesNote: (share, of) => `eine Sprache, ${share} der Top ${of}`,
+		languagesNoteOfChart: (share, of) => `eine Sprache, ${share} dieser ${of} Balken`,
+		languagesNoteOfRecord: (share) => `eine Sprache, ${share} der gesamten Aufzeichnung`,
 		habitTitle: (daysInTen, sinceYear) =>
 			`An ${daysInTen} von 10 Tagen programmiert, seit ${sinceYear}`,
 		habitNote: (idle, startYear, endYear) =>
@@ -360,11 +376,17 @@ const rankedBarSvg = (rows: RankedRow[]): string =>
 /**
  * How much of the charted total the leading bar carries.
  *
- * The chart shows four bars; what it cannot show is how lopsided they
- * are, because judging that means summing three of them by eye. This is a
- * derived ratio over exactly the hours printed on the sheet — nothing is
- * invented, and the note that quotes it states its own denominator
- * ("of the top 4"), never the lifetime total.
+ * What the sheet cannot show is how lopsided the bars are, because judging
+ * that means summing the rest of them by eye. This is a derived ratio over
+ * exactly the hours printed on the sheet — nothing is invented — and the
+ * note that quotes it must state THIS denominator, never a different one.
+ *
+ * Which denominator that is depends on the sheet: on the snapshot
+ * languages chart the rows include the remainder, so they sum to the
+ * lifetime record and the note says "of everything tracked"; on a live
+ * pull the rows are a top-N slice and the note says "of these N bars".
+ * Getting that pairing wrong is how "71.5 % of the top 4" came to sit two
+ * lines above a table printing 55.59 %.
  */
 const leadShareOfChart = (rows: RankedRow[], locale: Locale): string | null => {
 	const total = rows.reduce((sum, r) => sum + r.hours, 0);
@@ -689,13 +711,28 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 			table: rankedTable(cs.tableHeads.language, cs.tableHeads, rows),
 			annotation: {
 				text: lead
-					? found.languagesNote(lead, rows.length)
+					? found.languagesNoteOfChart(lead, rows.length)
 					: cs.annotations.languageTop(rows[0].name, rows[0].time),
 				ink: CLAIM_INK.languages
 			}
 		});
 	} else {
-		// Snapshot: the four published lifetime language figures.
+		/* Snapshot: the four published lifetime language figures.
+		 *
+		 * These four are NOT "the four most-tracked languages" — against the
+		 * public all_time endpoint the ranks are TypeScript, JavaScript,
+		 * Svelte, JSON, Other, Vue.js, so Vue.js is rank 6. They are the four
+		 * most-tracked APPLICATION languages, data and markup formats
+		 * excluded. The curation is defensible and the label now says what
+		 * the curation was; the old one asserted a ranking that fails the
+		 * first check a sceptic can run.
+		 *
+		 * They also cover only 4,225.6 h of a 5,432 h 47 m record. The
+		 * projects sheet 40 px away prints its own remainder as "Everything
+		 * else 2,632 h 5 m*"; two ranked bar charts in one grid row cannot
+		 * hold opposite conventions about whether a chart owes you the rest
+		 * of its total. So the remainder is charted, on the same
+		 * paper-aged-with-a-hairline stock, marked derived. */
 		const langs = telemetry.lifetime.languages;
 		const colors = chartInks(
 			langs.map((l) => l.name),
@@ -710,13 +747,37 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 			shareEn: `${figure(l.percent)} %${l.derived ? "*" : ""}`,
 			color: colors.get(l.name) ?? NEUTRAL
 		}));
+		/* Derived exactly like the projects sheet's rest bar: the published
+		 * lifetime total minus the published rows, in seconds, so no
+		 * rounding is done twice. Guarded — a re-pull that publishes rows
+		 * summing to the total simply drops the row. */
+		const chartedSeconds = langs.reduce((sum, l) => sum + l.seconds, 0);
+		const restSeconds = Math.max(0, career.total.seconds - chartedSeconds);
+		const restShare = round2((restSeconds / career.total.seconds) * 100);
+		if (restSeconds >= 3600) {
+			rows.push({
+				name: cs.other,
+				time: `${formatH(restSeconds / 3600, locale)}*`,
+				timeEn: `${formatH(restSeconds / 3600)}*`,
+				hours: restSeconds / 3600,
+				share: `${figure(restShare, locale)} %*`,
+				shareEn: `${figure(restShare)} %*`,
+				color: PAPER_AGED,
+				hairline: true
+			});
+		}
+		/* With the remainder charted the sheet's rows sum to the record, so
+		 * this ratio is the leading language's share of EVERYTHING tracked —
+		 * 55.6 %, which is both true and the stronger claim. The old note
+		 * quoted 71.5 %, a share of the top four, against a table printing
+		 * 55.59 % two lines below it. */
 		const lead = leadShareOfChart(rows, locale);
 		charts.push({
 			id: "languages",
-			title: lead ? found.languagesTitle(rows[0].name) : cs.titles.topLanguages(rows.length),
+			title: lead ? found.languagesTitle(rows[0].name) : cs.titles.topLanguages(langs.length),
 			unit: cs.units.lifetimeHours(lifetimeWindow, career.asOf),
 			svg: rankedBarSvg(rows),
-			alt: rankedAlt(cs.alt.topLanguagesLifetimeIntro(rows.length, career.asOf), rows),
+			alt: rankedAlt(cs.alt.appLanguagesLifetimeIntro(langs.length, career.asOf), rows),
 			table: rankedTable(
 				cs.tableHeads.language,
 				cs.tableHeads,
@@ -725,7 +786,7 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 			),
 			annotation: {
 				text: lead
-					? found.languagesNote(lead, rows.length)
+					? found.languagesNoteOfRecord(lead)
 					: cs.annotations.languageTop(rows[0].name, rows[0].time),
 				ink: CLAIM_INK.languages
 			}

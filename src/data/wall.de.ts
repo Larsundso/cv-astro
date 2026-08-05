@@ -12,8 +12,10 @@
  * trägt ihre Einheit. Das Messdatum steht einmal
  * (`chartStrings.provenance.convention`); danach wird nur gestempelt, was
  * ein ANDERES Datum trägt. Register: durchgehend du. Brand fixtures stay
- * identical to the English wall: "Werdegang", "heute", the HEUTE stamp,
- * "Der Rote Faden".
+ * identical to the English wall: "Werdegang" and "Der Rote Faden".
+ * The date stamps do NOT: the English build now prints "TODAY", because a
+ * German date stamp is furniture rather than an artefact and does no work
+ * for an English reader. "HEUTE" is correct here and stays here.
  */
 import { ai, ayako, github, ihk, SNAPSHOT_AS_OF, telemetry } from "~/data/snapshot";
 import { figure, formatHM, millionsPlus } from "~/data/telemetry";
@@ -140,7 +142,14 @@ export const hero = {
 			ink: "teal"
 		} satisfies Annotation
 	},
-	/** The pinned primary action. */
+	/**
+	 * The pinned primary action.
+	 *
+	 * UNRENDERED — siehe wall.ts: kein Component liest `primaryAction`, in
+	 * keinem der beiden Builds. Bleibt stehen, weil der erste sichtbare
+	 * mailto erst bei 86,7 % Seitentiefe kommt und genau dieses Objekt die
+	 * fertige Vorlage für einen Hero-CTA ist.
+	 */
 	primaryAction: {
 		label: "An jobs@lars-dev.org schreiben",
 		href: "mailto:jobs@lars-dev.org",
@@ -162,7 +171,13 @@ export const timeline: TimelineEntry[] = [
 		sort: "2019-12",
 		title: "Der erste Pin",
 		body: [
-			"Dezember 2019. Ayako beginnt als einzelne JavaScript-Datei. Läuft seitdem ununterbrochen.",
+			/* NICHT „ununterbrochen“: weiter unten auf derselben Wand steht
+			   „jeden Ausfall seit 2019 habe ich selbst behoben“. Wo es
+			   Ausfälle gab, kann nichts ununterbrochen gelaufen sein — und
+			   auf einer Wand, deren ganzer Anspruch die Nachprüfbarkeit ist,
+			   war das der einzige unbelegte Satz. „Seitdem im
+			   Produktivbetrieb“ deckt sich mit dem englischen Text. */
+			"Dezember 2019. Ayako beginnt als einzelne JavaScript-Datei. Seitdem im Produktivbetrieb.",
 			`GitHub-Account seit ${github.accountCreated}.`
 		],
 		annotation: { text: "eine Datei, kein Plan, keine Nutzer", ink: "green" }
@@ -173,7 +188,10 @@ export const timeline: TimelineEntry[] = [
 		sort: "2021-10",
 		title: "Die Bot-Jahre",
 		body: [
-			`${telemetry.trackingStart}: Ab hier zeichnet WakaTime auf — seither ohne Lücke.`,
+			/* „ohne Lücke“ bezog sich grammatisch auf das Programmieren, nicht
+			   auf die Messung — und 164 Tage der Aufzeichnung tragen keinen
+			   Code. Lückenlos ist die AUFZEICHNUNG. */
+			`${telemetry.trackingStart}: Ab hier zeichnet WakaTime auf — die Aufzeichnung läuft seitdem ohne Unterbrechung.`,
 			"Die Angel-Bots-Ära: Discord-Bots in JavaScript, jeder für genau eine Aufgabe — daher stammt der Großteil des JavaScripts in der Aufzeichnung " +
 				`(${n(telemetry.lifetime.languages[1].hours)} h insgesamt).`
 		],
@@ -453,8 +471,10 @@ export const aiPractice = {
 	/** Owner: "not what I want to be hired for exclusively." */
 	placement: "subordinate",
 	title: "Wie ich mit Agenten arbeite",
+	/* siehe wall.ts: die Kontrolle steht im Satz hinten, wo das Gewicht
+	   liegt. Agenten tippen nicht, sie entwerfen. */
 	intro:
-		"Agenten übernehmen einen großen Teil der Tipparbeit. Hier sind die Zahlen — und die Regeln, unter denen sie laufen.",
+		"Agenten liefern Entwürfe. Entschieden, geprüft und committet wird von mir. Hier sind die Zahlen — und die Regeln, unter denen sie laufen.",
 	entries: [
 		{
 			id: "volume",
@@ -570,14 +590,21 @@ export const contact = {
 	email: "jobs@lars-dev.org",
 	/** Was er tatsächlich sucht — vom Eigentümer freigegeben, und die
 	 *  einzige Stelle der Wand, die es sagt. Keine Kündigungsfrist: es
-	 *  wurde keine genannt. */
+	 *  wurde keine genannt, und es wird keine unterstellt.
+	 *
+	 *  Die Reihenfolge trägt. Vorher stand die Bremse zuerst. Jetzt öffnet
+	 *  das Angebot, der offene Vorbehalt schließt — direkt hinter dem
+	 *  Versprechen, das er glaubwürdig macht. Gestrichen wurde nichts.
+	 *
+	 *  Der Ort steht nur auf REGIONS-Ebene, wie im Kopf und im Fuß der
+	 *  Seite. „Bodensee-Ravensburg“ nannte eine Stadt. */
 	rightNow: {
 		title: "Aktuell",
 		lines: [
-			"Seit 2025 Full-Stack-Entwickler bei der Raleo Digital GmbH. Kein dringender Wechselwunsch.",
 			"Offen für Produktarbeit mit TypeScript/Node — Backend oder Full-Stack. Erzähl mir davon.",
-			"Remote, oder vor Ort im Raum Bodensee-Ravensburg.",
-			"Jede Mail an diese Adresse wird beantwortet."
+			"Remote, oder vor Ort in der Region Bodensee-Oberschwaben.",
+			"Jede Mail an diese Adresse wird beantwortet.",
+			"Seit 2025 Full-Stack-Entwickler bei der Raleo Digital GmbH. Kein dringender Wechselwunsch."
 		]
 	},
 	entries: [
@@ -635,7 +662,10 @@ export const employment: EmploymentEntry[] = [
 	{
 		id: "columbus",
 		company: "Columbus Interactive GmbH",
-		role: "Auszubildender Fachinformatiker für Anwendungsentwicklung",
+		/* „Auszubildender“ steht im Deutschen nicht attributiv vor der
+		   Berufsbezeichnung — es heißt „Auszubildender ZUM …“. Erste
+		   Berufsbezeichnung, die eine deutsche Personalabteilung liest. */
+		role: "Auszubildender zum Fachinformatiker für Anwendungsentwicklung",
 		start: "2022-09",
 		end: "2025",
 		note: `Ravensburg. Drei Jahre angestellt im dualen IHK-System; ${ihk.weeklyReports} gegengezeichnete wöchentliche Ausbildungsnachweise; Abschlussprüfung ${ihk.apprenticeship.examCycle}.`,
@@ -717,6 +747,8 @@ export const sectionStrings = {
 		 *  Arbeitgeber, denn wer sie nicht zählt, liest diesen Abschnitt als
 		 *  eine Stelle und ein Zeugnis. */
 		headNote: "zwei Arbeitgeber seit 2022 — Beruf und Ausbildung, der Reihe nach aufgefädelt.",
+		/** Scope line under the Werdegang rule; see wall.ts. */
+		headDates: "2010 – heute",
 		/** Education card date line while ongoing, e.g. "seit 2022-09". */
 		since: (start: string) => `seit ${start}`,
 		/** Flagship card: prefix of the stack line. */
@@ -809,8 +841,11 @@ export const chartStrings = {
 			`Balkendiagramm der Ayako-Projektfamilie gegenüber allem anderen, Gesamtzeitraum, Stand ${asOf}`,
 		topLanguagesYearIntro: (count: number, asOf: string) =>
 			`Balkendiagramm der ${count} am meisten erfassten Sprachen der letzten 12 Monate, Stand ${asOf}`,
-		topLanguagesLifetimeIntro: (count: number, asOf: string) =>
-			`Balkendiagramm der ${count} am meisten erfassten Sprachen, Gesamtzeitraum, Stand ${asOf}`,
+		/* siehe wall.ts: das Blatt zeigt eine kuratierte Auswahl, keine
+		   Rangliste — Daten- und Auszeichnungsformate sind ausgenommen. */
+		appLanguagesLifetimeIntro: (count: number, asOf: string) =>
+			`Balkendiagramm der ${count} am meisten erfassten Anwendungssprachen — Daten- und Auszeichnungsformate ausgenommen — ` +
+			`mit einem letzten Balken für alles andere; Gesamtzeitraum, Stand ${asOf}`,
 		weekByProject: (o: {
 			start: string;
 			end: string;
@@ -854,7 +889,7 @@ export const chartStrings = {
 		projectsDerived: (asOf: string) =>
 			`* Abgeleitet aus dem veröffentlichten Gesamtwert und der Ayako-Familien-Zahl, beide Stand ${asOf}.`,
 		languagesDerived: (asOf: string) =>
-			`* Anteil abgeleitet aus den veröffentlichten Stunden und dem Gesamtwert, Stand ${asOf}.`
+			`* Anteil abgeleitet aus den veröffentlichten Stunden und dem Gesamtwert; die Zeile „Alles andere“ ist dieser Gesamtwert minus die veröffentlichten Zeilen. Beides Stand ${asOf}.`
 	},
 	/** Handschriftliche Randnotizen: jede trägt die FOLGE, die das Blatt
 	 *  nicht zeichnen kann — eine Notiz, die den Balken daneben wiederholt,

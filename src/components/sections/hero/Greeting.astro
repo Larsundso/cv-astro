@@ -15,19 +15,23 @@
  *
  * MOTION (feel F1). The draw used to run its full 10s inside a
  * `display:none` box and was revealed only once it had STOPPED. It is now
- * LAYERED, not swapped: the `<h1>` and the Lottie share one grid cell and
- * cross-fade. The asset itself was retimed — the salutation frames and
- * 3.1s of dead tail at the end are gone — and the player is sped up to a
- * ~2.5s draw, so the card writes itself in front of the reader.
+ * LAYERED, not swapped: the `<h1>` and the Lottie share one grid cell.
+ * The asset itself was retimed — the salutation frames and 3.1s of dead
+ * tail at the end are gone — and the player is sped up to a ~2.5s draw.
  *
- * THE NEVER-BLANK RULE, STRONGER THAN BEFORE. The fade is tied to frames
- * ACTUALLY ADVANCING, not to a one-shot "it exists" flag: the ink has to
- * be moving for the hand-set signature to step aside, and if it ever
- * stops moving before the end (throttled tab, dropped chunk, no rAF) the
- * flag is withdrawn and the hand-set signature fades straight back in.
- * No JS, a failed fetch, a screenshot bot or prefers-reduced-motion never
- * reach the flag at all, so they keep the designed resolved state
- * permanently. There is no path on which this card is blank.
+ * THE NEVER-BLANK RULE, AND ITS OTHER HALF. Blank was never the only way
+ * to fail: HALF-WRITTEN is the other, and the build was failing it. The
+ * flag was raised on the first advancing frame (measured: t = 328ms), the
+ * hand-set signature was gone by 977ms, and the card then read "Lars B"
+ * until roughly 2.6s — with a 600ms window in the middle where both
+ * renderings of the surname sat above 0.08 opacity at once. The gate is
+ * now the one the design document was reaching for — the player's own
+ * completion (the doc's "92 %" lands on "Lars Boes" for this asset). The
+ * hand-set signature holds the card for the entire draw and the handover
+ * is a 110ms CUT between two states of the same finished word. No JS, a failed fetch, a screenshot bot, a stalled
+ * player or prefers-reduced-motion never reach the flag at all, so they
+ * keep the designed resolved state permanently. There is no path on which
+ * this card is blank, and none on which it shows half a name.
  *
  * Register law for the resolved state: pen, not marker. The salutation is
  * written in soft ink at hand weight; the NAME carries the six pride inks
@@ -56,9 +60,24 @@ interface Props {
 	 * hand-set state, the drawn state and the `<h1>` all say one sentence.
 	 */
 	name?: string;
+	/**
+	 * What the `<h1>` SAYS, as opposed to what the signature DRAWS.
+	 *
+	 * The two are not the same string and must not be. A signature may
+	 * legitimately be ASCII — the drawn asset's strokes are authored against
+	 * "Lars Boese" and the hand-set state is measured against that exact
+	 * word — but the `sr-only` sentence has no visual alibi: it is the ONLY
+	 * place on this card that exists solely to be announced, and it was the
+	 * one place the wall spelled the surname differently from its `<title>`,
+	 * its record card, both stamps and its LinkedIn card, all of which read
+	 * *Böse*. A screen-reader user was the only reader given the ASCII
+	 * fallback as the name itself. Pass the legal form; the drawn and
+	 * hand-set states are untouched by it.
+	 */
+	spoken?: string;
 }
 
-const { greeting, subline, name } = Astro.props;
+const { greeting, subline, name, spoken } = Astro.props;
 
 const text = greeting.trim();
 /* The signed part: the caller's signature when given, otherwise the
@@ -73,8 +92,9 @@ const salutation = before
 	.trim()
 	.split(/\s+/)
 	.filter((word) => word.length > 0);
-/** What the h1 actually says, surname included, in the page's language. */
-const sentence = [...salutation, signature].join(" ");
+/** What the h1 actually says, surname included, in the page's language —
+    the SPOKEN form of the name, never the drawn one (see `spoken` above). */
+const sentence = [...salutation, spoken?.trim() || signature].join(" ");
 
 /** Baseline drift, in the order a hand writes: no word sits dead level. */
 const DRIFT = [
@@ -150,13 +170,23 @@ const drift = (i: number) => {
 </div>
 
 <script is:inline>
-	/* Hand over to the ink only while the ink is MOVING.
+	/* Hand over to the ink only once the ink has FINISHED — the rule the
+	   design document already states and the build did not keep.
 	   Three jobs, in order of importance:
-	   1. Never blank. `data-anim` is set only after the player reports a
-	      frame past 0, and it is WITHDRAWN again the moment frames stop
-	      advancing before the end — so a stalled player, a throttled tab or
-	      a dropped chunk restores the hand-set signature instead of leaving
-	      an empty card. No JS and no player never set it at all.
+	   1. Never blank AND NEVER HALF-WRITTEN. `data-anim` used to be set on
+	      the first frame past 0, which measured at t = 328 ms against a draw
+	      that runs to ~3.2 s: the hand-set signature was gone by 977 ms and
+	      the card then read "Lars B" — a truncated surname — for more than a
+	      second, in the one window where a stranger decides whose wall this
+	      is. Worse, for 600 ms of that both layers sat above 0.08 opacity
+	      (peak 0.921 hand-set over 0.892 drawn): two renderings of one
+	      surname, superimposed, one of them unfinished.
+	      The flag is now gated on the player's own COMPLETION, so the hand-set
+	      signature holds the card for the whole draw and the two states only
+	      ever show the SAME finished word. A player that never gets there
+	      never sets the flag, so no JS, a failed fetch, a screenshot bot, a
+	      throttled tab and a dropped chunk all keep the designed resolved
+	      state permanently.
 	   2. A watchable duration. The asset is authored at 100fps; the player
 	      is sped up so the draw lands at ~2.5s whatever the asset's length,
 	      derived from the file rather than hard-coded against it.
@@ -170,8 +200,20 @@ const drift = (i: number) => {
 		if (!frame) return;
 
 		const TARGET_SECONDS = 2.5;
-		/* frames must advance at least this often or the ink is not drawing */
-		const STALL_MS = 700;
+		/* DESIGN.md's Never-Blank Rule says "gated on the player reporting
+		   >=92 % of its frames drawn, not on the svg merely existing". 92 is
+		   the right SHAPE of rule and the wrong number FOR THIS ASSET:
+		   captured at exactly 0.92 of 410 frames, the drawn layer reads
+		   "Lars Boes" — the surname's last letter is still being written
+		   (`scratchpad/fix3/hero/drawn-at-92.png`). So the gate is the
+		   player's own completion, which is what 92 % was standing in for:
+		   the last frame, or the `complete` event, whichever arrives first.
+		   A player that stalls just short never opens it, and the hand-set
+		   signature stands — the designed state, not a degraded one. */
+		const LAST_FRAME_EPS = 1.5;
+		/* give up watching a player that has not advanced for this long; the
+		   hand-set signature then stands, which is the designed state */
+		const STALL_MS = 15000;
 
 		const quiet = window.matchMedia?.("(prefers-reduced-motion: reduce)");
 		let anim = null;
@@ -207,25 +249,24 @@ const drift = (i: number) => {
 
 			if (anim && !done) {
 				const f = anim.currentFrame || 0;
+				const total = anim.totalFrames || 0;
 				if (f > seen) {
 					seen = f;
 					movedAt = now;
 				}
-				if (f >= anim.totalFrames - 1.5 && anim.totalFrames > 0) {
+				/* the one condition that opens the gate: the word is written */
+				if (total > 0 && f >= total - LAST_FRAME_EPS) {
 					done = true;
 					host.dataset.anim = "drawn";
-				} else if (seen >= 1 && now - movedAt < STALL_MS) {
-					host.dataset.anim = "drawn";
-				} else if (seen >= 1) {
-					/* the ink stopped moving before the end — take the hand back */
-					delete host.dataset.anim;
 				}
 			}
 
 			if (done) return;
-			/* stop watching only if nothing ever started; a drawing player
-			   keeps the watch alive for as long as it keeps drawing */
-			if (seen < 1 && now - startedAt > 15000) return;
+			/* Nothing to withdraw any more: the flag is never raised before the
+			   draw is finished, so a stall simply leaves the hand-set signature
+			   in place. Stop watching once the player has been quiet long
+			   enough that it is not coming back. */
+			if (now - (movedAt || startedAt) > STALL_MS) return;
 			requestAnimationFrame(tick);
 		};
 		requestAnimationFrame(tick);
@@ -235,6 +276,23 @@ const drift = (i: number) => {
 <style>
 	.hero-greeting {
 		text-align: center;
+		/* THE SIGNATURE IS SIZED BY ITS SHEET, NOT BY THE VIEWPORT. A
+		   viewport-driven clamp cannot know how wide this card is: at 1024px
+		   the shell is narrow and the card's six columns come to 480px, while
+		   at 768px the column has stacked and the same card is 548px — so one
+		   `vw` curve either overflows the narrow sheet or under-fills the wide
+		   one. Made a container here and the signature is a fixed FRACTION of
+		   the paper it is written on at every width, which is what the finding
+		   asked for. */
+		container-type: inline-size;
+
+		/* 17cqi puts the hand-set name at 95.6 % of this box at every width
+		   (measured: Shantell Sans 700 advances 5.622px per px of font-size
+		   for "Lars Boese"), leaving 4.4 % against font-metric drift, and the
+		   swash's 114 % overhang inside the sheet's padding.
+		   The cap is 90px: nothing on this wall is wider than the 78rem shell,
+		   so the cap is a guard rail rather than a working value. */
+		--sig-size: clamp(2.625rem, 17cqi, 5.625rem);
 	}
 
 	/* The salutation is the quiet half of the card: the same pen, a step
@@ -260,11 +318,24 @@ const drift = (i: number) => {
 		align-items: center;
 		justify-items: center;
 		/* The drawn signature's width, in ems of the hand-set one it
-		   replaces. 4.6em is the value at which the two states carry the
-		   same ink: the artwork is a signature and packs more stroke into
-		   less width than the face does, so matching them on WIDTH would
-		   make the drawn ink half again as tall as the hand-set letters at
-		   the handover. Measured at 1440: hand-set 342 × 63, drawn 296 × 74. */
+		   replaces — so both states scale together and the em keeps them
+		   matched at every width. 4.6em is the value at which the two carry
+		   the same LETTER HEIGHT, which is the axis that has to match:
+		   matching them on WIDTH instead would make the drawn ink half again
+		   as tall as the hand-set letters, because a drawn signature packs
+		   more stroke into less width than a face does.
+		   RE-MEASURED at 1440 after the name went to 89.08px / weight 700
+		   (`scratchpad/fix3/hero/sig.mjs`, `bbox.mjs`): hand-set ink box
+		   510 × 107, drawn 392 × 99 — a width relationship of 0.769 against
+		   0.788 before and a height relationship of 0.93 against 0.91, so the
+		   em holds the tuning through the size and weight change and 4.6
+		   stands.
+		   The predecessor of this note claimed the two states carry the same
+		   INK. They never did and cannot: measured ink is 1.80 : 1 before and
+		   2.22 : 1 after, because a Lottie's stroke weight is fixed by the
+		   artwork while the hand-set state just went from 500 to 700. That is
+		   the correct trade — they are two renderings of one name, not two
+		   copies of one image. */
 		--sig-width: 4.6em;
 	}
 
@@ -282,10 +353,16 @@ const drift = (i: number) => {
 	.hero-greeting__hand {
 		display: block;
 		font-family: var(--font-hand);
-		/* 400 = pen. A marker with colour in it reads as a logo. */
+		/* 400 = pen. A marker with colour in it reads as a logo. This is the
+		   weight of the CARD's hand; the signed name overrides it below,
+		   because a person signs harder than they write. */
 		font-weight: 400;
-		font-size: var(--step-6);
+		font-size: var(--sig-size);
+		/* a baseline multiple that tracks the type instead of ignoring it:
+		   80px at the desktop 89.5px setting, 40px at the phone's 48px one.
+		   The first declaration is the fallback where `round()` is missing. */
 		line-height: var(--lh-6);
+		line-height: round(0.875em, var(--baseline));
 		letter-spacing: 0.005em;
 		color: var(--ink-soft);
 	}
@@ -307,8 +384,17 @@ const drift = (i: number) => {
 	   uses (measured: 8.8 % of it sat at pure red, which the One Thread
 	   Rule reserves for the thread alone). Hard stops mean every pixel of
 	   the name is a declared ink and the flag reads as a flag. */
+	/* SIZE AND WEIGHT, NOT INK. The name was measured as the sixth mass in
+	   the first frame — below the polaroid, below the flyer, below both
+	   cards, on a wall whose whole subject is the person whose name it is.
+	   The answer is the two axes a signature actually has: it is written
+	   BIGGER and it is written HARDER. 500 was the pen weight of a written
+	   word; 700 is the pressure of a signed one, and the face is already
+	   subset at 700 (`uno.config.ts`), so it costs no byte.
+	   The six inks and the six hard bands below are untouched, deliberately:
+	   a name in flat black would be a different, worse object. */
 	.hero-greeting__name {
-		font-weight: 500;
+		font-weight: 700;
 		color: var(--ink-magenta);
 	}
 
@@ -364,7 +450,7 @@ const drift = (i: number) => {
 	.hero-greeting__anim {
 		width: var(--sig-width);
 		aspect-ratio: 341 / 79;
-		font-size: var(--step-6);
+		font-size: var(--sig-size);
 		opacity: 0;
 	}
 
@@ -381,11 +467,16 @@ const drift = (i: number) => {
 </style>
 
 <style is:global>
-	/* CROSS-FADE, NOT SWAP. Both states occupy the same cell; the drawn one
-	   fades up as soon as the ink is moving and the hand-set one dissolves
-	   under it a beat later, so the card is written rather than replaced —
-	   and is never empty in between. Withdrawing `data-anim` (a stalled
-	   player) runs the same transition backwards. */
+	/* A CUT, NOT A CROSS-FADE. Both states occupy the same cell, and the old
+	   600ms dissolve with a 300ms delay on the outgoing layer held BOTH
+	   renderings of the surname above 0.08 opacity for 600ms — a doubled
+	   word, which no amount of easing makes read as one hand. Two states of
+	   one word are not a dissolve subject: they are a cut. 110ms, no delay,
+	   both layers on the same clock, so the frames in which anything is
+	   superimposed are too few to resolve as a second signature.
+	   Nothing runs backwards any more — the flag is latched at >=92 % of the
+	   draw and never withdrawn, because by then both layers say the same
+	   finished word. */
 	.hero-greeting__anim svg {
 		display: block;
 		width: 100%;
@@ -398,11 +489,7 @@ const drift = (i: number) => {
 	@media (prefers-reduced-motion: no-preference) {
 		.hero-greeting__title,
 		.hero-greeting__anim {
-			transition: opacity calc(var(--t-settle) * 3) var(--e-out);
-		}
-
-		.hero-greeting__title {
-			transition-delay: calc(var(--t-settle) * 1.5);
+			transition: opacity 110ms var(--e-out);
 		}
 
 		.hero-greeting[data-anim="drawn"] .hero-greeting__anim {

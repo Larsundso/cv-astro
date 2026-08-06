@@ -26,6 +26,22 @@
  * which is the intent: declare the code near the top of the wall, confirm
  * it beside the artifact that has just used four of its six inks.
  *
+ * TWO KEYS ON A PAGE NEED TWO NAMES. Both instances are `aria-labelledby`
+ * their own copy of one visible line, which put `complementary :: "a note's
+ * ink names its claim"` into the accessibility tree TWICE: a screen-reader
+ * user pressing NVDA's `D` got two entries with identical names and no way
+ * to tell which was which. `labelledBy` lets a caller prepend the id of a
+ * heading it already sits under, so the name is built from visible text
+ * that is already on the wall and the two keys separate.
+ *
+ * The obvious alternative — demote the repeat from `<aside>` to a plain
+ * `<div>`, since it IS a repeat — was measured and rejected: the Werdegang
+ * instance sits inside an ancestor that is `display: none` below 1024px, so
+ * the confirming key is the ONLY one that exists on a phone. Dropping its
+ * landmark would have traded a duplicate name at 1440 for no ink-key
+ * landmark at all at 390, on a slip whose own heading is a `<p>` and so
+ * appears in no headings rotor either.
+ *
  * Material: a note slip, the same paper a freestanding HandNote rides on
  * (paper ground, one pin shadow, a brass pin, a ±1.2° tilt step) — not a
  * PinCard variant, because the whole slip is hand material and no variant
@@ -48,10 +64,16 @@ interface Props {
 	 * different id or a second key on the page would duplicate the first.
 	 */
 	id?: string;
+	/**
+	 * Id of an element whose text is prepended to this key's accessible
+	 * name. A SECOND key on the same page must pass one — two
+	 * `complementary` landmarks may not share a name.
+	 */
+	labelledBy?: string;
 	class?: string;
 }
 
-const { rotate = 1, id, class: className } = Astro.props;
+const { rotate = 1, id, labelledBy, class: className } = Astro.props;
 
 const locale = (Astro.currentLocale ?? "en") as Locale;
 const { inkKey } = getWall(locale);
@@ -73,7 +95,7 @@ const headingId = id ?? `ink-key-${locale}-${Math.random().toString(36).slice(2,
 <aside
 	class:list={["ink-key", "paper", "pinned", className]}
 	style={`--tilt:${rotate};`}
-	aria-labelledby={headingId}
+	aria-labelledby={labelledBy ? `${labelledBy} ${headingId}` : headingId}
 >
 	<span class="brass-pin ink-key__pin" aria-hidden="true"></span>
 	<p class="ink-key__head" id={headingId}>{inkKey.title}</p>

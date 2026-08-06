@@ -108,8 +108,27 @@ const rules = houseRules.rules.map((rule) => {
 				</ul>
 			</PinCard>
 
-			<!-- the code the flyer above has just been written in -->
-			<InkKey class="practice__key" rotate={-1} id="practice-ink-key" />
+			{
+				/* The code the flyer above has just been written in — and the
+				   SECOND key on this page, the one pinned in the Werdegang
+				   being the first. Both were `aria-labelledby` their own copy
+				   of one visible line, so the accessibility tree carried
+				   `complementary :: "a note's ink names its claim"` TWICE and
+				   NVDA's `D` key offered two entries a reader could not tell
+				   apart. Naming this one by the act it stands in as well
+				   separates them out of text already visible on the wall:
+				   "HOW I WORK a note's ink names its claim". Measured, the
+				   Werdegang key is inside a `display: none` ancestor below
+				   1024px — so this is the ONLY ink key a phone has, and
+				   dropping its landmark instead would have cost the phone the
+				   whole artifact's entry in the rotor. */
+			}
+			<InkKey
+				class="practice__key"
+				rotate={-1}
+				id="practice-ink-key"
+				labelledBy="practice-title"
+			/>
 
 			<div class="practice__sticker">
 				<Sticker name="sip" size={4.5} rotate={-8} />
@@ -212,7 +231,28 @@ const rules = houseRules.rules.map((rule) => {
 	.practice__records,
 	.practice__values {
 		grid-column: 1 / -1;
+		/* THE TRACK IS DECLARED, NEVER IMPLIED. A `display: grid` with no
+		   `grid-template-columns` gets ONE IMPLICIT `auto` TRACK, and an
+		   `auto` track's base size is the largest min-content contribution
+		   of its items. A box with a definite `inline-size` contributes
+		   THAT size — so the ink key's `inline-size: 19rem` floored this
+		   track at 608px once the reader's root font-size reached 32px,
+		   while the column itself was 342px wide. Its own
+		   `max-inline-size: 100%` could not save it: 100 % of an indefinite
+		   track is indefinite. The flyer's `width: 100%` then inherited the
+		   608px track and carried the house rules, the ink key's six
+		   questions and the mailto off the right edge of the phone — where
+		   `overflow-x: clip` (which stays; it is what keeps the stamps from
+		   bleeding) meant NO SCROLLBAR APPEARED AND THE TEXT WAS SIMPLY
+		   GONE. Measured at 390x844, root 32px: flyer 620.7px, worst glyph
+		   run 217.9px past the edge, `scrollWidth - clientWidth = 0`.
+		   `minmax(0, 1fr)` sets the track's minimum to zero, so the track is
+		   the column and every rem-sized artifact inside it is capped by a
+		   definite 100 %. The rule generalises: any artifact carrying a rem
+		   `inline-size` must sit in a track that is definite, or it sets the
+		   layout instead of obeying it. */
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		row-gap: calc(var(--baseline) * 5);
 		align-content: start;
 		/* stacked, one column edge for both stacks — and it keeps the

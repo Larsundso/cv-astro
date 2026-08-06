@@ -73,7 +73,29 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 						}
 						<details class="telemetry__details">
 							<summary>{tf.dataAsTable}</summary>
-							<div class="telemetry__scroll">
+							{
+								/* A SCROLL CONTAINER A KEYBOARD CAN REACH. This div
+								   panned but took no focus: no `tabindex`, no role, no
+								   name. Measured at a 320px viewport it overflows by 64
+								   and 68px — and Chrome 127+ hands scrollers a tab stop
+								   automatically while Firefox and Safari do not, so
+								   exactly where the table matters most (the narrow
+								   widths where the chart's own SVG type collapses toward
+								   7px) two of three engines could not reach the far
+								   column. `role="group"`, not `region`: a region is a
+								   landmark, and this wall has just spent a finding on
+								   two landmarks sharing one name — five more would be
+								   worse than the defect. The tab stop costs nothing when
+								   it is not wanted, because it lives inside a
+								   `<details>` that ships shut and is therefore out of
+								   the tab order until a reader opens the table. */
+							}
+							<div
+								class="telemetry__scroll"
+								tabindex="0"
+								role="group"
+								aria-label={`${chart.title} — ${tf.dataAsTable}`}
+							>
 								<table>
 									<caption class="sr-only">
 										{chart.title} — {chart.unit}
@@ -218,8 +240,22 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 		font-weight: 700;
 	}
 
+	/* THE SOURCE LINE CARRIES A URL, AND A URL IS ONE UNBREAKABLE WORD.
+	   `https://wakatime.com/api/v1/users/Larsundso/stats/all_time` is 57
+	   Courier characters with no break opportunity in it, so it set this
+	   card's min-content width — and the card, whose `max-width: 34rem` was
+	   never the binding constraint, ran off the phone: measured at the
+	   DEFAULT root size, +178.4px past a 390px viewport, +208.4 at 360,
+	   +247.9 at 320, in both locales, with `scrollWidth - clientWidth = 0`
+	   because `overflow-x: clip` swallows the scrollbar. The address the
+	   card exists to hand over was the one string a phone could not read.
+	   `anywhere` rather than `break-word` because only `anywhere` also
+	   lowers the min-content contribution, which is what lets the card
+	   shrink; and it inserts no hyphen, so it is not the hyphenation the
+	   handwriting on this wall forbids. */
 	.telemetry__prov-line {
 		margin: 0;
+		overflow-wrap: anywhere;
 	}
 
 	/* ---- print-out cards ---------------------------------------- */
@@ -263,6 +299,27 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 		display: block;
 		width: 100%;
 		height: auto;
+	}
+
+	/* THE HOLLOW CELL IS A MARK, AND A SCALED HAIRLINE IS NOT A MARK.
+	   `width: 100%` above scales the habit field to its card: 1.2215x at
+	   1440, but 0.4827x at 390 — and a 1px stroke drawn at 0.4827x is half a
+	   device pixel, which the rasteriser resolves by mixing it into the
+	   paper. Sampled from the render at 390x844, dpr 1: darkest painted
+	   pixel [199,197,190] against paper [249,248,242] = 1.623:1, APCA
+	   Lc 26.9 — the declared ink is 3.12:1 and the floor for a graphical
+	   object is 3:1. This is the same antialiasing trap that took the old
+	   "safety hairline" from a declared 14.989:1 down to 1.281:1: the
+	   contrast of a sub-pixel line is not the contrast of its colour.
+	   `non-scaling-stroke` takes the stroke out of the SVG's scale so it is
+	   drawn at its own width in device space (390: 1.623 -> 2.843:1), and
+	   1.25px guarantees one fully-inked pixel wherever the geometry lands
+	   off the grid (390: 3.101:1, 1440: 3.150:1, unchanged). Geometry,
+	   colour and the two-block split are untouched — hollow still means a
+	   day with nothing tracked, it is now merely visible on a phone. */
+	.telemetry__field :global(rect[stroke]) {
+		vector-effect: non-scaling-stroke;
+		stroke-width: 1.25;
 	}
 
 	/* the break between the run and the days outside it: a rule, a line of

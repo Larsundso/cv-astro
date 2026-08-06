@@ -182,7 +182,14 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 			{
 				ayako.promise && (
 					<PinCard variant="flyer" rotate={1} class="promise-card pin-card--dark">
-						<blockquote>
+						{/* The promise was made in English and is quoted verbatim in
+						    both locales — `wall.de.ts` says so in its own comment, and
+						    the German rendering of it is a separate artifact, the hand
+						    note below. So on the German page this is a run of English
+						    inside `lang="de"`, and a screen reader was pronouncing it
+						    with German phonemes. The tag names the run's language; the
+						    quote itself is untouched, which is the point of quoting. */}
+						<blockquote lang="en">
 							<p>“{ayako.promise}”</p>
 						</blockquote>
 					</PinCard>

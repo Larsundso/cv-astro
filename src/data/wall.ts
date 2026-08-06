@@ -883,6 +883,87 @@ export const careerStats = {
  * is self-instrumented — which is why the card is worth wiring up rather
  * than deleting.
  */
+/* ------------------------------------------------------------------ */
+/* Client work — the three employed years, evidenced                   */
+/* ------------------------------------------------------------------ */
+/**
+ * THE REDESIGN HAD DELETED THE PAID WORK'S ONLY EVIDENCE.
+ *
+ * Three hiring reviews in a row returned the same verdict — "a person who
+ * has documented his hobby to a professional standard and his profession
+ * not at all" — and the third measured why: every outbound link on this
+ * wall pointed at a side project or a job-platform profile, and NONE at
+ * either employer. The conclusion drawn was that the paid work could not be
+ * evidenced. That was wrong. It was evidenced, on the site this one
+ * replaces, and the redesign dropped it.
+ *
+ * Twenty-five live commercial sites, recovered from that site's own work
+ * list. Its per-site `Tasks` field is reproduced here EXACTLY — a card
+ * tagged Maintenance says maintained, never built. Nine of the thirteen
+ * cards are maintenance only, and saying "25 sites I built" would be false.
+ *
+ * WHAT THIS IS FOR, in the owner's own framing: he had not written PHP,
+ * Typo3 or CraftCMS before this apprenticeship and does not write them now.
+ * So the record is not a PHP developer's record — it is evidence that a
+ * stack he did not know was handed to him and he shipped production work in
+ * it. That is the one claim a language census structurally cannot make, and
+ * it is why this belongs under Columbus rather than in Projects.
+ */
+export const clientWork = {
+	title: "What I shipped there",
+	lead: "25 live sites, in a stack I had not used before. I wrote no PHP, no Typo3 and no CraftCMS before 2022-09-01, and I write none of them today.",
+	/** The tags are the ones published per site — developed, or only kept running. */
+	tagNote: "Split the way I logged it: what I developed, and what I only maintained.",
+	groups: [
+		{
+			label: "Developed and maintained",
+			items: [
+				{
+					name: "Messe Friedrichshafen — 13 trade-fair sites",
+					stack: "CraftCMS · PHP · Twig · SCSS · Bootstrap",
+					href: "https://messe-friedrichshafen.de/",
+					also: "Aero Expo, Americana, Aqua Fisch, Fairnamic, HAM-Radio, IBO Messe, Interboot, Klassikwelt Bodensee, Motorradwelt Bodensee, Pferd Bodensee, Tuningworld Bodensee, Vertical Pro"
+				},
+				{
+					name: "Simply-V",
+					stack: "CraftCMS · TypeScript · PHP · Twig · SCSS",
+					href: "https://simply-v.de/"
+				},
+				{
+					name: "Columbus Interactive",
+					stack: "PHP · SCSS · CSS3",
+					href: "https://columbus-interactive.de/"
+				}
+			]
+		},
+		{
+			label: "Developed",
+			items: [
+				{
+					name: "MP Family Office",
+					stack: "Bootstrap · Handlebars · TypeScript · Docker · SCSS",
+					href: "https://mp-familyoffice.de/"
+				}
+			]
+		},
+		{
+			label: "Maintained",
+			items: [
+				{ name: "Medizin Campus Bodensee", stack: "PHP · SCSS", href: "https://medizin-campus-bodensee.de/" },
+				{ name: "Paravan", stack: "Typo3", href: "https://paravan.de/" },
+				{ name: "Eisele", stack: "Typo3", href: "https://eisele.de/" },
+				{ name: "ID-S", stack: "Handlebars · PHP · Typo3", href: "https://id-s.de/" },
+				{ name: "EBZ Group", stack: "Typo3", href: "https://ebz-group.com/" },
+				{ name: "Columbus AG", stack: "VueJS", href: "https://columbus.ag/" },
+				{ name: "Hobart", stack: "PHP", href: "https://hobart.de/" },
+				{ name: "Arnold Next-G", stack: "Handlebars", href: "https://arnoldnextg.de/" },
+				{ name: "Lightweight", stack: "SCSS · CSS3", href: "https://lightweight.info/" }
+			]
+		}
+	],
+	close: "Every one of them is still live, so the work can be opened rather than taken on trust. The stack was new to me on the first day and I have not used it since — which is the part of three employed years a language census cannot show."
+} as const;
+
 export const githubStats = {
 	title: "GitHub record",
 	asOf: SNAPSHOT_AS_OF,

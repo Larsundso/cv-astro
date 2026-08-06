@@ -1146,9 +1146,18 @@ const JOIN_STACK = {
 			--mail-slot: calc(9rem + var(--baseline));
 			--plinth: 26px;
 			container-type: inline-size;
-			left: calc(var(--baseline) * 1.5);
-			right: calc(var(--baseline) * 1.5);
-			bottom: calc(var(--baseline) * 1.5);
+			/* FULL BLEED, ON THE EDGE. The strip used to float 12px clear of
+			   the viewport on all three sides, which is what turned even a
+			   solid shelf into a bisector: a line of text showed through the
+			   12px gutters left and right AND through the 12px band below it,
+			   so the reader saw the top of a sentence, then paper, then the
+			   bottom of the same sentence. Measured at 200px steps over the
+			   whole page, that was still 55 of 102 offsets after the ground
+			   was made solid. Seated on the edge, a line is either above the
+			   shelf and whole, or under it and gone. */
+			left: 0;
+			right: 0;
+			bottom: 0;
 			width: auto;
 			/* the box is still 60px, and `body { padding-bottom: 72px }`
 			   still pays for it exactly — what changed is how much of the
@@ -1171,13 +1180,37 @@ const JOIN_STACK = {
 		   and an edge is a licensed occluder, which a mid-sheet stop is not.
 		   And the miniature thread is set 10px down from that edge, so the
 		   descending thread never terminates ON it. */
+		/* THE GROUND NOW FILLS THE BOX IT ALREADY OCCUPIED. Four disciplines
+		   measured this independently and agreed: the strip covers live body
+		   text at 9/10, 21/25, 20/24 and 89/105 sampled offsets. The last of
+		   those swept 200px steps over the whole page and found 246 distinct
+		   text runs struck.
+		   The cause was not the strip's height — the box was always 60px and
+		   `body { padding-bottom: 72px }` always paid for it. The cause was
+		   that only 26px of the box carried ground, so the label chit and the
+		   address chit floated as two opaque ISLANDS over bare cork with live
+		   text visible between and around them. That is why the damage read
+		   as it did: text was not hidden, it was BISECTED — "voice state,
+		   then wo[]rld tag", both ends legible, the middle gone. A reader
+		   cannot tell what a bisected line took from them, and on a wall
+		   whose argument is "I can show the source for every figure" the
+		   inference is not that the navigation is at fault.
+		   One ground across the whole box turns three islands into a shelf.
+		   Text now scrolls UNDER an edge — the same affordance as a fixed
+		   header, which every reader already knows how to read — instead of
+		   having a piece bitten out of it. Nothing grew: same 60px box, same
+		   reserved gutter, same ticks, same offsets. The ink stopped floating.
+		   Stated plainly, because the honest limit belongs in the file: a
+		   fixed strip over a scrolling page cannot be made NON-occluding.
+		   The reserved gutter pays for the document's foot, not for the
+		   scroll. What this buys is that occlusion becomes legible. */
 		.rail::before {
 			content: "";
 			position: absolute;
 			left: 0;
 			right: 0;
+			top: 0;
 			bottom: 0;
-			height: var(--plinth);
 			background-color: var(--paper);
 			background-image: var(--lamp);
 			border-top: 1px solid oklch(var(--shade) / 0.22);
@@ -1276,22 +1309,26 @@ const JOIN_STACK = {
 			right: auto;
 			left: 50%;
 			top: auto;
-			/* the tick's box ends 10px past the strip's foot, so this puts
-			   the label's own foot one baseline clear of the plinth's top
-			   edge — clear of the paper, on the cork, where it reads */
-			bottom: calc(var(--plinth) + var(--baseline) + 10px);
+			/* SEATED, NOT FLOATING. This used to open upward off the plinth
+			   onto bare cork, which is what made it one of the three opaque
+			   islands over live text (100 strikes for the address chit, 75
+			   for this one). The ground now fills the box, so the label sits
+			   INSIDE the shelf, clear of the thread at strip-y 44 and clear
+			   of the shelf's own top edge. It is still one label, still the
+			   current district only. */
+			bottom: calc(var(--plinth) + 4px);
 			translate: -50% 0;
 		}
 
+		/* No stock and no shadow of its own: the shelf is already paper, and
+		   a paper chit on paper reads as a smudge, not an object. The label
+		   is now PRINTED on the shelf rather than pinned in front of it. */
 		.rail__tick[aria-current="true"] .rail__label {
 			width: auto;
 			height: auto;
 			overflow: visible;
 			clip-path: none;
 			padding: calc(var(--baseline) * 0.5) var(--baseline);
-			background-color: var(--paper);
-			background-image: var(--lamp);
-			box-shadow: var(--pin-shadow);
 		}
 
 		/* the two end districts' names would run off the strip if they
@@ -1327,6 +1364,13 @@ const JOIN_STACK = {
 		   largest target in the rail, which is the correct ranking for the
 		   only conversion event on the wall, and now 44px tall rather than
 		   60 so it stops reaching up into the scent band. */
+		/* see `data-at-contact` in the script: the chit retires once the
+		   reader is standing on the address itself */
+		.rail[data-at-contact] .rail__mail {
+			opacity: 0;
+			pointer-events: none;
+		}
+
 		.rail__mail {
 			display: grid;
 			place-items: center;
@@ -1842,6 +1886,14 @@ const JOIN_STACK = {
 				if (tick === current) tick.setAttribute("aria-current", "true");
 				else tick.removeAttribute("aria-current");
 			}
+			/* Inside the contact district the address is on screen at 38px,
+			   so the chit is pure redundancy there — and it was measured
+			   sitting on "I answer every mail to this address.", the highest
+			   converting sentence on the page, and on "the next card goes
+			   here." A direction sign pointing at the thing you are already
+			   standing on is not wayfinding; it is an obstruction. The ticks
+			   and the riding pin stay: position is still worth reporting. */
+			rail?.toggleAttribute("data-at-contact", current === live[live.length - 1]);
 		};
 
 		placeTicks();

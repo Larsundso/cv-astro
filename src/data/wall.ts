@@ -237,36 +237,73 @@ export const germanRuns: readonly string[] = [
 	"Sommer 2025"
 ];
 
-/** One run of text and whether it is German. */
-export type LangRun = { text: string; de: boolean };
+/**
+ * Proper nouns that may never be hyphenated, in either locale.
+ *
+ * A legal name is DATA, not prose. `hyphenate-limit-chars: 6 3 3` cannot
+ * protect one — "Interactive" is eleven letters, so no length rule forbids
+ * breaking it, and the German wall duly printed `Columbus In-/teractive
+ * GmbH` on the card that evidences the apprenticeship. That is not an ugly
+ * break; it is the wrong name for the company that trained him, on the page
+ * written for the readers most likely to check it.
+ *
+ * Marked here rather than at the render sites because these strings are
+ * interpolated from `snapshot.ts` into both locales' prose, so there is no
+ * element to hang a class on. Longest-first matching is handled by the
+ * scanner; order in this list does not matter.
+ */
+export const properNouns: readonly string[] = [
+	"Columbus Interactive GmbH",
+	"Raleo Digital GmbH",
+	"Technisches Gymnasium Ravensburg"
+];
+
+/**
+ * One run of text: whether it is German, and whether it is a proper noun
+ * that must not break. The two are independent — a German-language run may
+ * also be a name — so they are separate flags rather than one enum.
+ */
+export type LangRun = { text: string; de: boolean; proper?: boolean };
 
 /**
  * Split a string into alternating native / German runs, longest match first
  * at any given position. Pure, and locale-agnostic: the run list is the
  * locale's business, this is only the scanner.
  */
-export const splitLangRuns = (text: string, runs: readonly string[] = germanRuns): LangRun[] => {
-	if (runs.length === 0) return [{ text, de: false }];
+export const splitLangRuns = (
+	text: string,
+	runs: readonly string[] = germanRuns,
+	names: readonly string[] = properNouns
+): LangRun[] => {
+	if (runs.length === 0 && names.length === 0) return [{ text, de: false }];
+	/* One scan over both lists. A run carries its origin so a German-language
+	   passage and an unbreakable name stay independent flags. */
+	const marked = [
+		...runs.map((text) => ({ text, de: true, proper: false })),
+		...names.map((text) => ({ text, de: false, proper: true }))
+	];
 	const parts: LangRun[] = [];
 	let i = 0;
 	while (i < text.length) {
 		let at = -1;
-		let hit = "";
-		for (const run of runs) {
-			const found = text.indexOf(run, i);
+		let hit: (typeof marked)[number] | null = null;
+		for (const candidate of marked) {
+			const found = text.indexOf(candidate.text, i);
 			if (found === -1) continue;
-			if (at === -1 || found < at || (found === at && run.length > hit.length)) {
+			/* Longest match wins at a tie, so "Columbus Interactive GmbH" beats
+			   any shorter name that starts at the same offset. */
+			if (at === -1 || found < at || (found === at && candidate.text.length > (hit?.text.length ?? 0))) {
 				at = found;
-				hit = run;
+				hit = candidate;
 			}
 		}
-		if (at === -1) {
+		if (at === -1 || !hit) {
 			parts.push({ text: text.slice(i), de: false });
 			break;
 		}
 		if (at > i) parts.push({ text: text.slice(i, at), de: false });
-		parts.push({ text: hit, de: true });
-		i = at + hit.length;
+		parts.push({ text: hit.text, de: hit.de, proper: hit.proper });
+		i = at + hit.text.length;
 	}
 	return parts.filter((part) => part.text.length > 0);
 };

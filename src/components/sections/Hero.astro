@@ -380,21 +380,21 @@ const THREAD_MOBILE = {
 					<p class="hero__intro-name">{hero.name}</p>
 					{/* the claim, and now the largest typed setting in the fold */}
 					<p class="hero__intro-claim">
-						{runs(hero.intro[1]).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.text))}
+						{runs(hero.intro[1]).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.text))}
 					</p>
 					{/* the level statement — the duration a screener would otherwise
 					    compute from the apprenticeship letterhead alone, and compute
 					    wrongly. Bold, on the card's own size, directly under the
 					    sentence it quantifies. */}
 					<p class="hero__intro-anchor">
-						{runs(seniorityAnchor).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.text))}
+						{runs(seniorityAnchor).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.text))}
 					</p>
 					{/* the record proper, at the card's own size and weight */}
 					<p class="hero__intro-role">
-						{runs(hero.intro[0]).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.text))}
+						{runs(hero.intro[0]).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.text))}
 					</p>
 					{seniorityQualifier && (
-						<p>{runs(seniorityQualifier).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.text))}</p>
+						<p>{runs(seniorityQualifier).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.text))}</p>
 					)}
 					<p>{hero.location}</p>
 					<p class="hero__intro-langs">{hero.languages}</p>

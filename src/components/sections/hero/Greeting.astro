@@ -291,8 +291,27 @@ const drift = (i: number) => {
 		   for "Lars Boese"), leaving 4.4 % against font-metric drift, and the
 		   swash's 114 % overhang inside the sheet's padding.
 		   The cap is 90px: nothing on this wall is wider than the 78rem shell,
-		   so the cap is a guard rail rather than a working value. */
-		--sig-size: clamp(2.625rem, 17cqi, 5.625rem);
+		   so the cap is a guard rail rather than a working value.
+
+		   THE FLOOR WAS A `rem` INSIDE A CONTAINER QUERY, AND THAT IS THE
+		   WHOLE BUG. This container exists because "a viewport-driven clamp
+		   cannot know how wide this card is" — and then the floor was written
+		   in a unit that answers to the ROOT font size, which the reader sets
+		   and the card knows nothing about. So a raised root overrode the
+		   container the container query was built to respect. Measured before:
+		     320w root16 -> overflow  -1px
+		     320w root24 -> overflow  81px
+		     390w root32 -> overflow 108px
+		   with `pageOverflow: 0` in every case, because `overflow-x: clip`
+		   suppresses the scrollbar. The name silently truncated to "Lars Boes"
+		   at a documented browser setting: the wall's own thesis is this man,
+		   named, signed, and it misstated the name with no signal at all.
+		   `min(..., 20cqi)` re-imposes the container as the outer bound, so
+		   the floor can never outgrow the paper regardless of the root. The
+		   rule this belongs to: THE UNIT MUST MATCH WHAT THE CONSTRAINT IS
+		   ABOUT. Fitting inside a card is a container constraint, so it is
+		   expressed in container units and nothing else. */
+		--sig-size: min(clamp(2.625rem, 17cqi, 5.625rem), 20cqi);
 	}
 
 	/* The salutation is the quiet half of the card: the same pen, a step
@@ -352,6 +371,7 @@ const drift = (i: number) => {
 	/* ---- the resolved state: a signature, not a headline ------- */
 	.hero-greeting__hand {
 		display: block;
+		max-inline-size: 100%;
 		font-family: var(--font-hand);
 		/* 400 = pen. A marker with colour in it reads as a logo. This is the
 		   weight of the CARD's hand; the signed name overrides it below,
@@ -452,6 +472,10 @@ const drift = (i: number) => {
 		aspect-ratio: 341 / 79;
 		font-size: var(--sig-size);
 		opacity: 0;
+		/* belt and braces with the `20cqi` bound on --sig-size: `--sig-width`
+		   is derived, and a derived width has its own drift. Neither half of
+		   the signature may be wider than the sheet it is written on. */
+		max-inline-size: 100%;
 	}
 
 	.hero-greeting__subline {

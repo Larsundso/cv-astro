@@ -1143,7 +1143,16 @@ const JOIN_STACK = {
 			/* the chip's own width plus a gutter — the ticks' track and the
 			   pin's travel both stop here, so the address never has a tick
 			   or the index under it */
-			--mail-slot: calc(9rem + var(--baseline));
+			/* THE ADDRESS COMPETES WITH THE TICKS FOR ONE TRACK, so its slot is
+			   bounded by the track and not only by the root. `9rem` alone is
+			   152px at root 16 and 224px at root 24 — on a 320px viewport that
+			   leaves 96px for five 24px targets, which is why the guard below
+			   used to have to delete them. Capped at 45cqi the address can
+			   never take more than nine-twentieths of the strip, so five
+			   targets always have room at the width WCAG reflow actually
+			   requires. Same rule again: the constraint is "share of this
+			   strip", so the unit is the strip's. */
+			--mail-slot: min(calc(9rem + var(--baseline)), 45cqi);
 			--plinth: 26px;
 			container-type: inline-size;
 			/* FULL BLEED, ON THE EDGE. The strip used to float 12px clear of
@@ -1430,7 +1439,23 @@ const JOIN_STACK = {
 	   so the reader still learns where they are, and five named destinations
 	   survive at 24px. Only under 20rem — genuine 400 % zoom — is there not
 	   enough track left for five targets at all. */
-	@media (max-width: 24rem) {
+	/* THESE TWO GUARDS ARE IN `px` ON PURPOSE, AND IT IS THE SECOND HALF OF
+	   THE SAME BUG THE ARITHMETIC SLIP ABOVE WAS. Written as `24rem` / `20rem`
+	   they answered to the ROOT FONT SIZE, which the reader sets — so at
+	   Chrome's "Large" (root 20) the lower guard became 400px and at "Very
+	   large" (root 24) it became 480px, deleting the wall's entire section
+	   index on every mainstream phone held by anyone who enlarges text.
+	   Verified: 5 of 5 ticks present at root 16, 0 of 5 at root 20 and 24.
+	   What this guard is about is whether the DEVICE has physical room for
+	   five 24px targets. That is a physical constraint, so it is measured in
+	   physical units, and a reader's text preference must not move it.
+	   The rule, stated once for the file: THE UNIT MUST MATCH WHAT THE
+	   CONSTRAINT IS ABOUT. Fitting inside a card is a container constraint
+	   (`cqi`); having room for a touch target is a device constraint (`px`);
+	   a ruling that must match the text sitting on it is a type constraint
+	   (the same unit as the type). 384px and 320px are what these two rules
+	   have always MEANT — they are the old values at the default root. */
+	@media (max-width: 384px) {
 		.rail__tick {
 			left: calc(var(--even, 0) * 100%);
 			margin-left: calc(var(--even, 0) * -24px);
@@ -1457,7 +1482,13 @@ const JOIN_STACK = {
 		}
 	}
 
-	@media (max-width: 20rem) {
+	/* 320px is not a fringe width: it is the viewport WCAG 1.4.10 reflow is
+	   written against (400 % zoom on 1280), so deleting the section index at
+	   `max-width: 320px` failed reflow at exactly the width the criterion
+	   names. With the address slot capped at 45cqi above, five 24px targets
+	   fit at 320 with room to spare, so the floor drops to a width no real
+	   device and no zoom level lands on. */
+	@media (max-width: 279px) {
 		.rail__ticks {
 			display: none;
 		}

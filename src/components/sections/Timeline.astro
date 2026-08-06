@@ -512,6 +512,19 @@ const links = layout.map(({ side }, i) => {
 												   separate sheets. The stamp carries the whole range. */
 												<>
 													<h3>{ts.schooling}</h3>
+													{
+														/* The copy's own docstring says "Render it directly
+														   under the heading", and it never was — the card was a
+														   heading and three bare date lines. That left a reader
+														   to infer, unaided, why a Technisches Gymnasium entry
+														   lasted two months, and a German reader knows exactly
+														   what that pattern looks like and will supply the
+														   unflattering reading.
+														   The wall answers every other unflattering fact — the
+														   164 empty days, the unverifiable total, the drift — by
+														   stating it first. Here alone it let the reader guess. */
+													}
+													<p class="rf-school rf-school--note">{ts.schoolingNote}</p>
 													{row.entries.map((school) => (
 														<>
 															<p class="rf-school">
@@ -714,11 +727,27 @@ const links = layout.map(({ side }, i) => {
 
 	/* The key sits in the header's right-hand cork, opposite the flyer.
 	   Absolute so it never becomes a row and never shifts the thread's
-	   entry pin. Only shown where there is genuinely room for a 19rem slip
-	   beside a display headline — below that it would crowd the marquee,
-	   and the Practice instance still teaches the code. */
+	   entry pin.
+
+	   IT USED TO BE `display: none` HERE, AND THAT MEANT THE PHONE NEVER GOT
+	   THE FIX. The defect this key was built to cure was stated plainly a
+	   cycle ago: "a code whose key arrives last reads as decoration, which is
+	   exactly what every blind judge called it." The cure was gated at 64rem,
+	   so it landed on the desktop and the phone kept the disease — measured,
+	   the only key a phone reader reaches is the Practice copy at 83.0 % of
+	   the page, AFTER 15 of the 24 ink-coded notes it explains, the first of
+	   them at 7.4 %. Desktop gets it at 9.1 %.
+	   The old justification — "the Practice instance still teaches the code"
+	   — is what a fix looks like when it has only been checked at the width
+	   it was authored at. It is the same shape as the address chit that
+	   landed on the phone and not the desktop, and the same shape as a `rem`
+	   guard verified only at root 16.
+	   Below 64rem the key is now simply in flow: no width token, so it takes
+	   the container's, and `InkKey` already declares `max-inline-size: 100%`,
+	   so a 19rem slip cannot overflow a 320px phone even at a 24px root. */
 	.rf-headkey {
-		display: none;
+		display: block;
+		margin-block: calc(var(--baseline) * 2) 0;
 	}
 
 	@media (min-width: 64rem) {
@@ -729,6 +758,7 @@ const links = layout.map(({ side }, i) => {
 			right: 0;
 			z-index: 1;
 			width: var(--headkey-w);
+			margin-block: 0;
 		}
 
 		/* The key is absolute, so it takes no room in the grid and the head

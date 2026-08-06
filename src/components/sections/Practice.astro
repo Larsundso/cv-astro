@@ -29,10 +29,13 @@
  * behind "four marker colours visible at once". A poster shouts its
  * headline and prints its reasoning; it does not shout both.
  *
- * The ink key is pinned under the flyer that has just written in four of
- * its six inks — confirmation, in Calori's sense. It is safe to pin a
- * second, earlier instance elsewhere on the wall; this one is the
- * confirmation, not the declaration.
+ * Under the flyer that has just written in four of its six inks sits the
+ * GitHub record — the eleven pull requests merged into repositories the
+ * owner does not own. This slot used to carry a second, complete copy of the
+ * ink key, on the argument that the Werdegang instance was hidden below
+ * 1024px. It no longer is, so the duplicate went and the only unrendered
+ * copy on the wall took its place: the wall's sole third-party-attested
+ * claim, in the section about how the work is actually run.
  *
  * Order. Marquee, then the values flyer and its key on the left rail, then
  * the record read straight down the right. One crossing, at the point
@@ -42,7 +45,6 @@
  * All copy comes verbatim from ~/data/wall (voice-law final).
  */
 import HandNote from "~/components/wall/HandNote.astro";
-import InkKey from "~/components/wall/InkKey.astro";
 import PinCard from "~/components/wall/PinCard.astro";
 import Sticker from "~/components/wall/Sticker.astro";
 import { getWall, type Locale } from "~/data/i18n";
@@ -54,7 +56,7 @@ interface Props {
 const { class: className } = Astro.props;
 
 const locale = (Astro.currentLocale ?? "en") as Locale;
-const { aiPractice, contact, houseRules, ui } = getWall(locale);
+const { aiPractice, contact, githubStats, houseRules, ui } = getWall(locale);
 
 /* The record, filed by block. Governance is the argument; orchestration and
    memory/tooling are the record; volume and the adoption curve are the
@@ -109,26 +111,38 @@ const rules = houseRules.rules.map((rule) => {
 			</PinCard>
 
 			{
-				/* The code the flyer above has just been written in — and the
-				   SECOND key on this page, the one pinned in the Werdegang
-				   being the first. Both were `aria-labelledby` their own copy
-				   of one visible line, so the accessibility tree carried
-				   `complementary :: "a note's ink names its claim"` TWICE and
-				   NVDA's `D` key offered two entries a reader could not tell
-				   apart. Naming this one by the act it stands in as well
-				   separates them out of text already visible on the wall:
-				   "HOW I WORK a note's ink names its claim". Measured, the
-				   Werdegang key is inside a `display: none` ancestor below
-				   1024px — so this is the ONLY ink key a phone has, and
-				   dropping its landmark instead would have cost the phone the
-				   whole artifact's entry in the rotor. */
+				/* THIS SLOT USED TO HOLD A SECOND, COMPLETE COPY OF THE INK KEY,
+				   and the only argument for it was that the Werdegang key sat
+				   inside a `display: none` ancestor below 1024px — so on a
+				   phone this was the only key there was. That gate is gone;
+				   the Werdegang key is now in flow at every width, where the
+				   reader meets it before the notes it explains rather than
+				   after fifteen of them. The duplicate's reason to exist went
+				   with it, and 13 lines of legend printed twice is 26 lines of
+				   the page's word budget spent on one content — the second
+				   copy landing at 88 % depth, long after any reader who needed
+				   it has learned the code or stopped caring.
+				   It is REPLACED rather than deleted, because this key was
+				   anchoring the left of an otherwise almost bare screen, and
+				   pooled desktop emptiness is a known defect — a bare deletion
+				   would have enlarged a hole while closing a duplication.
+				   What goes here instead is the only copy on this wall with
+				   nowhere to render: eleven pull requests merged into eight
+				   repositories the owner does not own. Every other figure on
+				   this site is self-instrumented — his WakaTime, his repos.
+				   These are the ONLY claims a third party attested to, and
+				   they were the ones that did not render, on a wall whose
+				   entire argument is "check me". The search URL that
+				   reproduces them ships with the copy. */
 			}
-			<InkKey
-				class="practice__key"
-				rotate={-1}
-				id="practice-ink-key"
-				labelledBy="practice-title"
-			/>
+			<PinCard as="article" variant="typed" rotate={-1} class="practice__github">
+				<h3 class="practice__github-title">{githubStats.title}</h3>
+				{githubStats.lines.map((line) => <p>{line}</p>)}
+				<p class="practice__github-src">
+					<a href={githubStats.search.href} rel="noopener">{githubStats.search.label}</a>
+					{" · "}{githubStats.sourceNote}, {githubStats.asOf}
+				</p>
+			</PinCard>
 
 			<div class="practice__sticker">
 				<Sticker name="sip" size={4.5} rotate={-8} />
@@ -258,6 +272,31 @@ const rules = houseRules.rules.map((rule) => {
 		/* stacked, one column edge for both stacks — and it keeps the
 		   Courier measure inside 75ch */
 		max-width: 42rem;
+	}
+
+	/* The GitHub record. `--step-1` on the ruling, not `--step-2`: this is a
+	   subordinate record standing under the values flyer, and it must not
+	   read as a second act heading beside HOUSE RULES. */
+	.practice__github-title {
+		margin: 0 0 var(--baseline);
+		font-size: var(--step-1);
+		line-height: var(--lh-1);
+		font-weight: 700;
+	}
+
+	/* the provenance line in the same subdued register the other source
+	   notes use — the link is the point, so it keeps the thread's underline */
+	.practice__github-src {
+		margin: var(--baseline) 0 0;
+		font-size: var(--step--1);
+		line-height: var(--lh--1);
+		color: var(--ink-muted, var(--ink));
+	}
+
+	.practice__github-src a {
+		color: inherit;
+		text-decoration-color: var(--thread);
+		text-underline-offset: 3px;
 	}
 
 	/* the demoted title: a card title now, not the act's heading */

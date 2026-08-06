@@ -403,10 +403,42 @@ interface RankedRow {
 	color: string;
 }
 
-const rankedBarSvg = (rows: RankedRow[]): string =>
+/**
+ * TWO SHEETS 22px APART WERE NOT TO A COMMON SCALE, so the smaller number
+ * drew the longer bar.
+ *
+ * Measured on the render: the projects sheet drew 2,800.7 h as 259.79px and
+ * the languages sheet drew 3,019.9 h as 240.18px — same ink, same bar
+ * height, same units, same window, one gutter apart, with the larger
+ * quantity 8.2 % SHORTER. Cross-sheet lie factor 1.166 with the sign
+ * inverted.
+ *
+ * Two causes, and both had to go. `xAxis` carried no `max`, so each sheet
+ * auto-scaled to its own maximum; and `containLabel: true` made the plot
+ * width whatever the longest category label did not eat, so the error
+ * differed by LOCALE — 1.166 English, 1.115 German, because "Everything
+ * else" and "Alles andere" are different lengths. The physical length of a
+ * bar was being set by the length of a word.
+ *
+ * `left: 138` is the existing 130vb axisLabel cap plus the 8vb gap, fixed so
+ * the plot no longer depends on the label. `axisMax` is opt-in: sheets that
+ * are shares of ONE record pass a shared maximum; unrelated sheets keep
+ * their own scale, which is correct for them.
+ *
+ * Rejected, after measuring it: `max = career total (5,432.78 h)`, which is
+ * more elegant — every bar would read as a share of the record, matching
+ * both unit lines. It takes Vue.js from 7.82px to ~4.4px at a 390 viewport,
+ * which is not a bar any more.
+ */
+/** Shared axis domain for the two snapshot sheets; set where the projects
+ *  sheet is built, consumed by both. `undefined` on the full-data path,
+ *  where each sheet legitimately keeps its own scale. */
+let SNAPSHOT_AXIS_MAX: number | undefined;
+
+const rankedBarSvg = (rows: RankedRow[], axisMax?: number): string =>
 	renderSvg(RANKED_W, 24 + rows.length * 48, {
-		grid: { left: 8, right: 104, top: 10, bottom: 10, containLabel: true },
-		xAxis: { type: "value", show: false },
+		grid: { left: 138, right: 104, top: 10, bottom: 10 },
+		xAxis: { type: "value", show: false, min: 0, max: axisMax },
 		yAxis: {
 			type: "category",
 			inverse: true,
@@ -467,10 +499,32 @@ const leadShareOfChart = (rows: RankedRow[], locale: Locale): string | null => {
 	return `${figure(Math.round((rows[0].hours / total) * 1000) / 10, locale)} %`;
 };
 
-/** Alt text is en-US in every locale — see the note on `pctIn`. */
-const rankedAlt = (intro: string, rows: RankedRow[]): string =>
+/**
+ * THE ALT TEXT SPEAKS THE READER'S NUMBERS NOW.
+ *
+ * It used to be forced to en-US in every locale, and the justification was
+ * real when it was written: the alt text was "the screen-reader reader's
+ * only provenance and is quoted verbatim elsewhere". That expired when the
+ * `<details>` data tables shipped — opened on /de/ they already carry
+ * `2.800,7 h` and `55,59 %`, correctly localised, one click away. Provenance
+ * lives in the value, not in the separator.
+ *
+ * What the exception cost, meanwhile, was paid by the one audience that
+ * cannot see the visible card. A German screen reader speaking `1,739` says
+ * *eins Komma sieben drei neun*, so the wall's largest graphic was announced
+ * as 1.7 cells and its biggest project as 2.8 hours — three orders of
+ * magnitude out. That is exactly the defect the data layer's own rule was
+ * written against ("8,357 Servern" reads as eight point three five seven);
+ * the rule was written for the visible card and the exception then swallowed
+ * it for everyone who cannot see one.
+ */
+const rankedAlt = (intro: string, rows: RankedRow[], locale: Locale = "en"): string =>
 	`${intro}: ${rows
-		.map((r) => `${r.name} ${r.timeEn}${r.shareEn ? ` (${r.shareEn})` : ""}`)
+		.map((r) => {
+			const time = locale === "en" ? r.timeEn : r.timeExact;
+			const share = locale === "en" ? r.shareEn : r.share;
+			return `${r.name} ${time}${share ? ` (${share})` : ""}`;
+		})
 		.join("; ")}.`;
 
 const rankedTable = (
@@ -728,7 +782,7 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 			title: cs.titles.topProjects(rows.length),
 			unit: cs.units.lifetimeHours(lifetimeWindow, career.asOf),
 			svg: rankedBarSvg(rows),
-			alt: rankedAlt(cs.alt.topProjectsIntro(rows.length, career.asOf), rows),
+			alt: rankedAlt(cs.alt.topProjectsIntro(rows.length, career.asOf), rows, locale),
 			table: rankedTable(cs.tableHeads.project, cs.tableHeads, rows),
 			annotation: {
 				text: cs.annotations.projectLeads(rows[0].name, rows[0].time),
@@ -739,6 +793,15 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 		// Snapshot: only the Ayako-family figure is published per project.
 		const fam = career.projects[0];
 		const famSeconds = fam.seconds ?? 0;
+		/* The shared domain for the two snapshot sheets. They are pinned 22px
+		   apart, in the same ink, in hours of the same record, over the same
+		   window — so they get one scale, and a reader glancing across the
+		   gutter gets the right answer instead of the reverse one. */
+		SNAPSHOT_AXIS_MAX = Math.max(
+			famSeconds / 3600,
+			(career.total.seconds - famSeconds) / 3600,
+			telemetry.lifetime.languages[0]?.hours ?? 0
+		);
 		const famShare = fam.percent ?? telemetry.lifetime.ayakoFamily.percent;
 		const restSeconds = Math.max(0, career.total.seconds - famSeconds);
 		const rows: RankedRow[] = [
@@ -777,8 +840,8 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 			id: "projects",
 			title: outweighs ? found.ayakoTitle : cs.titles.ayakoFamily,
 			unit: cs.units.lifetimeShare(lifetimeWindow, career.asOf),
-			svg: rankedBarSvg(rows),
-			alt: rankedAlt(cs.alt.ayakoFamilyIntro(career.asOf), rows),
+			svg: rankedBarSvg(rows, SNAPSHOT_AXIS_MAX),
+			alt: rankedAlt(cs.alt.ayakoFamilyIntro(career.asOf), rows, locale),
 			table: rankedTable(cs.tableHeads.project, cs.tableHeads, rows, cs.notes.projectsDerived(career.asOf)),
 			annotation: {
 				text: outweighs ? found.ayakoNote : cs.annotations.ayakoShare(famShare),
@@ -812,7 +875,7 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 				: cs.titles.topLanguages(rows.length),
 			unit: cs.units.last12MonthsHours(`${year.range.start} → ${year.range.end}`, year.asOf),
 			svg: rankedBarSvg(rows),
-			alt: rankedAlt(cs.alt.topLanguagesYearIntro(rows.length, year.asOf), rows),
+			alt: rankedAlt(cs.alt.topLanguagesYearIntro(rows.length, year.asOf), rows, locale),
 			table: rankedTable(cs.tableHeads.language, cs.tableHeads, rows),
 			annotation: {
 				text: found.languagesNoteCut(rows.length),
@@ -870,6 +933,21 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 				color: INK_MUTED
 			});
 		}
+		/* A RANKED BAR CHART ASSERTS, BY FORM ALONE, THAT VERTICAL ORDER IS
+		   MAGNITUDE ORDER — and this sheet was printing a row the eye can see
+		   is out of order. The remainder is pushed after the sorted language
+		   rows and `rankedBarSvg` renders array order top to bottom, so
+		   "Everything else" (1,207.2 h, 22.22 % of the record) was drawn in
+		   FIFTH place, 1.66x the length of the JavaScript bar three rows above
+		   it. The sister sheet 22px away happens to be in magnitude order, so
+		   the two also disagreed about the convention by accident.
+		   The grey INK_MUTED fill and the trailing `*` already do the job the
+		   "Other goes last" convention exists to do — they mark the row as
+		   not-itemised — so nothing is lost by putting it where its size says.
+		   Sorted here rather than at the push, because `rankedAlt` and
+		   `rankedTable` both iterate this same array: the mark, the alt text
+		   and the data table cannot desynchronise. */
+		rows.sort((a, b) => b.hours - a.hours);
 		/* With the remainder charted the sheet's rows sum to the record, so
 		 * the leading language's published share IS its share of everything
 		 * tracked. It is taken from the pull, not re-derived from the rows:
@@ -883,8 +961,8 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 			id: "languages",
 			title: found.languagesTitleOfRecord(langs[0].name, lead),
 			unit: cs.units.lifetimeHours(lifetimeWindow, career.asOf),
-			svg: rankedBarSvg(rows),
-			alt: rankedAlt(cs.alt.appLanguagesLifetimeIntro(langs.length, career.asOf), rows),
+			svg: rankedBarSvg(rows, SNAPSHOT_AXIS_MAX),
+			alt: rankedAlt(cs.alt.appLanguagesLifetimeIntro(langs.length, career.asOf), rows, locale),
 			table: rankedTable(
 				cs.tableHeads.language,
 				cs.tableHeads,

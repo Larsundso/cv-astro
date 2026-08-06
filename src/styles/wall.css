@@ -408,13 +408,46 @@ main {
 }
 
 /* ---- German sets long compounds ---------------------------- */
-/* `hyphens` appeared nowhere in src/. Nothing overflows today only because
-   the copy is hand-hyphenated; this is the insurance, and it costs one
-   declaration. The English wall is untouched — German is the locale whose
-   words are long enough to need it. */
+/* THIS WAS TABLED TWO CYCLES AGO AND NEVER APPLIED. The old rule was
+   `:lang(de) { hyphens: auto }` with the CSS defaults, and the comment above
+   it claimed "the English wall is untouched". Both halves were false, and
+   both were photographed:
 
-:lang(de) {
+   1. `:lang(de)` matches any element in a German-tagged SUBTREE, and the
+      English page carries eight (the language tab, and `<span lang="de">`
+      around German terms). So the English wall hyphenated too — the only
+      two broken lines on it were `Fachinforma-/tiker` and `Som-/mer 2025`,
+      i.e. the credential and the exam date. `html:lang(de)` is scoped to
+      the DOCUMENT, which is what was meant.
+   2. `hyphenate-limit-chars` defaulted to `auto` (~5 2 2), so five-letter
+      words broke and two-character stubs were legal: `zu de-/nen`,
+      `3 Discord-Bi-/bliotheken` (a line ending in two hyphens), and
+      `in den Da-/tentabellen`, which breaks the compound at the wrong seam.
+      6 3 3 kills all of them — minimum word 6 rules out `Re-/dis`,
+      `Dat-/en`, `unt-/er`.
+   3. A pen does not hyphenate. Four breaks fell inside handwritten notes
+      (`Ausbildung`, `betrieben`, `kosten-/los`, `Daten`) — the loudest
+      forgery tell on a wall whose whole premise is physical artifacts.
+
+   Safari still needs the -webkit- pair; a fix shipping only the standard
+   property is half a fix. Census before: EN 2 breaks, DE 39, 16 of them
+   with fewer than three characters on a side. */
+
+html:lang(de) {
   hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+  -webkit-hyphenate-limit-before: 3;
+  -webkit-hyphenate-limit-after: 3;
+}
+
+/* Surfaces that may never hyphenate at all: the hand, and proper nouns.
+   `.proper` is the data-layer bind — a legal name is DATA, and
+   `Columbus In-/teractive GmbH` is not the name of the company that trained
+   him. Length alone never protects it: "Interactive" is eleven letters, so
+   no limit rule forbids breaking it. It has to be marked. */
+:is(.hand-note, .polaroid__caption, .note-slip, .rf-emp-co, .proper) {
+  hyphens: manual;
+  -webkit-hyphens: manual;
 }
 
 /* pinned artifacts: rotation steps of ±1.2deg via --tilt (-1 | 0 | 1);

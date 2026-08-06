@@ -65,6 +65,7 @@ const locale = (Astro.currentLocale ?? "en") as Locale;
 const { education, employment, projects, timeline, sectionStrings, ui, germanRuns } =
 	getWall(locale);
 const ts = sectionStrings.timeline;
+const { clientWork } = getWall(locale);
 
 /* German runs inside English prose get `lang="de"`: the IHK final project's
    own title, the credential named on the Columbus card, and the exam cycle
@@ -485,7 +486,41 @@ const links = layout.map(({ side }, i) => {
 															)}
 														</p>
 													))}
-													{flagship && (
+													{
+												/* THE PAID WORK, EVIDENCED. Three hiring reviews returned the
+												   same verdict — the profession documented not at all — and the
+												   third measured why: every outbound link on this wall pointed
+												   at a side project, none at an employer. The evidence existed
+												   all along on the site this one replaces; the redesign dropped
+												   it. It is attached HERE, to the apprenticeship row, because
+												   what a recruiter is missing is employment evidence, and the
+												   Werdegang is where employment is read. */
+											}
+											{row.entry.id === "apprenticeship-2022" && (
+												<div class="rf-clients">
+													<h4 class="rf-clients__title">{clientWork.title}</h4>
+													<p>{clientWork.lead}</p>
+													<p class="rf-clients__note">{clientWork.tagNote}</p>
+													{clientWork.groups.map((group) => (
+														<div class="rf-clients__group">
+															<p class="rf-clients__label">{group.label}</p>
+															<ul class="rf-clients__list" role="list">
+																{group.items.map((item) => (
+																	<li>
+																		<a class="rf-link" href={item.href} rel="noopener">{item.name}</a>
+																		<span class="rf-clients__stack"> — {item.stack}</span>
+																		{"also" in item && item.also && (
+																			<span class="rf-clients__also"> ({item.also})</span>
+																		)}
+																	</li>
+																))}
+															</ul>
+														</div>
+													))}
+													<p class="rf-clients__close">{clientWork.close}</p>
+												</div>
+											)}
+											{flagship && (
 														<>
 															<p>{perfLine}</p>
 															{dashboard && (
@@ -1046,6 +1081,60 @@ const links = layout.map(({ side }, i) => {
 	   thing this card exists to stop saying. The first one keeps the h3's
 	   gap; only the ones after it close up. Subordinate size, card leading:
 	   a step down in size may never be a step off the ruling. */
+	/* THE CLIENT RECORD. A filing block inside the apprenticeship card, not
+	   a second card: it evidences THAT employment and must not read as a
+	   separate act. Courier throughout — this is a record, and the material
+	   law says a typewriter produced the record.
+	   The group labels carry the only weight, because the labels are the
+	   load-bearing part: "Maintained" must be as legible as "Developed", or
+	   the block overclaims by emphasis what the copy refuses to overclaim in
+	   words. */
+	.rf-clients {
+		margin-top: calc(var(--baseline) * 3);
+	}
+
+	.rf-clients__title {
+		margin: 0 0 var(--baseline);
+		font-size: var(--step-1);
+		line-height: var(--lh-1);
+		font-weight: 700;
+	}
+
+	.rf-clients__note {
+		color: var(--ink-soft);
+	}
+
+	.rf-clients__group {
+		margin-top: calc(var(--baseline) * 2);
+	}
+
+	.rf-clients__label {
+		margin: 0 0 calc(var(--baseline) * 0.5);
+		font-weight: 700;
+	}
+
+	.rf-clients__list {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.rf-clients__list li {
+		margin-block: calc(var(--baseline) * 0.5);
+	}
+
+	/* the stack and the sibling-site roster are subordinate to the name a
+	   reader is scanning for, and the roster is the longest string on the
+	   card — it wraps rather than sets the card's measure */
+	.rf-clients__stack,
+	.rf-clients__also {
+		color: var(--ink-soft);
+	}
+
+	.rf-clients__close {
+		margin-top: calc(var(--baseline) * 2);
+	}
+
 	.rf-cardwrap .rf-school {
 		font-size: var(--step--1);
 		line-height: var(--lh-0);

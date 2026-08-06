@@ -316,6 +316,66 @@ export const careerStats = {
 	]
 } as const;
 
+/* ------------------------------------------------------------------ */
+/* Kundenarbeit — die drei angestellten Jahre, belegt                  */
+/* ------------------------------------------------------------------ */
+/** Siehe die Begründung in wall.ts. Die `Tasks`-Angaben sind exakt die,
+ *  die auf der Vorgängerseite pro Website veröffentlicht waren: Was nur
+ *  gewartet wurde, heißt gewartet — nie gebaut. */
+export const clientWork = {
+	title: "Was ich dort ausgeliefert habe",
+	lead: "25 Websites im Produktivbetrieb, in einem Stack, den ich vorher nicht benutzt hatte. Vor dem 2022-09-01 habe ich kein PHP, kein Typo3 und kein CraftCMS geschrieben — und heute schreibe ich keins davon.",
+	tagNote: "Aufgeteilt so, wie ich es festgehalten habe: was ich entwickelt habe, und was ich nur gewartet habe.",
+	groups: [
+		{
+			label: "Entwickelt und gewartet",
+			items: [
+				{
+					name: "Messe Friedrichshafen — 13 Messe-Websites",
+					stack: "CraftCMS · PHP · Twig · SCSS · Bootstrap",
+					href: "https://messe-friedrichshafen.de/",
+					also: "Aero Expo, Americana, Aqua Fisch, Fairnamic, HAM-Radio, IBO Messe, Interboot, Klassikwelt Bodensee, Motorradwelt Bodensee, Pferd Bodensee, Tuningworld Bodensee, Vertical Pro"
+				},
+				{
+					name: "Simply-V",
+					stack: "CraftCMS · TypeScript · PHP · Twig · SCSS",
+					href: "https://simply-v.de/"
+				},
+				{
+					name: "Columbus Interactive",
+					stack: "PHP · SCSS · CSS3",
+					href: "https://columbus-interactive.de/"
+				}
+			]
+		},
+		{
+			label: "Entwickelt",
+			items: [
+				{
+					name: "MP Family Office",
+					stack: "Bootstrap · Handlebars · TypeScript · Docker · SCSS",
+					href: "https://mp-familyoffice.de/"
+				}
+			]
+		},
+		{
+			label: "Gewartet",
+			items: [
+				{ name: "Medizin Campus Bodensee", stack: "PHP · SCSS", href: "https://medizin-campus-bodensee.de/" },
+				{ name: "Paravan", stack: "Typo3", href: "https://paravan.de/" },
+				{ name: "Eisele", stack: "Typo3", href: "https://eisele.de/" },
+				{ name: "ID-S", stack: "Handlebars · PHP · Typo3", href: "https://id-s.de/" },
+				{ name: "EBZ Group", stack: "Typo3", href: "https://ebz-group.com/" },
+				{ name: "Columbus AG", stack: "VueJS", href: "https://columbus.ag/" },
+				{ name: "Hobart", stack: "PHP", href: "https://hobart.de/" },
+				{ name: "Arnold Next-G", stack: "Handlebars", href: "https://arnoldnextg.de/" },
+				{ name: "Lightweight", stack: "SCSS · CSS3", href: "https://lightweight.info/" }
+			]
+		}
+	],
+	close: "Alle sind bis heute online, die Arbeit lässt sich also öffnen statt glauben. Der Stack war mir am ersten Tag neu und ich habe ihn seitdem nicht mehr benutzt — genau das, was drei angestellte Jahre ausmacht und was keine Sprachstatistik zeigen kann."
+} as const;
+
 export const githubStats = {
 	title: "GitHub-Bilanz",
 	asOf: SNAPSHOT_AS_OF,

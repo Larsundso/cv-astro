@@ -10,15 +10,21 @@
  * COMPOSITION. Five artifacts, one sequence, and the sequence answers a
  * recruiter's questions in the order they ask them:
  *
- *   CLAIM      who this is and what he does now — the credential, the
- *              role and the employer, struck at the typewriter's bold on
- *              the card's first rule. It sits in the fold's primary
- *              optical area (top-left) because job title and current
- *              employer are the top two fixation points in recruiter
- *              eye-tracking and are the German stage-1 filter.
+ *   CLAIM      who this is and what he does now, in three ranks on one
+ *              card: the name and the 2.4M-user claim one step up at the
+ *              typewriter's bold, the level statement bold at the card's
+ *              own size, and the record — credential, employer,
+ *              qualification, geography, languages — under a blank rule.
+ *              It sits in the fold's primary optical area (top-left)
+ *              because job title and current employer are the top two
+ *              fixation points in recruiter eye-tracking and are the
+ *              German stage-1 filter; the credential keeps that position
+ *              and yields only its weight.
  *   SIGNATURE  the name, the wall's brand asset and now its FOCAL MASS:
  *              the largest sheet in the fold, the largest setting on the
- *              page, and the only object that carries all six pride inks.
+ *              page — 89px at weight 700, filling 85 % of its own sheet
+ *              where it filled 58 % — and the only object that carries
+ *              all six pride inks.
  *   EXHIBIT    the Ayako polaroid — the product the claim is about. It
  *              keeps its full chroma and its full size; what changed is
  *              WHERE. It used to sit at the board's far right, which put
@@ -77,6 +83,25 @@ const ht = chartStrings.heroTelemetry;
    content runs too, from the list in the data layer; on /de/ that list is
    empty and this is one pass-through. */
 const runs = (text: string) => splitLangRuns(text, germanRuns);
+
+/* THE SENIORITY ANCHOR IS TWO SENTENCES DOING TWO JOBS, and the card has to
+   rank them separately. `intro[2]` reads
+     "I have built and operated it for 6 years 8 months — 12/2019 to
+      2026-08-03. Qualified 2025, after three years of in-company training."
+   The first sentence is the LEVEL statement — the only sentence on the wall
+   whose subject is the person and whose predicate is a duration. The second
+   pre-empts the objection that level raises. Set as one paragraph they were
+   a fourth equal-weight body run, which is the one thing a level statement
+   must not be; the fact was landing and its rank was not.
+   So the level statement joins the card's bold band and the qualification
+   clause falls to the record below it, where its referent — the credential —
+   now sits one rule above it instead of three rules away.
+   The split is a RANK decision and belongs here, not in the data layer: the
+   sentence is one owner-approved fact and stays one string. If the copy ever
+   loses its sentence boundary the whole run is set as the anchor, so no
+   unreviewed text can be promoted by accident. */
+const [seniorityAnchor, ...seniorityRest] = hero.intro[2].split(/(?<=\.)\s+/);
+const seniorityQualifier = seniorityRest.join(" ");
 
 const stats = await getTotalTime();
 
@@ -151,45 +176,69 @@ type Station = { x: number; y: number; pin: boolean };
 const P = (x: number, y: number): Station => ({ x, y, pin: true });
 const BEND = (x: number, y: number): Station => ({ x, y, pin: false });
 
-/* RE-MEASURED 2026-08-05, after the record card took a name rule and the
-   seniority anchor. Band 1 grew 96px English / 96px German, which moved
-   every band-2 pin down AND stretched the board, so every vertex below
-   changed even though nothing moved sideways. Boards: 1248 × 795 en,
-   1248 × 823 de (were 699 / 727).
-   The BEND moved further than the pins did, and on purpose: it is the one
-   vertex whose job is VISIBILITY rather than registration. Held at its old
-   proportion it would have surfaced from under the record card at x ≈ 331
-   with the polaroid's own sheet starting at x = 323 — eight viewBox units
-   of visible thread on the wall's highest-value leg, which is the defect
-   this vertex was added to fix. Dropped to 330 / 370 the leg runs in open
-   cork from the greeting pin down to the record card's right edge and
-   again below the card's bottom edge: 408 of 694 units visible (59 %) on
-   the English wall, against 11 % before the vertex existed. */
+/* RE-MEASURED 2026-08-06, after the record card was re-ranked (the claim and
+   the name one step up, the level statement split off as its own bold rule)
+   and the signature was set at 89px instead of 64px. Band 1 grew 24px in
+   both locales — the card 420 → 444 px and the greeting sheet 237 → 263 —
+   which moved every band-2 pin down AND stretched the board, so every vertex
+   below changed even though nothing moved sideways.
+   Boards: 1248 × 867 en, 1248 × 847 de (were 843 / 823).
+   Every P below is a pin centre read off the rendered page at 1440 × 900 and
+   converted into this viewBox (`scratchpad/fix3/hero/pins.mjs`), rounded to
+   the unit — well inside the 7px head the thread wraps.
+
+   AND THE BOX IS NOW 1500 × 1100, NOT 1200 × 880 — for the reason the
+   stacked column already carries in its own note, which the desktop box was
+   wrongly assumed to be clear of. `stroke-dasharray: 1` against
+   `pathLength="1"` under `vector-effect: non-scaling-stroke` makes the dash
+   as long as the path's USER-space length but measures it in SCREEN space,
+   so wherever the board stretches the path the tail never paints. The board
+   is 1248px wide against a 1200-unit box: x stretches by 1.04, and that
+   stretch fell on the long horizontal runs. MEASURED on the served build,
+   both before and after this cycle's edits: rendered 2,910.8px against an
+   authored 2,831.1 — the desktop thread stopped 79.7px short of the board's
+   bottom edge, i.e. it never reached the hand-off to the Timeline that cycle
+   1 fixed, in both locales, at every width. The old note's "the desktop box
+   is safe (0.903 en / 0.935 de)" was measuring something else.
+   Scaling the box and every coordinate by 1.25 leaves the picture identical
+   and multiplies only the authored length: rendered/authored is now 0.821 en
+   / 0.817 de, and both scales are below 1 at every desktop width the shell
+   allows (the board is at most 1248 × 939, at the 1024 breakpoint).
+
+   The BEND is the one vertex whose job is VISIBILITY rather than
+   registration, so it is not measured off a pin. It used to sit at 330/370
+   of the old box — ABOVE the record card's bottom edge, so the leg west
+   dived under the card and surfaced twice. Dropped just below that edge
+   (the card bottoms out at 556 en / 569 de in this box) the whole leg runs
+   in the open cork of the band gap, and the measured visible fraction of the
+   desktop thread rises from 63.7 % to 69.7 % English and 61.5 % to 69.3 %
+   German (`scratchpad/fix3/hero/thread.mjs`, pixel diff against the same
+   board with the thread hidden). */
 const DESKTOP_STATIONS: Record<Locale, Station[]> = {
 	en: [
-		P(309, 1),
-		P(892, 1),
-		BEND(905, 330),
-		P(211, 426),
-		P(646, 453),
-		P(1041, 561),
-		P(802, 880)
+		P(388, 1),
+		P(1115, 1),
+		BEND(1131, 565),
+		P(264, 580),
+		P(807, 610),
+		P(1302, 735),
+		P(1002, 1100)
 	],
 	de: [
-		P(310, 1),
-		P(892, 1),
-		BEND(905, 370),
-		P(211, 463),
-		P(646, 489),
-		P(1041, 593),
-		P(802, 880)
+		P(388, 1),
+		P(1115, 1),
+		BEND(1131, 579),
+		P(264, 594),
+		P(807, 625),
+		P(1302, 752),
+		P(1002, 1100)
 	]
 };
 
 const stations = DESKTOP_STATIONS[locale];
 const THREAD_DESKTOP = {
-	width: 1200,
-	height: 880,
+	width: 1500,
+	height: 1100,
 	path: tautPath(stations.map((s): [number, number] => [s.x, s.y])),
 	/* a thread dot on every pin it wraps — never on the exit vertex, and
 	   never on the bend, which has no pin under it */
@@ -247,25 +296,32 @@ const THREAD_DESKTOP = {
    future edit that shortens this viewBox, OR that lengthens this column,
    has to be measured against that ratio.
 
-   RE-MEASURED 2026-08-05 at 2400 units. The x values did not move — the
-   x scale did not change and the column's pins stand where they stood —
-   and the y values are the two locales' measurements averaged, which is
-   legitimate here for the reason the paragraph above gives: on a vertical
-   run a y error slides ALONG the line instead of off it. The one y that is
-   not an average is the stamp detour, whose whole job is clearance, and it
-   is set against the LATER of the two stamps (German, box bottom 2333). */
+   RE-MEASURED 2026-08-06 at 2400 units, after the re-ranked record card and
+   the 89px signature. The stacked board grew 2,011 → 2,029 px English and
+   2,003 → 2,021 German, so the ratio the paragraph above makes load-bearing
+   moves from 0.785 / 0.848 to 0.792 / 0.855 — still well under 1, with room
+   for the column to grow another ~340px before the question is live again.
+   The x values did not move — the x scale did not change and the column's
+   pins stand where they stood — and the y values are the two locales'
+   measurements averaged, which is legitimate here for the reason the
+   paragraph above gives: on a vertical run a y error slides ALONG the line
+   instead of off it. The one y that is not an average is the stamp detour,
+   whose whole job is clearance, and it is set against the LATER of the two
+   stamps: re-measured, both stamp boxes still bottom out at 2,333 and both
+   still start at x = 153.7, so the detour's two vertices are unchanged and
+   the left clearance is still 17.7 units. */
 const THREAD_MOBILE = {
 	width: 400,
 	height: 2400,
 	path: tautPath(
 		[
-			[205, 0],
-			[198, 697],
-			[204, 967],
-			[196, 1594],
+			[206, 0],
+			[198, 760],
+			[204, 1014],
+			[196, 1619],
 			[136, 2180],
 			[136, 2334],
-			[200, 2342],
+			[200, 2344],
 			[200, 2400]
 		],
 		6
@@ -292,15 +348,25 @@ const THREAD_MOBILE = {
 		</div>
 
 		<div class="hero__grid wall-grid">
-			<!-- CLAIM. Typed record card: what / who / where. The card opens
-			     with intro[0] — the credential, the role and the employer —
-			     struck at the typewriter's bold on the first rule, and the
-			     Ayako claim follows on the next. Both strings stay verbatim
-			     from the data layer; only which one the card opens with
-			     changed. The fold already states the bot's figures three
-			     times (this card, the polaroid caption, the magenta note), so
-			     the redundancy budget was being spent entirely on the claim
-			     that does not need it and none on the claim that does. -->
+			<!-- CLAIM. Typed record card: what / who / where.
+			     THREE RANKS, NOT TWO. The card used to have exactly one weight
+			     contrast and it pointed at the credential: name and credential
+			     bold, everything else regular, all six paragraphs at the card's
+			     16px. Five instruments measured the same consequence — the
+			     name and the credential were set at the smallest reading size
+			     on the wall while the telemetry bullets beside them were 20px;
+			     every fact about the person on a phone was exactly 15.0px; the
+			     claim was line three of a six-line block with no salience
+			     handle at all; and the level statement was installed as a
+			     fourth equal-weight paragraph.
+			     The card is now a head and a record. The HEAD is the name, the
+			     claim and the level statement; the RECORD is the credential and
+			     employer, the qualification, the geography and the languages.
+			     The claim keeps the strongest slot on the card and the level
+			     statement stays directly beneath it, because "I have built and
+			     operated IT" needs the bot as its nearest antecedent — putting
+			     the employer between them, as one reading of the finding asked,
+			     would hand the pronoun to "Raleo Digital GmbH". -->
 			<div class="hero__intro-slot">
 				<PinCard variant="typed" rotate={1}>
 					{/* THE NAME IN ITS LEGAL FORM, ON THE RECORD CARD. The drawn
@@ -310,17 +376,26 @@ const THREAD_MOBILE = {
 					    the footer stamp and the schema.org record all say *Böse*, so
 					    a wall that never typed the umlaut anywhere a recruiter could
 					    copy it offered three spellings and no canonical one. A typed
-					    record card is where a name belongs; it takes the rule above
-					    the credential, and the two read as one title block. */}
+					    record card is where a name belongs; it opens the head. */}
 					<p class="hero__intro-name">{hero.name}</p>
-					<p class="hero__intro-lead">
+					{/* the claim, and now the largest typed setting in the fold */}
+					<p class="hero__intro-claim">
+						{runs(hero.intro[1]).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.text))}
+					</p>
+					{/* the level statement — the duration a screener would otherwise
+					    compute from the apprenticeship letterhead alone, and compute
+					    wrongly. Bold, on the card's own size, directly under the
+					    sentence it quantifies. */}
+					<p class="hero__intro-anchor">
+						{runs(seniorityAnchor).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.text))}
+					</p>
+					{/* the record proper, at the card's own size and weight */}
+					<p class="hero__intro-role">
 						{runs(hero.intro[0]).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.text))}
 					</p>
-					<p>{runs(hero.intro[1]).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.text))}</p>
-					{/* the seniority anchor — the duration a screener would otherwise
-					    compute from the apprenticeship letterhead alone, and compute
-					    wrongly. It sits directly under the sentence it quantifies. */}
-					<p>{runs(hero.intro[2]).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.text))}</p>
+					{seniorityQualifier && (
+						<p>{runs(seniorityQualifier).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.text))}</p>
+					)}
 					<p>{hero.location}</p>
 					<p class="hero__intro-langs">{hero.languages}</p>
 				</PinCard>
@@ -331,10 +406,17 @@ const THREAD_MOBILE = {
 			     setting on the page. -->
 			<div class="hero__greeting paper pinned" style="--tilt:-1">
 				<span class="brass-pin hero__greeting-pin" aria-hidden="true"></span>
+				{/* `name` is what the signature DRAWS (ASCII, matched to the
+				    Lottie's strokes); `spoken` is what the `<h1>` SAYS. They
+				    differ by one glyph and that glyph is the point: the sr-only
+				    sentence was the only string on the wall that gave a screen
+				    reader "Boese" while the title, this card, both stamps and the
+				    LinkedIn card all read "Böse". Nothing visual changes. */}
 				<Greeting
 					greeting={hero.greeting}
 					subline={hero.greetingSubline}
 					name={hero.signature}
+					spoken={hero.name}
 				/>
 			</div>
 
@@ -454,25 +536,58 @@ const THREAD_MOBILE = {
 		margin-top: 0;
 	}
 
-	/* Typed on consecutive rules, the way a card actually gets typed:
-	   the record is ONE block, not four floating paragraphs. Size and
-	   leading come from the card itself (pin-card--typed) — one index
-	   card, one carriage. */
+	/* Typed on consecutive rules, the way a card actually gets typed: the
+	   record is ONE block, not seven floating paragraphs. The single blank
+	   rule is set below, at the end of the head. Leading comes from the card
+	   itself (pin-card--typed) at every rank — one card, one carriage. */
 	.hero__intro-slot :global(.pin-card) p {
 		margin: 0;
 	}
 
-	/* The name and the claim are ONE title block, typed on two consecutive
-	   rules and struck at the typewriter's bold — at the CARD'S OWN SIZE,
-	   because on a monospace sheet a second size is a second machine. The
-	   blank rule falls after the pair, not between them. */
-	.hero__intro-slot :global(.pin-card) p.hero__intro-name {
+	/* THE HEAD, one step up. "On a monospace sheet a second size is a second
+	   machine" was the reasoning that held the name and the claim at the
+	   card's own 16px, and it is wrong about a typewriter: a typist has one
+	   size, but a TYPED CARD is not a typewriter — it is a filled-in form,
+	   and forms have head fields. The wall already contains this exact move,
+	   with its reasoning written out, at `Timeline.astro:950-955`, where the
+	   first row of an employment span takes --step-1 against the letterhead's
+	   --step-0.
+	   --lh-1 IS THE SAME 24px AS --lh-0, so the pitch is untouched: one line
+	   per printed rule. Pitch is not the whole of the Ruled Card Rule though
+	   — REGISTRATION is the other half, and a 20px baseline does not sit
+	   where a 16px one does inside a shared 24px line box. Measured rather
+	   than assumed, against the ruling read out of the rendered pixels
+	   (`scratchpad/fix3/hero/rules.mjs`, ruling phase 16 mod 24): every one
+	   of the card's seven paragraphs, head and body, lands 0.00px off its
+	   rule at 1440 in both locales, and 1.00px at 390 — where the 1px is the
+	   phone's fractional 15.04px body, not the head, and predates this
+	   change. `--rule-phase` therefore stays at PinCard's 7px. */
+	.hero__intro-slot :global(.pin-card) p.hero__intro-name,
+	.hero__intro-slot :global(.pin-card) p.hero__intro-claim {
+		font-size: var(--step-1);
+		line-height: var(--lh-1);
 		font-weight: 700;
 	}
 
-	.hero__intro-slot :global(.pin-card) p.hero__intro-lead {
+	/* The level statement: the card's bold, at the card's own size. It is a
+	   RANK below the claim on purpose — it quantifies the sentence above it
+	   and must not compete with it — and a rank above the record, because a
+	   bold band is a scanned object and a fourth body paragraph is not.
+	   The blank rule falls here, at the end of the head. */
+	.hero__intro-slot :global(.pin-card) p.hero__intro-anchor {
 		margin-bottom: calc(var(--baseline) * 3);
 		font-weight: 700;
+	}
+
+	/* THE CREDENTIAL KEEPS ITS PLACE AND YIELDS ITS WEIGHT. It opens the
+	   record, still inside the first screen at both breakpoints, still the
+	   first thing a German stage-1 filter looks for — but at 400. At 700 it
+	   was four to six rendered lines of bold, the card's only weight signal,
+	   and it pointed at a vocational certificate rather than at the product
+	   the wall exists to evidence. Position is one axis and weight is
+	   another; only one of them had to move. */
+	.hero__intro-slot :global(.pin-card) p.hero__intro-role {
+		font-weight: 400;
 	}
 
 	.hero__intro-langs {
@@ -726,10 +841,15 @@ const THREAD_MOBILE = {
 			width: min(100%, 26rem);
 		}
 
+		/* Horizontal padding matches the desktop sheet's 32px rather than the
+		   24px it used to carry. The signature is now sized as a fraction of
+		   this sheet's own content box, and at 768px the stacked card is the
+		   WIDEST it ever gets (34rem against six grid columns) — with 24px
+		   margins the swash came within 2.3px of running off the paper. */
 		.hero__greeting {
 			align-self: center;
 			width: min(100%, 34rem);
-			padding: calc(var(--baseline) * 4) calc(var(--baseline) * 3) calc(var(--baseline) * 3);
+			padding: calc(var(--baseline) * 4) calc(var(--baseline) * 4) calc(var(--baseline) * 3);
 		}
 
 		/* the exhibit keeps its full 20rem here: nothing competes with it

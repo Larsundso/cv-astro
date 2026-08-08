@@ -943,8 +943,33 @@ export const timeline: TimelineEntry[] = [
 		dateLabel: "2025",
 		sort: "2025-06",
 		title: "Raleo Digital GmbH",
+		/* THE CARD FOUR HIRING JUDGES INDEPENDENTLY NAMED AS THE PROBLEM.
+		   Measured before this: 39 words, 296px, 1.9 % of the page — 0
+		   technologies, 0 figures, 0 outcomes, 0 attestations, and roughly
+		   half of it describing the EMPLOYER'S business rather than the work.
+		   The apprenticeship card above it ran 6.8x the words, for a stack
+		   this wall disclaims twice. So the page evidenced three years of PHP
+		   he says he no longer writes, and said nothing about the one paid
+		   role in the stack he is actually selling. Every judge reached the
+		   same conclusion by a different route: with no scope and no stack on
+		   the current post, the band defaults to the only professional date in
+		   view — "qualified 2025" — and a hiring manager pricing a mid-level
+		   TypeScript role has nothing on 15,000px he can cite.
+		   Owner-supplied 2026-08-08 and written to the disclosure rule he set:
+		   no internal system or repository names, no manufacturer or supplier
+		   named, no figures he has not cleared. What is left is the shape of
+		   the work, which is the whole hiring signal — what he owns, at what
+		   scope, and what it costs when it is wrong.
+		   The difficulty is stated as sources that resist automated collection
+		   rather than as circumventing them: it is the same engineering claim,
+		   and it does not publish something adversarial on his employer's
+		   behalf. */
 		body: [
-			"Since 2025 I have been a full-stack developer at Raleo Digital GmbH (raleo.de), an online marketplace for heating, heat pumps, and photovoltaics. Fully remote — the second company on this thread."
+			"Since July 2025 I have been a full-stack developer at Raleo Digital GmbH (raleo.de), an online marketplace for heating, heat pumps, and photovoltaics. Fully remote — the second company on this thread.",
+			"Stack: TypeScript and Node.",
+			"I own the ingestion service the marketplace runs on. It collects availability, price, stock, images and descriptions from manufacturer sites on a schedule, into the product database, and pulls shipment documents from supplier portals so a customer can be told where their order is.",
+			"It is system-critical, and the failure modes are expensive rather than embarrassing: a wrong stock figure costs money, a stale availability figure costs the sale.",
+			"The sources are not built to be read by machines, they resist being read by them, and they change without notice. Most of the work is keeping unattended collection correct anyway."
 		]
 	},
 	{

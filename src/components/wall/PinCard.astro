@@ -140,7 +140,18 @@ const Tag = as;
 	   38/40 was dead CSS that read as live intent, and HOUSE RULES and
 	   HOW I WORK came out as twins 140px apart.
 	   VERIFIED, because the reason is not the one the specificity table
-	   suggests: this build's compiler scopes with `:where(.astro-HASH)`,
+	   this build emits `.pin-card[data-astro-cid-XXXX]`
+	   — a plain attribute selector at (0,1,0), with NO `:where()` wrapper
+	   anywhere in the built CSS (verified by grepping dist/_astro/*.css).
+	   An earlier pass claimed the opposite by running @astrojs/compiler
+	   standalone, which defaults to a different `scopedStyleStrategy` than
+	   the one this project ships — so it measured a compiler it does not
+	   use. Component selectors therefore DO carry normal specificity here,
+	   and a caller override would have worked.
+	   The custom-property mechanism below is kept regardless, because
+	   settling a component's setting by inheritance rather than by winning a
+	   specificity race is the more durable design — but it is a choice, not
+	   a necessity, and the next person should not be told otherwise.
 	   which contributes ZERO specificity, so component styles carry no
 	   extra weight at all and the raw selectors decide. This rule is
 	   (0,1,1) — a class plus an element — against a caller's bare class at

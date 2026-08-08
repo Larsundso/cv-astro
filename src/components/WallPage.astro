@@ -62,13 +62,61 @@ const { contact, meta, ui } = getWall(locale);
    rail's ticks. Same order, same labels, same destinations — a directory
    that renames itself between the top of the page and the margin is the
    fastest way to lose a reader. */
+/* AND THE FIRST ENTRY IS THE WAYFINDING LABEL, NOT THE DISTRICT'S SIGN.
+   `ui.nav.werdegang` still stands over the district itself (Timeline.astro),
+   where the content directly below explains the word and it works as a
+   landmark. Both places THIS array feeds are read BEFORE the section and
+   exist to predict it — and on a page served `lang="en"` a German word
+   predicts nothing: four of five entries named their destination and this
+   one was opaque, in the first viewport, in front of the section a recruiter
+   most wants. So the directory and the rail take
+   `ui.nav.werdegangWayfinding` ("Career" / "Werdegang") and the sign keeps
+   the German. `lang="de"` goes with the word: the English label is English,
+   and mis-declaring it would hand a screen reader a German pronunciation of
+   "Career". */
 const NAV = [
-	{ href: "#werdegang", label: ui.nav.werdegang, lang: "de" },
+	{ href: "#werdegang", label: ui.nav.werdegangWayfinding },
 	{ href: "#projects", label: ui.nav.projects },
 	{ href: "#telemetry", label: ui.nav.telemetry },
 	{ href: "#practice", label: ui.nav.practice },
 	{ href: "#contact", label: ui.nav.contact }
 ];
+
+/* THE RAIL CARRIES A SIXTH MARK AND THE TITLE CARD DOES NOT.
+   District boundaries measured at 390: 277 / 2,555 / 7,030 / 13,498 /
+   17,255 / 20,201. The rail's ticks began at Werdegang, so from the moment
+   the strip appeared until y 7,200 it read `Werdegang` CONTINUOUSLY —
+   including the whole 2,278px identity district, which ends at 2,555. A
+   2,055px lead, 2.4 phone viewports, and it is the reader's FIRST encounter
+   with the orientation device: the device opened on a false statement.
+   The state machine was never the fault. The other four flips lag their
+   boundaries by 170 / 102 / 145 / ≈0px, all inside half a viewport. The
+   fault was that the opening act had no graduation at all, so `aria-current`
+   had nowhere truthful to land and fell to the next door down the corridor.
+   The origin mark is the wall's own name — identical in both locales,
+   because the site's title is already German — and it points at `#main`,
+   the one id in the layout that cannot be renamed out from under it because
+   the skip link lands there. It is deliberately NOT added to the title
+   card: the card's flyer already carries `Der Rote Faden` as its heading,
+   and a directory whose first line links to the sheet it is printed on is a
+   loop, not a door. That is the one licensed difference between the two
+   appearances, and it is a mark the card has no use for rather than a
+   destination it renames. */
+const RAIL_NAV: { href: string; label: string; lang?: string }[] = [
+	{ href: "#main", label: "Der Rote Faden", lang: "de" },
+	...NAV
+];
+
+/* THE TWO LANDMARKS MAY NOT SHARE A NAME. Both `nav` elements carried
+   `ui.navAria` — "Sections" / "Abschnitte" — so a screen reader's landmark
+   list offered two identically named navigations and no way to tell the
+   title card's directory from the rail. A previous cycle recorded this as
+   fixed; it was not. The rail is not a second table of contents: it reports
+   POSITION and it is the only element on the wall that does, so it is named
+   for that. Written here rather than in `ui` because the copy modules are
+   another owner's file this cycle; if it earns a home it belongs beside
+   `navAria`. */
+const railAria = locale === "de" ? "Fortschritt" : "Progress";
 
 /* hero → timeline connectors, one per breakpoint state (see <style>).
    Both stretch between two responsive anchors: the box's corners ARE the
@@ -208,8 +256,9 @@ const JOIN_STACK = {
 	<Contact />
 
 	<!-- the wall's only persistent chrome: the thread itself, with the
-	     brass pin riding it at scroll progress and the five sections as
-	     ticks. Signage made of the wall's own material.
+	     brass pin riding it at scroll progress and the six acts as ticks
+	     (five districts plus the wall's own name at the origin — see
+	     `RAIL_NAV`). Signage made of the wall's own material.
 
 	     IT USED TO EXIST ON DESKTOP ONLY. Below 64rem `.rail__line` and
 	     `.rail__ticks` were both `display: none`, so all five ticks
@@ -224,11 +273,11 @@ const JOIN_STACK = {
 	     The address chip is narrow-only and it is the point of the
 	     exercise: on the phone the first mailto on the page sits past
 	     80 % depth, so the strip carries the address itself. -->
-	<nav class="rail" id="rail" aria-label={ui.navAria} data-visible="false">
+	<nav class="rail" id="rail" aria-label={railAria} data-visible="false">
 		<span class="rail__line" aria-hidden="true"></span>
 		<ul class="rail__ticks" role="list">
 			{
-				NAV.map((item) => (
+				RAIL_NAV.map((item) => (
 					<li>
 						<a class="rail__tick" href={item.href} data-tick>
 							<span class="rail__label" lang={item.lang}>
@@ -271,7 +320,11 @@ const JOIN_STACK = {
 </Layout>
 
 <style is:global>
-	/* anchor targets breathe below the viewport edge when navigated to */
+	/* anchor targets breathe below the viewport edge when navigated to.
+	   `#main` joins the list because the rail's origin tick now points at it
+	   (see `RAIL_NAV`) — and the skip link lands there too, so the same 32px
+	   now keeps the wall's first sheet off the viewport's top edge for both. */
+	#main,
 	#werdegang,
 	#projects,
 	#telemetry,
@@ -495,15 +548,21 @@ const JOIN_STACK = {
 		display: none;
 	}
 
-	/* THE STRIP LIES ON THE BOARD, NOT ON THE DOCUMENT. Below 64rem the
-	   rail is a fixed 60px strip 12px off the bottom edge, so without this
-	   the last 72px of the wall would sit permanently under it — and the
-	   last 72px of this wall is the end of the contact section. The page
-	   gives that height back at the foot of the document; the strip is
-	   then the only thing that has ever been over the paper. */
+	/* THE STRIP LIES ON THE BOARD, NOT ON THE DOCUMENT. Below 64rem the rail
+	   is a fixed strip seated on the viewport's bottom edge, so without this
+	   the last stretch of the wall would sit permanently under it — and the
+	   last stretch of this wall is the end of the contact section. The page
+	   gives that height back at the foot of the document; the strip is then
+	   the only thing that has ever been over the paper.
+	   72 → 84 BECAUSE THE STRIP WENT 60 → 72: the gutter is the strip's own
+	   height plus 12px of clearance, and it has to move with it or the last
+	   12px of the contact card goes back under the shelf. The 12px growth is
+	   bought, not spent — see the two-row strip below, which is what stopped
+	   the address chit drawing a rule the brass index only walks 55 % of, and
+	   what put the whole of every 24px tick target back on screen. */
 	@media (max-width: 63.9375rem) {
 		body {
-			padding-bottom: 72px;
+			padding-bottom: 84px;
 		}
 	}
 </style>
@@ -789,9 +848,13 @@ const JOIN_STACK = {
 	/* Navigation used to exist for 1.6 % of the page: the index at
 	   y 88–177 and then nothing but a 44px back-to-top pin for 11,000px.
 	   The rail is the same pin, in the same corner, hung on the thread:
-	   its offset IS scroll progress, and the five section offsets are
-	   ticks you can click. The page's only permanent UI is now made of
-	   the page's own idea. */
+	   its offset IS scroll progress, and the section offsets are ticks you
+	   can click. The page's only permanent UI is now made of the page's own
+	   idea.
+	   THREE RANKS OF ONE MARK, AND EVERY RULE BELOW SERVES THEM: unlit ink
+	   is terrain the reader has not walked, `--thread` is terrain they have,
+	   brass is where they are standing. It is the wall's own law — up there
+	   the thread's EXTENT is the story so far — restated at 1:68. */
 
 	.rail {
 		--rail-line: 38px;
@@ -845,20 +908,67 @@ const JOIN_STACK = {
 	   reduction the wall's own weight reads as a bar rather than as a
 	   thread. The rail is a scale drawing, so it keeps the scale's stroke.
 	   Its ticks are sized against this line, not against the token. */
+	/* AND CRIMSON MEANS HERE WHAT IT MEANS ON THE WALL. This was one bar of
+	   `--thread` from end to end, and it measured identically at
+	   `--progress: 0` and at 1. Forty pixels away, `path.thread-path` is the
+	   SAME token at 4px — and there the EXTENT IS THE MEANING: the wall's
+	   thread is drawn progressively and stops where the story has got to. One
+	   graphic form carrying opposite semantics in a single frame is not a
+	   style question. It teaches the reader a rule on the wall and breaks it
+	   in the margin, forty pixels later.
+	   So the scale now obeys the wall's own law at 1:68. An UNLIT GROOVE for
+	   the route not yet walked — the wall's shadow ink, which is what a
+	   channel cut in a board looks like — and `--thread` laid into it for the
+	   part that has been. Measured: the groove composites to 1.70:1 against
+	   the shelf's paper (1.69:1 at the lamp's dark end) and 1.34:1 on bare
+	   cork. That is a rest state and it is not claimed as an indicator; the
+	   ticks standing on it are the indicators and they carry their own
+	   contrast — see `.rail__tick::after`. */
 	.rail__line {
 		position: absolute;
 		top: 0;
-		bottom: 0;
-		left: calc(var(--rail-line) - 1.25px);
+		/* THE RULE ENDS WHERE THE JOURNEY ENDS. It ran `bottom: 0` — the full
+		   232px, the address's slot included — while the brass index travels
+		   only the 180px tick track. Measured: the marker stops at 71.6 % of
+		   the rule the eye reads as its track, so a reader who trusts the rule
+		   believes 28 % of the wall is still ahead of them when none of it is.
+		   Under the exit gradient that is the expensive direction of error:
+		   readers abandon when they think more remains than does. */
+		bottom: calc(var(--mail-slot) + var(--mail-gap));
+		left: calc(var(--rail-line) - 0.75px);
+		width: 1.5px;
+		border-radius: 2px;
+		background: oklch(var(--shade) / 0.25);
+	}
+
+	/* the walked part: the wall's own thread, at the wall's own reduction,
+	   laid into the groove.
+	   ITS TIP IS UNDER THE BRASS AT EVERY PROGRESS, ON BOTH AXES, AND THAT IS
+	   ARITHMETIC RATHER THAN LUCK. The head travels `progress · (track − 28)`
+	   from the track's start, so tip − head's far edge = 28·(progress − 1) ≤ 0
+	   and tip − head's near edge = 28·progress ≥ 0. The drawn end of the
+	   thread is inside the 28px disc for every value of progress, which is
+	   why the two mechanisms that report position can never be SEEN to
+	   disagree — the same guarantee the wall gives by running its thread
+	   under every pin head it passes. */
+	.rail__line::after {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: -0.5px;
 		width: 2.5px;
+		height: calc(var(--progress, 0) * 100%);
 		border-radius: 2px;
 		background: var(--thread);
 	}
 
-	/* the ticks' track: the scale minus the address's own end of it, on
-	   whichever axis the rail is lying. The ticks and the pin both measure
-	   themselves against this, so they can never disagree about where the
-	   reader is. */
+	/* the ticks' track: on this axis, the scale minus the address's own end
+	   of it. The ticks and the pin both measure themselves against it, so
+	   they can never disagree about where the reader is — and `.rail__line`
+	   now stops here too, so neither can they disagree with the rule they
+	   are drawn on. (The narrow strip resolves the same conflict the other
+	   way: it moves the address off the axis and gives the track the whole
+	   width. See that block.) */
 	.rail__ticks {
 		position: absolute;
 		inset: 0 0 calc(var(--mail-slot) + var(--mail-gap, 0px)) 0;
@@ -892,7 +1002,8 @@ const JOIN_STACK = {
 	   20 the worst case measures 2.0px clear.
 	   SC 2.5.8's Equivalent exception carries the shortfall against 24 × 24:
 	   the title card's directory holds five compliant controls to the same
-	   five destinations. */
+	   five destinations, and the sixth — the origin mark — has the skip
+	   link, which is a full-size control to the same `#main`. */
 	.rail__tick {
 		position: absolute;
 		top: calc(var(--at, 0) * 100%);
@@ -905,13 +1016,27 @@ const JOIN_STACK = {
 		place-items: center end;
 	}
 
+	/* THE GRADUATIONS LEAVE THE THREAD'S COLOUR TO THE THREAD. They were
+	   `--thread` at 55 %, which put five crimson marks BEYOND the drawn tip
+	   above — the same "one form, two meanings" defect restated at 14px, and
+	   the reason it survived the first reading is that it is small. Unlit
+	   ink for a district that exists, crimson for the one you are standing
+	   in, brass for exactly where you stand: one law, three ranks.
+	   IT IS ALSO THE CONTRAST FIX, AND THAT WAS NOT THE INTENTION. A tick is
+	   a state indicator, so SC 1.4.11 wants 3:1 against its ground. Measured
+	   composites: the old crimson-at-55 % read 2.79:1 on the shelf's paper
+	   and 2.06:1 on the desktop rail's bare cork — a fail on both grounds,
+	   which no one had computed because the mark was made of a token that
+	   passes at full strength. Shadow ink at 55 % reads 3.82:1 on paper,
+	   3.74:1 at the lamp's dark end, and 3.06:1 on cork. The current mark is
+	   `--thread` at full strength: 6.18:1 on paper, 3.13:1 on cork. */
 	.rail__tick::after {
 		content: "";
 		display: block;
 		width: 14px;
 		height: 2.5px;
 		border-radius: 2px;
-		background: color-mix(in oklab, var(--thread) 55%, transparent);
+		background: oklch(var(--shade) / 0.55);
 	}
 
 	/* scale, not width: the current tick changes on every scroll frame
@@ -940,6 +1065,17 @@ const JOIN_STACK = {
 		translate: 0 -50%;
 		width: 1px;
 		height: 1px;
+		/* the cap lives on the element, not on the reveal, so the narrow
+		   rail's container-relative cap can beat it on equal specificity.
+		   A district name is two or three words; this only stops a long
+		   German one sprawling across the board. The longest string on
+		   either wall is `WIE ICH ARBEITE` — 15 characters of League Gothic
+		   at `--step--1`'s upper clamp (14px) plus `--track-display`, about
+		   78px — so the cap should never fire. `text-overflow` is here for
+		   the day it does: a name cut mid-word with no sign that anything
+		   was cut is the failure mode this file exists to refuse. */
+		max-width: 12rem;
+		text-overflow: ellipsis;
 		overflow: hidden;
 		clip-path: inset(50%);
 		white-space: nowrap;
@@ -951,16 +1087,56 @@ const JOIN_STACK = {
 		color: var(--ink);
 	}
 
+	/* AND THE CURRENT ONE IS NOT A REVEAL AT ALL — IT IS THE SIGN. Measured at
+	   1440×900 at scroll y 3,000 / 9,000 / 13,500:
+	   `.rail__tick[aria-current] .rail__label` was 1×1px under
+	   `clip-path: inset(50%)` at every one of them. No desktop frame showed a
+	   district name anywhere in the rail — five 24×20 dashes, a brass marker
+	   and the `Write to me` chit, and nothing else. The phone build has
+	   painted the current district in a 61×21 paper chit since the strip
+	   existed, so the two widths differed by a whole class of sign: desktop
+	   offered orientation (a scale) and direction (a marker travelling on it)
+	   and no IDENTIFICATION at all. A reader 9,000px in had a marker on a
+	   scale and no name for where they were standing.
+	   The chit opens leftwards into the cork, where the wall's own margin is,
+	   tucked against the marker at the tick's own height — so it names the
+	   graduation it belongs to rather than reporting from a corner. */
 	.rail__tick:hover .rail__label,
 	.rail__tick:focus-visible .rail__label {
 		width: auto;
 		height: auto;
-		overflow: visible;
 		clip-path: none;
 		padding: calc(var(--baseline) * 0.5) var(--baseline);
 		background-color: var(--paper);
 		background-image: var(--lamp);
 		box-shadow: var(--pin-shadow);
+	}
+
+	/* THE PERMANENT REVEAL NEEDS CORK TO OPEN INTO, AND BELOW 86rem THERE IS
+	   NONE. Naming the current district is the fix for a whole missing sign
+	   class on desktop — the rail carried orientation and direction and no
+	   IDENTIFICATION, so a reader 9,000px in had a marker on a scale and no
+	   name for where they stood. But "there is 1,372px of clear board" is the
+	   rail's left edge, not evidence the board is clear: below 1,376px the
+	   shell is viewport-limited and the cork margin closes.
+	   Measured overlap of the revealed chit against body text: 1,173px2 at
+	   1024, 187px2 at 1200, and 0 at 1440. So the permanent chit is gated to
+	   86rem, where the margin actually exists.
+	   Hover and focus keep revealing it at every width, deliberately: those
+	   are transient and reader-initiated, so a moment's overlap is a cost the
+	   reader chose. A permanently parked chit sitting on someone's prose is
+	   not. Below 86rem the narrow strip's own label rule takes over, which
+	   has a home of its own in the top row and does not overlap anything. */
+	@media (min-width: 86rem) {
+		.rail__tick[aria-current="true"] .rail__label {
+			width: auto;
+			height: auto;
+			clip-path: none;
+			padding: calc(var(--baseline) * 0.5) var(--baseline);
+			background-color: var(--paper);
+			background-image: var(--lamp);
+			box-shadow: var(--pin-shadow);
+		}
 	}
 
 	/* THE CHIT AT THE FOOT OF THE THREAD. On desktop the rail's scale is a
@@ -1138,22 +1314,87 @@ const JOIN_STACK = {
 	   ground — and their offsets are proportional to the page, so the
 	   ground has to run the whole scale. The saving therefore has to come
 	   out of the strip's HEIGHT, and it does. */
+	/* ---- AND THEN IT BECAME TWO ROWS, FOR TWO MEASURED REASONS ---------
+	   ONE. THE JOURNEY ENDED AT 55 % OF THE RULE THE EYE READS. Careful
+	   here, because the obvious diagnosis is the wrong one: the tick offsets
+	   ARE a correct linear normalisation of scroll — the measured `--at`
+	   values match `sectionTop / (H − viewport)` to five decimals. The map
+	   matches the terrain. What failed was the rule the map is drawn on. A
+	   pixel scan of the rendered strip at 390 found crimson in three runs:
+	   x 12→111.2 and x 139.8→233.8 (`.rail__line`, interrupted by the brass
+	   marker) AND x 238.0→373.8 — the address chit's own `text-decoration`,
+	   the same `oklch(0.5 0.19 22)` at 2px, co-linear with the rail rule to
+	   within 0.25px and separated from it by a 4.2px gap. At arm's length
+	   that is ONE continuous 361.8px rule on which the marker's travel ends
+	   at 55.3 %, with the last district's graduation at x 207 and 167px of
+	   visibly identical rule beyond it. Ticks and marker mapped onto
+	   `x = 24 + at × 190`, because the track stopped at `--mail-slot`.
+	   TWO. FORTY-TWO PER CENT OF EVERY TICK TARGET WAS NOT ON THE SCREEN.
+	   The tick box was `top: 46px; height: 24px` inside a 60px strip seated
+	   at `bottom: 0`, so it ran to strip-y 70 — ten pixels BELOW the
+	   viewport's bottom edge. The comment that licensed it said the box runs
+	   "into the margin the strip already reserves", and that confuses two
+	   different margins: `body { padding-bottom }` reserves space in the
+	   DOCUMENT, at its foot, once. It buys nothing at the foot of the
+	   VIEWPORT, where a fixed strip lives. The real target was 24 × 14 —
+	   below the AA floor the rule was written to meet, at every scroll
+	   position, on every phone.
+	   Both are the same fix, because both come from four objects competing
+	   for one 60px band. The strip is now two rows:
+	   — the TOP ROW, 34px: the district's own name printed at the left, the
+	     address chit pinned at the right. Two signs, one row, and the chit's
+	     underline is now 22px off the scale's axis instead of 0.25px.
+	   — the BOTTOM ROW: the scale, and it spans the WHOLE painted width.
+	     One span now serves the rule, the ticks and the marker, so the
+	     journey ends where the rule ends and nothing crimson lies beyond it.
+	   What it cost: 60 → 72px of strip, and the reserved gutter 72 → 84 to
+	   match. What it bought, at 390: tick spacing 26.7 → 45.8px at the
+	   tightest pair, so the targets go 24 × 14 (of which 24 × 14 on screen)
+	   to 40 × 24, entirely on screen; and the chit 44 → 34px tall, which is
+	   the one regression in the trade and is stated where it happens. */
 	@media (max-width: 63.9375rem) {
 		.rail {
-			/* the chip's own width plus a gutter — the ticks' track and the
-			   pin's travel both stop here, so the address never has a tick
-			   or the index under it */
-			/* THE ADDRESS COMPETES WITH THE TICKS FOR ONE TRACK, so its slot is
-			   bounded by the track and not only by the root. `9rem` alone is
-			   152px at root 16 and 224px at root 24 — on a 320px viewport that
-			   leaves 96px for five 24px targets, which is why the guard below
-			   used to have to delete them. Capped at 45cqi the address can
-			   never take more than nine-twentieths of the strip, so five
-			   targets always have room at the width WCAG reflow actually
-			   requires. Same rule again: the constraint is "share of this
-			   strip", so the unit is the strip's. */
+			/* THE ADDRESS'S SHARE OF THE TOP ROW. It no longer bounds the
+			   ticks' track — the track is the whole strip now, and that is
+			   the point of the two rows — so what this protects is the room
+			   left beside the address for the district's own name. The cap
+			   still earns its keep and still earns it in the strip's own
+			   unit: `9rem` alone is 152px at root 16 and 224px at root 24, so
+			   on a 320px viewport an enlarged address would take the whole
+			   shelf and leave the name nowhere to print. Capped at 45cqi it
+			   can never take more than nine-twentieths of the strip. Same
+			   rule as ever: the constraint is "share of this strip", so the
+			   unit is the strip's. */
 			--mail-slot: min(calc(9rem + var(--baseline)), 45cqi);
-			--plinth: 26px;
+			/* ONE DECLARATION FOR THE TARGET BOX. Read by the tick's `width`,
+			   by the mapping's own `margin-left`, and by the even-spacing
+			   guard below — three places that must agree, and the previous
+			   pair drifted the moment either was edited.
+			   WHY 40 AND NOT 44: the tightest district pair is Δat = 0.1248
+			   (How I work → Contact), so centre spacing over the full width
+			   is (W − w) × 0.1248 — at W = 390, w = 44 that is 43.2px and two
+			   44px targets OVERLAP by 0.8px, with the later one painting over
+			   the earlier. At w = 40 it is 43.7px, 3.7px clear. 40 × 24 is
+			   the honest maximum this scale admits without moving the
+			   offsets, and the offsets are the drawing. */
+			/* 32, NOT 40, AND THE SIXTH TICK IS WHY. 40 was derived from the
+			   five-tick `--at` values quoted in the brief; measured on the
+			   built page the origin tick added for the "wrong district for
+			   2,555px" defect sits at 0.0119 and Career at 0.1169, so the
+			   tightest pair is now Dat 0.105 in English and 0.1017 in German.
+			   Centre spacing is Dat x (390 - w), so no-overlap needs
+			   0.1017 x (390 - w) >= w, i.e. w <= 36.0 — and at 40 the targets
+			   MEASURED -3.2px overlap in English and -4.4px in German, two
+			   adjacent hit areas fighting for the same pixels at the one place
+			   a reader most needs the first district.
+			   32 leaves 4.4px clear on the German wall, which is the binding
+			   locale. It is still 32 x 24, comfortably past SC 2.5.8's 24 x 24
+			   floor, and the MARK is untouched at 2.5 x 12 — what shrank is
+			   only the invisible area a thumb can hit, not anything drawn.
+			   Re-measure this against BOTH locales if a tick is ever added or
+			   the districts move: German runs tighter than English here, and
+			   an English-only check would have shipped the overlap. */
+			--tick-w: 32px;
 			container-type: inline-size;
 			/* FULL BLEED, ON THE EDGE. The strip used to float 12px clear of
 			   the viewport on all three sides, which is what turned even a
@@ -1168,10 +1409,20 @@ const JOIN_STACK = {
 			right: 0;
 			bottom: 0;
 			width: auto;
-			/* the box is still 60px, and `body { padding-bottom: 72px }`
-			   still pays for it exactly — what changed is how much of the
-			   box carries ink */
-			height: 60px;
+			/* 72, and `body { padding-bottom: 84px }` pays for it exactly.
+			   The height is load-bearing in BOTH directions and the budget
+			   is arithmetic, not taste. The tick lane must start below the
+			   marker's centre and end above the viewport's edge, so
+			   height ≥ topRow + 14 (the disc's radius) + 0.75 + 24 (the
+			   target) — i.e. at 72 the top row may be 33.25. It is 34, and
+			   the 0.75 it borrows is the brass head's outermost pixels
+			   crossing the chit's bottom edge, which only happens at all past
+			   progress 0.6 and looks like a pin lying on paper. Do not
+			   re-derive this as 73: the tick box ends at 71.5, half a pixel
+			   inside its own shelf, and what was squeezed is the row, not the
+			   total. Every pixel above 72 is occlusion the reader pays for on
+			   every screen, so there are none. */
+			height: 72px;
 			pointer-events: none;
 			background: none;
 			box-shadow: none;
@@ -1183,12 +1434,13 @@ const JOIN_STACK = {
 		   `--thread` — ran horizontally through that point: same colour,
 		   right angle, opaque paper hiding the crossing, so a wall whose
 		   premise is one continuous line showed the reader a fork on every
-		   screen. Two things fix it and both are here: the plinth declares a
+		   screen. Two things fix it and both are here: the shelf declares a
 		   top EDGE and throws its shadow UPWARD, so it reads as an object
 		   standing in front of the wall rather than a corner drawn in it —
 		   and an edge is a licensed occluder, which a mid-sheet stop is not.
-		   And the miniature thread is set 10px down from that edge, so the
-		   descending thread never terminates ON it. */
+		   And the miniature thread is set well down from that edge (46 of
+		   72px, the strip's lower row), so the descending thread never
+		   terminates ON it. */
 		/* THE GROUND NOW FILLS THE BOX IT ALREADY OCCUPIED. Four disciplines
 		   measured this independently and agreed: the strip covers live body
 		   text at 9/10, 21/25, 20/24 and 89/105 sampled offsets. The last of
@@ -1207,8 +1459,16 @@ const JOIN_STACK = {
 		   One ground across the whole box turns three islands into a shelf.
 		   Text now scrolls UNDER an edge — the same affordance as a fixed
 		   header, which every reader already knows how to read — instead of
-		   having a piece bitten out of it. Nothing grew: same 60px box, same
-		   reserved gutter, same ticks, same offsets. The ink stopped floating.
+		   having a piece bitten out of it. That cycle grew nothing: same
+		   60px box, same reserved gutter, same ticks, same offsets. The ink
+		   stopped floating, and re-measured by hit-testing with
+		   `elementFromPoint` the strikes fell to 6 of 102 offsets (EN) and 7
+		   of 107 (DE).
+		   THE BOX HAS SINCE GONE 60 → 72, and that number is now the one to
+		   watch: the ground still fills it, so the affordance is unchanged,
+		   but every pixel of height is occlusion charged on every screen.
+		   Why the 12 was worth paying is at the top of this block; that it
+		   was paid at all belongs here, next to the measurement it moves.
 		   Stated plainly, because the honest limit belongs in the file: a
 		   fixed strip over a scrolling page cannot be made NON-occluding.
 		   The reserved gutter pays for the document's foot, not for the
@@ -1228,19 +1488,35 @@ const JOIN_STACK = {
 				var(--pin-shadow);
 		}
 
-		/* the thread, 10px down the plinth; the pin rides it and the ticks
-		   hang off it, so the 28px disc can never sit on a tick's target.
+		/* the thread, laid along the strip's lower row; the pin rides it and
+		   the ticks hang off it, so the 28px disc can never sit on a tick's
+		   target. Its centre is at strip-y 46.75 and every other number in
+		   this block is measured from that one.
 		   RIGHT: 0, not `--mail-slot`: it used to stop at x = 213 while the
 		   chip began at 222, so the scale drawing of a route whose thesis is
 		   "the thread terminates on the email address" stopped 8px short of
-		   the address at every offset. It now runs under the chip and its
-		   visible end IS the chip's edge. */
+		   the address at every offset. The chit has since moved up a row, so
+		   the rule now runs the strip's whole painted width — and that is
+		   also what puts the marker's travel and the rule's extent on one
+		   span, which is the fix for the 55.3 % reading above. */
 		.rail__line {
-			top: 44px;
+			top: 46px;
 			bottom: auto;
 			left: 0;
 			right: 0;
 			width: auto;
+			height: 1.5px;
+		}
+
+		/* the walked part turns with the axis. Same law as the vertical rail,
+		   same tip-under-the-brass arithmetic: the head travels
+		   `progress · (100cqi − 28)` and the tip reaches `progress · 100cqi`,
+		   so the tip leads the head's near edge by 28·progress and trails its
+		   far edge by 28·(1 − progress) — inside the disc at every value. */
+		.rail__line::after {
+			top: -0.5px;
+			left: 0;
+			width: calc(var(--progress, 0) * 100%);
 			height: 2.5px;
 		}
 
@@ -1258,37 +1534,54 @@ const JOIN_STACK = {
 		   brass — a graduation ruled over the index, which is what a scale
 		   drawing does — and a tap on a covered district reaches the
 		   district, and the index keeps its own centre. */
+		/* INSET 0, AND THAT SINGLE WORD IS FINDING 2's OTHER HALF. The track
+		   used to stop at `--mail-slot` so that no tick could stand under the
+		   address; the address has moved to the row above, so the reservation
+		   has nothing left to protect and the ticks inherit the whole painted
+		   width. The offsets are untouched — they are the scale drawing and
+		   they are the point — but the span they are drawn across is now the
+		   span the eye reads as the track. */
 		.rail__ticks {
-			inset: 0 var(--mail-slot) 0 0;
+			inset: 0;
 			z-index: 1;
 		}
 
-		/* 24 × 34 targets — over the AA floor of 24 × 24, and as wide as the
-		   districts' own spacing allows: the last two sections are 12 % of
-		   the page apart, so a 44px target could only be bought by giving up
-		   the proportional placement that makes this a scale at all. The box
-		   reaches above the plinth; only its mark is on paper. */
-		/* 24 × 24 targets, hung from the thread and starting BELOW the
-		   index's centre. The strip is no longer 60px of paper, so the tick
-		   lane cannot stand clear of the disc the way the desktop rail's
-		   does — the marks hang off the line and the disc is centred on it.
-		   What can be made disjoint is the pair of CENTRES: the disc's
-		   centre sits at 45.25px down the strip and this box starts at 46,
-		   so a tap aimed at either control lands on that control. Measured
-		   across 46 visible frames at both 360 and 390: 0 of 230 tick
-		   centres blocked, and the index's own centre blocked in 1 frame of
-		   46 at 360 and 3 at 390. With the disc painting on top instead it
-		   was 27 tick-frames more than half covered at 390 and 22 at 360 —
-		   nineteen of them a district the reader was not even in.
-		   The box runs 10px past the strip's foot into the margin the
-		   strip already reserves — a target may leave the paper, a mark
-		   may not. */
+		/* 40 × 24 targets, hung from the thread and starting BELOW the
+		   index's centre. The strip is not 60px of paper, so the tick lane
+		   cannot stand clear of the disc the way the desktop rail's does —
+		   the marks hang off the line and the disc is centred on it. What CAN
+		   be made disjoint is the pair of CENTRES: the disc's centre sits at
+		   46.75px down the strip and this box starts at 47.5, so a tap aimed
+		   at either control lands on that control. Measured at the previous
+		   geometry across 46 visible frames at both 360 and 390: 0 of 230
+		   tick centres blocked, and the index's own centre blocked in 1 frame
+		   of 46 at 360 and 3 at 390 — the ordering this preserves.
+		   AND THE WHOLE BOX IS NOW ON THE SCREEN, WHICH IT WAS NOT. It ran
+		   `top: 46px; height: 24px` in a 60px strip seated at `bottom: 0`,
+		   i.e. to strip-y 70, and the comment that licensed it claimed the
+		   overhang went "into the margin the strip already reserves". It does
+		   not: `body { padding-bottom }` reserves DOCUMENT space at the foot
+		   of the page, once. A fixed strip's foot is the viewport's foot, and
+		   there is nothing below it — so 10 of every 24 target pixels were
+		   off-screen and the real target was 24 × 14, under the AA floor the
+		   rule was written to meet. 47.5 + 24 = 71.5 against a 72px strip:
+		   the box now ends half a pixel inside its own paper.
+		   The width is `--tick-w` and the reason it is 40 rather than 44 is
+		   at the declaration. A target may be generous; a MARK may not — the
+		   mark stays 2.5 × 12 and centred, so what grew is only what a thumb
+		   can hit. */
 		.rail__tick {
-			top: 46px;
+			top: 47.5px;
 			left: calc(var(--at, 0) * 100%);
 			margin-top: 0;
-			margin-left: calc(var(--at, 0) * -24px);
-			width: 24px;
+			/* the fallback is not decoration. An unresolved `var()` inside a
+			   `calc()` is invalid AT COMPUTED-VALUE TIME, which does not fall
+			   back to the cascade — it falls back to `unset`, so `margin-left`
+			   would silently become 0 and every tick would drift right by its
+			   own offset. A default that can never be reached is cheaper than
+			   a failure that is invisible in the stylesheet. */
+			margin-left: calc(var(--at, 0) * -1 * var(--tick-w, 40px));
+			width: var(--tick-w, 40px);
 			height: 24px;
 			place-items: start center;
 		}
@@ -1306,73 +1599,109 @@ const JOIN_STACK = {
 		}
 
 		/* A SCALE WITH NO LEGEND, AND THE LEGEND NEVER ON SCREEN WITH IT.
-		   The five names exist in reading order in exactly one other place,
-		   the title card's directory at page y 0–277, and this strip only
-		   appears past scrollY 480 — so the map and its key could not be
-		   co-visible at any scroll position, on any device, and the marks
-		   were five identical dashes. The CURRENT district now names itself
-		   and only it: one label, opening upward off its own tick into the
-		   band the bar used to fill. It costs about 20px of viewport for one
-		   district at a time, where the bar cost 60px for all of them. */
+		   The district names exist in reading order in exactly one other
+		   place, the title card's directory at page y 0–277, and this strip
+		   only appears once the reader has left it — so the map and its key
+		   could not be co-visible at any scroll position, on any device, and
+		   the marks were identical dashes. The CURRENT district names itself
+		   and only it: one label, printed on the shelf. It costs about 22px
+		   of the strip for one district at a time, where a legend would cost
+		   the whole row for all of them.
+		   IT HAS A FIXED HOME NOW, AT THE LEFT OF THE TOP ROW, AND THAT IS
+		   THE PRICE OF THE TWO ROWS. Hung off its own tick it had to share a
+		   band with the address chit, and with the ticks spread over the full
+		   width the last two districts' names land inside the chit's 144px:
+		   `How I work` centres at x 300 of 390 against a chit spanning
+		   246–390. Printed at the left it cannot collide with anything, and
+		   what it gives up — the label pointing at its own graduation — is
+		   already carried twice over by the mark going crimson at 1.4× and by
+		   the brass head standing on the reader's position.
+		   `position: fixed` and not `absolute` because the tick is the
+		   label's containing block and the tick moves. It is safe without
+		   reading a single line of containment spec: the strip is
+		   `left: 0; right: 0; bottom: 0`, so viewport coordinates and strip
+		   coordinates COINCIDE BY CONSTRUCTION and the rule lands in the same
+		   place whether or not `container-type` makes `.rail` the containing
+		   block. `100cqi` in the cap below still resolves against `.rail`
+		   either way. And it still hides with the rail: `visibility` and the
+		   opacity group both follow the element TREE, not the containing
+		   block, so `[data-visible="false"]` takes the label with it. */
 		.rail__label {
+			position: fixed;
 			right: auto;
-			left: 50%;
+			/* 12px in from the board's edge, the same gutter the wall's own
+			   cards keep at this width */
+			left: calc(var(--baseline) * 1.5);
 			top: auto;
-			/* SEATED, NOT FLOATING. This used to open upward off the plinth
-			   onto bare cork, which is what made it one of the three opaque
-			   islands over live text (100 strikes for the address chit, 75
-			   for this one). The ground now fills the box, so the label sits
-			   INSIDE the shelf, clear of the thread at strip-y 44 and clear
-			   of the shelf's own top edge. It is still one label, still the
-			   current district only. */
-			bottom: calc(var(--plinth) + 4px);
-			translate: -50% 0;
+			/* 72 (strip) − 34 (top row) + 6 to centre a 21.6px chit in it */
+			bottom: 44px;
+			translate: none;
+			/* it may never reach the address. `--mail-slot` is the chit's
+			   footprint plus a gutter, so this is the row minus the chit
+			   minus the label's own 12px inset and one more of clearance. */
+			max-width: calc(100cqi - var(--mail-slot) - var(--baseline) * 3);
 		}
 
 		/* No stock and no shadow of its own: the shelf is already paper, and
 		   a paper chit on paper reads as a smudge, not an object. The label
-		   is now PRINTED on the shelf rather than pinned in front of it. */
+		   is PRINTED on the shelf rather than pinned in front of it — which
+		   is also why the desktop rule's paper and cast shadow have to be
+		   unset here rather than merely not asked for: the current district
+		   now reveals on both axes and the desktop reveal is the shared one.
+		   Padding loses its inline half so the name starts on the 12px
+		   gutter, where the wall's own text edge is. */
+		.rail__tick:hover .rail__label,
+		.rail__tick:focus-visible .rail__label,
 		.rail__tick[aria-current="true"] .rail__label {
-			width: auto;
-			height: auto;
-			overflow: visible;
-			clip-path: none;
-			padding: calc(var(--baseline) * 0.5) var(--baseline);
+			background: none;
+			box-shadow: none;
+			padding: calc(var(--baseline) * 0.5) 0;
 		}
 
-		/* the two end districts' names would run off the strip if they
-		   opened from their own centres — measured at 360, where the first
-		   tick stands at the strip's left edge and `WERDEGANG` hung 10.3px
-		   off the left of the viewport. They hang from their tick's near
-		   edge instead; the three in the middle stay centred on theirs. */
-		.rail__ticks li:first-child .rail__label {
-			left: 0;
-			right: auto;
-			translate: 0 0;
-		}
-
-		.rail__ticks li:last-child .rail__label {
-			left: auto;
-			right: 0;
-			translate: 0 0;
+		/* one home, one label. Hover and focus reveal a name too, and on this
+		   axis every revealed name lands on the same spot — so the current
+		   district stands down while another is being interrogated instead of
+		   printing over it. `opacity`, not `visibility`: the accessible name
+		   is the anchor's own text and it may not leave the tree. */
+		.rail__ticks:has(.rail__tick:is(:hover, :focus-visible))
+			.rail__tick[aria-current="true"]:not(:hover, :focus-visible)
+			.rail__label {
+			opacity: 0;
 		}
 
 		.rail__pin {
-			/* the line's centre is 45.25px down the box; a 28px head centred
+			/* the line's centre is 46.75px down the box; a 28px head centred
 			   on it starts here */
-			top: 31px;
+			top: 32.75px;
 			left: 0;
-			/* travel is the TRACK's width, measured from the strip itself, so
-			   the index and the ticks share one scale at every narrow width */
-			translate: calc(var(--progress, 0) * (100cqi - var(--mail-slot) - 28px)) 0;
+			/* travel is the WHOLE strip now, measured from the strip itself,
+			   so the index, the ticks and the drawn thread share one span at
+			   every narrow width. It used to stop short by `--mail-slot`,
+			   which is how the marker came to finish at 55.3 % of the rule
+			   the eye reads — see the block above the media query. */
+			translate: calc(var(--progress, 0) * (100cqi - 28px)) 0;
 		}
 
 		/* THE ONE THING THAT HAD TO SURVIVE. The first mailto on the phone
 		   build sits past 80 % of a 20,000px page; every route to it was a
-		   scroll. It is a pinned chit at the end of the strip — still the
-		   largest target in the rail, which is the correct ranking for the
-		   only conversion event on the wall, and now 44px tall rather than
-		   60 so it stops reaching up into the scent band. */
+		   scroll. It is a pinned chit at the end of the strip — still by far
+		   the largest target in the rail, which is the correct ranking for
+		   the only conversion event on the wall. */
+		/* AND IT MOVED UP A ROW, WHICH COST IT TEN PIXELS OF HEIGHT. Its own
+		   `text-decoration` is 2px of `oklch(0.5 0.19 22)` — the thread's
+		   exact token — and while the chit sat on the scale's row that
+		   underline was co-linear with `.rail__line` to within 0.25px, four
+		   pixels off its end. A pixel scan reads that as ONE rule 361.8px
+		   long, on which the brass marker's travel finishes at 55.3 %. The
+		   underline is not the defect and neither is the chit; sharing an
+		   axis is. Lifted into the top row the two rules are 22px apart and
+		   each says one thing.
+		   THE COST, STATED WHERE IT IS PAID: 44px tall → 34. 44 was a
+		   deliberate choice one cycle ago (SC 2.5.5's target) and this drops
+		   under it; the chit is still 144 × 34 = 4,896px², five times the
+		   area of a tick, and SC 2.5.8's 24px floor is still clear. Buying
+		   the 44 back means a 82px strip, and 10px of permanent occlusion
+		   across the whole width is the more expensive of the two. */
 		/* see `data-at-contact` in the script: the chit retires once the
 		   reader is standing on the address itself */
 		.rail[data-at-contact] .rail__mail {
@@ -1384,15 +1713,15 @@ const JOIN_STACK = {
 			display: grid;
 			place-items: center;
 			position: absolute;
-			top: auto;
-			bottom: 0;
+			top: 0;
+			bottom: auto;
 			/* `left: auto` matters: the desktop rule sets both edges so the
 			   chit takes the rail's column, and left + right + width is
 			   over-constrained — `right` would be the value dropped, and the
 			   address would jump to the far end of the strip */
 			left: auto;
 			right: 0;
-			height: 44px;
+			height: 34px;
 			padding-inline: 0;
 			/* 9rem holds all seventeen characters of the address at the top of
 			   `--step--1`'s clamp (13.59px at 1023px, Courier's 0.6em advance =
@@ -1434,11 +1763,11 @@ const JOIN_STACK = {
 	   The crowding the guard was written for is real — at 360 the page is
 	   21,465px tall and the districts' proportional offsets bunch — but
 	   deleting the ticks treats the symptom. Below 24rem the track gives up
-	   PROPORTIONAL PLACEMENT and lays the five marks out evenly, which is
-	   the lesser loss: the brass index still rides at true scroll progress,
-	   so the reader still learns where they are, and five named destinations
-	   survive at 24px. Only under 20rem — genuine 400 % zoom — is there not
-	   enough track left for five targets at all. */
+	   PROPORTIONAL PLACEMENT and lays the marks out evenly, which is the
+	   lesser loss: the brass index still rides at true scroll progress, so
+	   the reader still learns where they are, and every named destination
+	   survives at a full target. Only under 20rem — genuine 400 % zoom — is
+	   there not enough track left for them at all. */
 	/* THESE TWO GUARDS ARE IN `px` ON PURPOSE, AND IT IS THE SECOND HALF OF
 	   THE SAME BUG THE ARITHMETIC SLIP ABOVE WAS. Written as `24rem` / `20rem`
 	   they answered to the ROOT FONT SIZE, which the reader sets — so at
@@ -1447,7 +1776,7 @@ const JOIN_STACK = {
 	   index on every mainstream phone held by anyone who enlarges text.
 	   Verified: 5 of 5 ticks present at root 16, 0 of 5 at root 20 and 24.
 	   What this guard is about is whether the DEVICE has physical room for
-	   five 24px targets. That is a physical constraint, so it is measured in
+	   the ticks' targets. That is a physical constraint, so it is measured in
 	   physical units, and a reader's text preference must not move it.
 	   The rule, stated once for the file: THE UNIT MUST MATCH WHAT THE
 	   CONSTRAINT IS ABOUT. Fitting inside a card is a container constraint
@@ -1458,26 +1787,39 @@ const JOIN_STACK = {
 	@media (max-width: 384px) {
 		.rail__tick {
 			left: calc(var(--even, 0) * 100%);
-			margin-left: calc(var(--even, 0) * -24px);
+			/* fallback for the same reason as the proportional rule's: this
+			   query is a SIBLING of the narrow block, not nested in it, and an
+			   unresolved `var()` in a `calc()` resolves to `unset`, not to the
+			   cascade. It is always true that 384px is also below 63.9375rem;
+			   it is not always true that the block declaring `--tick-w` will
+			   stay where it is. */
+			margin-left: calc(var(--even, 0) * -1 * var(--tick-w, 40px));
 		}
 
-		/* the five districts, evenly. Written out because there are five of
-		   them and the directory that feeds this rail is the same five in
-		   the same order — a `--at` the script measured is replaced by an
-		   `--even` the stylesheet declares, and nothing else moves. */
+		/* the six marks, evenly. Written out because there are six of them
+		   and the list that feeds this rail is the same six in the same
+		   order — a `--at` the script measured is replaced by an `--even`
+		   the stylesheet declares, and nothing else moves. Five steps of 0.2
+		   because the first mark is the origin and keeps the default 0; the
+		   numbers changed with the sixth tick, and a stale fifth of the
+		   track is how an even scale stops being even. */
 		.rail__ticks li:nth-child(2) .rail__tick {
-			--even: 0.25;
+			--even: 0.2;
 		}
 
 		.rail__ticks li:nth-child(3) .rail__tick {
-			--even: 0.5;
+			--even: 0.4;
 		}
 
 		.rail__ticks li:nth-child(4) .rail__tick {
-			--even: 0.75;
+			--even: 0.6;
 		}
 
 		.rail__ticks li:nth-child(5) .rail__tick {
+			--even: 0.8;
+		}
+
+		.rail__ticks li:nth-child(6) .rail__tick {
 			--even: 1;
 		}
 	}
@@ -1485,9 +1827,11 @@ const JOIN_STACK = {
 	/* 320px is not a fringe width: it is the viewport WCAG 1.4.10 reflow is
 	   written against (400 % zoom on 1280), so deleting the section index at
 	   `max-width: 320px` failed reflow at exactly the width the criterion
-	   names. With the address slot capped at 45cqi above, five 24px targets
-	   fit at 320 with room to spare, so the floor drops to a width no real
-	   device and no zoom level lands on. */
+	   names. The address no longer shares the ticks' track at all — it sits
+	   in the row above — so the whole 320px carries the scale: six 40px
+	   targets on evenly spaced centres 56px apart, 16px of clear space
+	   between neighbours. The floor stays at a width no real device and no
+	   zoom level lands on. */
 	@media (max-width: 279px) {
 		.rail__ticks {
 			display: none;
@@ -1895,7 +2239,21 @@ const JOIN_STACK = {
 		const placePin = () => {
 			const p = clamp(window.scrollY / scrollable(), 0, 1);
 			rail.style.setProperty("--progress", String(p));
-			rail.dataset.visible = String(window.scrollY > 480);
+			/* 480 → 200, BECAUSE THERE WAS A BAND WITH NO SIGNAGE AT ALL. The
+			   header nav's bottom edge sits at document y 192 and the rail
+			   flipped visible at 480: 308px between them — 36 % of a phone
+			   viewport with no identification, no direction and no route to
+			   the address, and it is precisely the window in which a reader
+			   decides whether to commit to 26 screens. 200 hands over as the
+			   directory leaves: the nav's last pixel is 8px above the fold at
+			   the moment the strip arrives.
+			   It could now go to 0 — the sixth tick means the strip has a
+			   TRUE label at the top, which is what made an early reveal a
+			   liability before. It does not, because the first viewport is
+			   the one image that decides what this site is, and a shelf
+			   across the hero is 72px of that image spent on a control the
+			   reader has not yet needed. 200 is the first scroll. */
+			rail.dataset.visible = String(window.scrollY > 200);
 
 			/* NO TICK WAS CURRENT FOR THE FIRST 2,463px. The rule was "the
 			   last graduation the index has passed", and the index has

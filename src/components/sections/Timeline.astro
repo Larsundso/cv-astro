@@ -474,7 +474,7 @@ const links = layout.map(({ side }, i) => {
 															{!titleIsCompany && (
 																<p class="rf-emp-line">
 																	{runs(row.entry.title).map((part) =>
-																		part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.text
+																		part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.nowrap ? <span class="nowrap">{part.text}</span> : part.text
 																	)}
 																</p>
 															)}
@@ -482,14 +482,14 @@ const links = layout.map(({ side }, i) => {
 													) : (
 														<h3>
 															{runs(row.entry.title).map((part) =>
-																part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.text
+																part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.nowrap ? <span class="nowrap">{part.text}</span> : part.text
 															)}
 														</h3>
 													)}
 													{(material === "print" ? narrative : record).map((paragraph) => (
 														<p>
 															{runs(paragraph).map((part) =>
-																part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.text
+																part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.nowrap ? <span class="nowrap">{part.text}</span> : part.text
 															)}
 														</p>
 													))}
@@ -593,7 +593,7 @@ const links = layout.map(({ side }, i) => {
 											{record.map((paragraph) => (
 												<p>
 													{runs(paragraph).map((part) =>
-														part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.text
+														part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.nowrap ? <span class="nowrap">{part.text}</span> : part.text
 													)}
 												</p>
 											))}

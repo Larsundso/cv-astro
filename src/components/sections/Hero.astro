@@ -12,14 +12,18 @@
  *
  *   CLAIM      who this is and what he does now, in three ranks on one
  *              card: the name and the 2.4M-user claim one step up at the
- *              typewriter's bold, the level statement bold at the card's
- *              own size, and the record — credential, employer,
- *              qualification, geography, languages — under a blank rule.
+ *              typewriter's bold, then the level statement AND THE PAID
+ *              POST bold at the card's own size, and the record —
+ *              credential, qualification, geography, technology, the
+ *              offer, languages — under a blank rule.
  *              It sits in the fold's primary optical area (top-left)
  *              because job title and current employer are the top two
  *              fixation points in recruiter eye-tracking and are the
- *              German stage-1 filter; the credential keeps that position
- *              and yields only its weight.
+ *              German stage-1 filter. The CREDENTIAL keeps that position
+ *              and yields only its weight; the POST — job title and
+ *              employer — carries weight and gives up its position in the
+ *              record's first sentence. Two facts, two axes, and they are
+ *              spent separately on purpose.
  *   SIGNATURE  the name, the wall's brand asset and now its FOCAL MASS:
  *              the largest sheet in the fold, the largest setting on the
  *              page — 89px at weight 700, filling 85 % of its own sheet
@@ -68,7 +72,7 @@ import Thread from "~/components/wall/Thread.astro";
 import { tautPath } from "~/components/wall/taut";
 import { getWall, type Locale } from "~/data/i18n";
 import { figure, formatHM } from "~/data/telemetry";
-import { splitLangRuns } from "~/data/wall";
+import { properNouns, splitLangRuns } from "~/data/wall";
 import Greeting from "./hero/Greeting.astro";
 
 const locale = (Astro.currentLocale ?? "en") as Locale;
@@ -100,8 +104,134 @@ const runs = (text: string) => splitLangRuns(text, germanRuns);
    sentence is one owner-approved fact and stays one string. If the copy ever
    loses its sentence boundary the whole run is set as the anchor, so no
    unreviewed text can be promoted by accident. */
-const [seniorityAnchor, ...seniorityRest] = hero.intro[2].split(/(?<=\.)\s+/);
+const CLAIM_LINE = 1;
+const SENIORITY_LINE = 2;
+
+const [seniorityAnchor, ...seniorityRest] = hero.intro[SENIORITY_LINE].split(/(?<=\.)\s+/);
 const seniorityQualifier = seniorityRest.join(" ");
+
+/* THE PAID POST REJOINS THE CARD'S BOLD BAND. Three hiring reviews in a row
+   returned the same verdict — "a person who has documented his hobby to a
+   professional standard and his profession not at all" — and the third
+   measured the mechanism. On the previous build at 1440 × 900, EVERY string
+   this card set at ≥ 600 weight inside the first viewport was about the
+   unpaid side project:
+     y=232  20px/700  "Lars Böse"
+     y=256  20px/700  "I run a Discord bot with 2.4M+ users on 8,357 servers"
+     y=304  16px/700  "I have built and operated it for 6 years 8 months"
+   while the employer printed at 16px/400 at y=451 — 219px below the band,
+   in a subordinate clause after the credential's own gloss. The commit that
+   put it there called that band "the top two fixation points in recruiter
+   eye-tracking and the German stage-1 filter" in its own docstring, and
+   then demoted job title and employer out of it. Under anchoring the first
+   level a screener assigns is the box the remaining 14,000px are read
+   inside, and the card was assigning "hobbyist".
+
+   SO THE POST TAKES ITS OWN BOLD RULE AT THE END OF THE HEAD, and it goes
+   AFTER the level statement, not before it: "I have built and operated IT"
+   needs the bot as its nearest antecedent, and the employer standing
+   between them hands the pronoun to Raleo Digital GmbH. That ordering was
+   argued and rejected once already; it stays rejected.
+   The credential does NOT come with it. At 700 it was four to six rendered
+   lines of bold pointing at a vocational certificate rather than at the
+   2.4M-user product, which is why it was set to 400 while keeping the
+   record's first rule. Position is one axis and weight is another. The post
+   is the fact that gives up POSITION (it leaves the record's first
+   sentence) and takes WEIGHT; the credential keeps position and stays at
+   400. Do not fix either of them back.
+
+   KEYED ON THE CARD'S STRUCTURE, NOT ON AN ARRAY INDEX, because the copy
+   module is another owner's file and gains lines between builds. The post
+   is found as "the intro entry that names the employer" — the employer
+   being whichever legal name from `properNouns` this wall prints, the same
+   list the no-break scanner keys on. If that entry ALSO carries the
+   credential (both locales' current copy does) the entry is split at the
+   structural boundary the employer's clause opens on — an em dash, a
+   closing bracket, a semicolon or a colon — and the head half stays as the
+   record's first rule. If the entry does NOT carry the credential, it is
+   already a standalone post line and is promoted whole, unsplit.
+
+   THIS IS THE ONE PLACE IN THIS FILE THAT RE-PUNCTUATES OWNER-APPROVED
+   PROSE, and that is over the line this cycle otherwise holds: four
+   mutations — drop the leading conjunction, capitalise the first letter,
+   drop the trailing dash, restore the terminal stop. No guard makes that
+   not-a-copy-edit, so the two strings it currently emits are written out
+   here for the copy owner to veto:
+     en  head "Fachinformatiker für Anwendungsentwicklung (IHK) — the German
+              state-recognised vocational qualification in application
+              development."
+         post "Full-stack developer at Raleo Digital GmbH, remote."
+     de  head "Fachinformatiker für Anwendungsentwicklung (IHK)."
+         post "Full-Stack-Entwickler bei der Raleo Digital GmbH, remote."
+   Every guard below fails CLOSED: if the shape is not the one described,
+   nothing is promoted, nothing is re-punctuated, and the card renders the
+   entry exactly as the data layer wrote it — the defect returns, but no
+   unreviewed sentence is ever printed. */
+const CREDENTIAL_RUN = "Fachinformatiker für Anwendungsentwicklung";
+/* boundary characters a clause may open on, in either locale — structural
+   punctuation only, never a word */
+const CLAUSE_OPENERS = ["—", "–", ")", ";", ":"];
+/* stripped only where the split already succeeded, so a miss cannot leave a
+   sentence beginning with a conjunction */
+const LEADING_CONJUNCTION = /^(?:and|und|sowie|&)\s+/i;
+
+const derivePost = () => {
+	/* ONE SEARCH, NOT TWO. Finding the name first and then the line that
+	   holds it lets the two disagree: `properNouns` opens with the company
+	   that ran the apprenticeship, so the moment any hero line names
+	   Columbus Interactive GmbH — plausible copy — the name search would
+	   return Columbus, the line search would return THAT line, and the
+	   apprenticeship would be promoted into the bold band while the paid
+	   post stayed at 400. The line is the subject of the question; the name
+	   is read off whichever line answered it. The claim and the level
+	   statement are excluded here rather than after the fact: both have
+	   their own rank and their own reasons, and an employer named inside
+	   either is not a post line. */
+	const at = hero.intro.findIndex(
+		(line, i) =>
+			i !== CLAIM_LINE && i !== SENIORITY_LINE && properNouns.some((name) => line.includes(name))
+	);
+	if (at < 0) return null;
+
+	const line = hero.intro[at]!;
+	const employer = properNouns.find((name) => line.includes(name))!;
+	/* already a standalone post line — promote it whole, touch nothing */
+	if (!line.includes(CREDENTIAL_RUN)) return { at, post: line, record: null };
+
+	const employerAt = line.indexOf(employer);
+	const opener = Math.max(...CLAUSE_OPENERS.map((c) => line.lastIndexOf(c, employerAt)));
+	if (opener < 0) return null;
+	/* a bracket closes the head it belongs to; a dash is spent on the seam */
+	const keep = line[opener] === ")" ? opener + 1 : opener;
+	const head = line.slice(0, keep).trim();
+	/* trimmed BEFORE the conjunction is stripped: the boundary is followed by
+	   a space, and an anchored pattern does not match past one */
+	const tail = line.slice(opener + 1).trim().replace(LEADING_CONJUNCTION, "").trim();
+	/* the whole point of the split, asserted rather than assumed: the
+	   credential lands in the RECORD half and the employer in the POST
+	   half. Either miss and nothing is promoted at all. */
+	if (!head.includes(CREDENTIAL_RUN) || !tail.includes(employer)) return null;
+
+	return {
+		at,
+		post: tail.charAt(0).toLocaleUpperCase(locale) + tail.slice(1),
+		record: /[.!?]$/.test(head) ? head : `${head}.`
+	};
+};
+
+const post = derivePost();
+
+/* EVERY ENTRY IN `hero.intro` IS PRINTED EXACTLY ONCE, and this is where
+   that is enforced rather than hoped for. The claim and the level statement
+   are set above by index because the data module documents those two
+   positions as load-bearing; everything else is taken by structure, so a
+   line APPENDED to the array (the module's stated contract) lands in the
+   record on its own instead of being silently dropped — which is how the
+   card once lost text. Order in the record: the credential opens it, the
+   qualification clause follows so its referent sits one rule above it, then
+   geography, then whatever the copy module has appended, then languages. */
+const recordOpen = post && post.at === 0 ? post.record : hero.intro[0];
+const recordRest = hero.intro.filter((_, i) => i > SENIORITY_LINE && i !== post?.at);
 
 const stats = await getTotalTime();
 
@@ -213,7 +343,20 @@ const BEND = (x: number, y: number): Station => ({ x, y, pin: false });
    in the open cork of the band gap, and the measured visible fraction of the
    desktop thread rises from 63.7 % to 69.7 % English and 61.5 % to 69.3 %
    German (`scratchpad/fix3/hero/thread.mjs`, pixel diff against the same
-   board with the thread hidden). */
+   board with the thread hidden).
+
+   STALE AS OF 2026-08-08, AND BY A KNOWN AMOUNT. The record card took two
+   APPENDED copy lines this cycle (the technology line and the offer) and
+   the head took the paid post. Measured on the served build at 1440 × 900
+   by rebuilding the card in the DOM: the post costs one rule and the
+   credential's remainder gives one back, so the RANK change is height-
+   neutral in both locales — the whole growth is the two appended lines, at
+   +96px (four rules) English and German alike. Card 444 → 540; board 867 →
+   963 en, 847 → 943 de. Every band-2 vertex below therefore sits ~96px
+   above where its pin now is, which is 13 pin heads: RE-MEASURE before this
+   cycle ships. What does NOT come back is the dash defect — the box is 1500
+   × 1100 against a rendered/authored ratio of 0.821/0.817, and 96px more
+   board moves that to roughly 0.85, still well under 1. */
 const DESKTOP_STATIONS: Record<Locale, Station[]> = {
 	en: [
 		P(388, 1),
@@ -309,7 +452,18 @@ const THREAD_DESKTOP = {
    whose whole job is clearance, and it is set against the LATER of the two
    stamps: re-measured, both stamp boxes still bottom out at 2,333 and both
    still start at x = 153.7, so the detour's two vertices are unchanged and
-   the left clearance is still 17.7 units. */
+   the left clearance is still 17.7 units.
+
+   STALE AS OF 2026-08-08, same cause as the desktop stations above: the
+   record card grew 96px on two APPENDED copy lines (the rank change itself
+   is height-neutral — one rule to the post, one rule back from the
+   credential's remainder). Every vertex below the card slides down by that
+   much, and the STAMP DETOUR is the one that cannot be left to drift: its
+   whole job is 17.7 units of clearance past an artifact with no paper under
+   it. RE-MEASURE. The ratio this note makes load-bearing survives on
+   arithmetic alone: 0.792 en / 0.855 de against a board growing ~96px is
+   ~0.829 / ~0.896, still under 1, with the ~340px of headroom cut to
+   ~240px. */
 const THREAD_MOBILE = {
 	width: 400,
 	height: 2400,
@@ -325,6 +479,101 @@ const THREAD_MOBILE = {
 			[200, 2400]
 		],
 		6
+	)
+};
+
+/* THE PHONE'S ENTRANCE, on the site called after the thread.
+   A pixel census of the crimson family over the first phone viewport found
+   342 crimson pixels in the English phone frame, ALL of them between y 79
+   and 260 — the title card's rule and the language tab's underline, i.e.
+   two typographic rules. The THREAD contributed zero. The desktop
+   comparison frame at the same moment holds 11,727 crimson pixels spanning
+   y 41–899, the thread crossing the whole frame and leaving the bottom
+   edge. A 34× difference, in the device where the corridor is 26 screens
+   long and the reader most needs a stated route.
+   The mechanism is not the path, it is the paper: the stacked column's
+   thread is correct and RUNS THE WHOLE HEIGHT — it simply runs behind
+   sheets that span the full width. `.hero__thread--mobile`'s box begins at
+   the board's top edge (document y 301 at 390 × 844, root 16), and from
+   there to the fold the identity card covers x 17.5–357.5 of a 375px
+   layout. Nothing painted, because there was no bare cork left to paint on.
+   The bare cork is ABOVE the board, in the shell's own 24px side padding,
+   and it costs no vertical space at all.
+
+   ITS OWN BOX, AND ITS OWN BOX ON PURPOSE. Folding this into
+   THREAD_MOBILE was the first design and it is wrong: that box stretches y
+   (a 2,027px board against 2,400 units, so 1 unit = 0.845px) and every
+   station in it is measured in that stretched space. A header offset is a
+   PX distance from a fixed anchor — the gap between the language tab's
+   bottom edge and the board's top edge is the hero's own padding, measured
+   22.4–23.0px at every width and root size in the matrix — and expressing a
+   px distance in a box that stretches with the board's height makes it vary
+   with the board's height. Worse, it would shift all eight measured
+   stations. So the entrance is a SEPARATE box, anchored `bottom: 100%` to
+   the board's top edge with a FIXED px height, which is the only way to say
+   "17px above the board's top edge" and mean it. It ends exactly where
+   THREAD_MOBILE begins (x 206/400 of the board, y at the board's top edge),
+   so the two paths are one thread with one seam on a pin.
+
+   THE ROUTE, and one thing it cannot do. It cannot start ON the title
+   card's pin: `main` carries `isolation: isolate` (wall.css), so every
+   descendant of the hero paints as one atomic unit AFTER the `<header>`,
+   at any z-index — probe-verified on the served build, a z-index:-1 layer
+   inside the board painted straight across the title card's face. A run
+   behind that card is not expressible from this file. The thread therefore
+   enters at the wall's top edge, passes the title card and the language tab
+   ON THEIR LEFT over bare cork only, and ties to the identity card's pin —
+   the same shape as the desktop wall, whose first station is also on the
+   board's top edge.
+
+   EVERY NUMBER BELOW IS A MEASURED CLEARANCE, taken off the served build at
+   320 / 390 / 768 / 1023 CSS px and root 16 / 20 / 24 / 32, both locales:
+     x = 24/1200 of the box.  The corridor it runs in is `.wall-max`'s
+       padding — 24 FIXED px at every width — while this coordinate SCALES
+       with the board, so it is chosen for the WIDEST stacked board, not the
+       narrowest. Rendered: 6.1px at a 305px board, 7.5px at 375, 15.1px at
+       753. The narrowest measured title card sits at x 20.3 (320 px, root
+       32) and 21.9 (768 px, root 32); worst clearance is 5.6px with the
+       2.5px stroke counted. The leftmost language tab measured 76.
+     y = 1509/1560, i.e. 17px above the board's top edge, for the bend.
+       The smallest gap between the lowest header element and the board's
+       top edge across the whole matrix is 17.7px (1023 px, root 24), so the
+       bend and the whole leg after it run under nothing. That leg is
+       shallow — 185 × 17px at 390 — and it is the same move the desktop
+       wall makes along its own top edge between the record card's pin and
+       the signature's.
+     height 520px. It has to reach past the tallest header the matrix
+       produces (457.5px at 320 px, root 32, both locales) so the thread
+       always enters from OFF the page rather than starting abruptly on
+       cork. Anything above the page's top edge is simply not painted.
+   Expected visible run at 390 × 844, root 16: 284px down the corridor plus
+   186px on the leg = 470px of path at a 2.5px stroke, against an acceptance
+   floor of 400 crimson pixels above the fold.
+
+   COORDINATES ×3 AGAINST A ×3 BOX, for the dash reason this file records
+   twice already: `stroke-dasharray: 1` against `pathLength="1"` under
+   `vector-effect: non-scaling-stroke` measures the dash in SCREEN space and
+   normalises it in viewBox space, so wherever the rendered path is longer
+   than the authored one the tail never paints. Scaling the box and every
+   coordinate by k leaves the picture identical and multiplies ONLY the
+   authored length: rendered is 1,002px at the worst case (a 1,008px board),
+   authored is 2,105 units at k = 3 — ratio 0.48, and it cannot rise,
+   because the y scale is pinned at 1:1 by the fixed height.
+   DRAWN, NOT SCROLL-DRAWN. `animation-range: cover 0% cover 100%` puts this
+   box at 77.9 % of its own range at scroll 0, which lays the corridor but
+   leaves the leg to the pin 22 % painted — a thread stopping in mid-cork
+   for the one reader this entrance exists for. The entrance is the wall's
+   opening statement; it is already laid when the reader arrives. */
+const THREAD_ENTRANCE = {
+	width: 1200,
+	height: 1560,
+	path: tautPath(
+		[
+			[24, 0],
+			[24, 1509],
+			[618, 1560]
+		],
+		21
 	)
 };
 ---
@@ -346,6 +595,17 @@ const THREAD_MOBILE = {
 				height={THREAD_MOBILE.height}
 			/>
 		</div>
+		<!-- the phone's entrance: the run above the board, in the shell's own
+		     side padding. See THREAD_ENTRANCE for the census that forced it
+		     and for every clearance below. -->
+		<div class="hero__thread hero__thread--entrance" aria-hidden="true">
+			<Thread
+				path={THREAD_ENTRANCE.path}
+				width={THREAD_ENTRANCE.width}
+				height={THREAD_ENTRANCE.height}
+				draw={false}
+			/>
+		</div>
 
 		<div class="hero__grid wall-grid">
 			<!-- CLAIM. Typed record card: what / who / where.
@@ -359,14 +619,16 @@ const THREAD_MOBILE = {
 			     claim was line three of a six-line block with no salience
 			     handle at all; and the level statement was installed as a
 			     fourth equal-weight paragraph.
-			     The card is now a head and a record. The HEAD is the name, the
-			     claim and the level statement; the RECORD is the credential and
-			     employer, the qualification, the geography and the languages.
+			     The card is a head and a record. The HEAD is the name, the
+			     claim, the level statement and the paid post; the RECORD is
+			     the credential, the qualification, the geography, whatever the
+			     copy module has appended, and the languages.
 			     The claim keeps the strongest slot on the card and the level
 			     statement stays directly beneath it, because "I have built and
 			     operated IT" needs the bot as its nearest antecedent — putting
 			     the employer between them, as one reading of the finding asked,
-			     would hand the pronoun to "Raleo Digital GmbH". -->
+			     would hand the pronoun to "Raleo Digital GmbH". The post
+			     therefore closes the head rather than opening it. -->
 			<div class="hero__intro-slot">
 				<PinCard variant="typed" rotate={1}>
 					{/* THE NAME IN ITS LEGAL FORM, ON THE RECORD CARD. The drawn
@@ -380,23 +642,43 @@ const THREAD_MOBILE = {
 					<p class="hero__intro-name">{hero.name}</p>
 					{/* the claim, and now the largest typed setting in the fold */}
 					<p class="hero__intro-claim">
-						{runs(hero.intro[1]).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.text))}
+						{runs(hero.intro[CLAIM_LINE]).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.nowrap ? <span class="nowrap">{part.text}</span> : part.text))}
 					</p>
 					{/* the level statement — the duration a screener would otherwise
 					    compute from the apprenticeship letterhead alone, and compute
 					    wrongly. Bold, on the card's own size, directly under the
 					    sentence it quantifies. */}
-					<p class="hero__intro-anchor">
-						{runs(seniorityAnchor).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.text))}
+					<p class:list={["hero__intro-anchor", !post && "hero__intro-head-end"]}>
+						{runs(seniorityAnchor).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.nowrap ? <span class="nowrap">{part.text}</span> : part.text))}
 					</p>
+					{/* THE PAID POST, and the last rule of the head. Same weight and
+					    same size as the level statement above it: it is the second
+					    half of one answer to "what is he now", not a louder one. See
+					    `derivePost` for why it is here and why the credential is
+					    not. */}
+					{post && (
+						<p class="hero__intro-post hero__intro-head-end">
+							{runs(post.post).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.nowrap ? <span class="nowrap">{part.text}</span> : part.text))}
+						</p>
+					)}
 					{/* the record proper, at the card's own size and weight */}
-					<p class="hero__intro-role">
-						{runs(hero.intro[0]).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.text))}
-					</p>
+					{recordOpen && (
+						<p class="hero__intro-role">
+							{runs(recordOpen).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.nowrap ? <span class="nowrap">{part.text}</span> : part.text))}
+						</p>
+					)}
 					{seniorityQualifier && (
-						<p>{runs(seniorityQualifier).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.text))}</p>
+						<p>{runs(seniorityQualifier).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.nowrap ? <span class="nowrap">{part.text}</span> : part.text))}</p>
 					)}
 					<p>{hero.location}</p>
+					{/* whatever the copy module has appended after the three
+					    load-bearing entries — currently the technology line and the
+					    offer. Body rank on purpose: the offer's value is that it
+					    exists in the first viewport at all, and a fifth bold rule
+					    would spend the band this cycle just repaired. */}
+					{recordRest.map((line) => (
+						<p>{runs(line).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.nowrap ? <span class="nowrap">{part.text}</span> : part.text))}</p>
+					))}
 					<p class="hero__intro-langs">{hero.languages}</p>
 				</PinCard>
 			</div>
@@ -512,6 +794,30 @@ const THREAD_MOBILE = {
 		display: none;
 	}
 
+	/* THE ENTRANCE BOX HANGS ABOVE THE BOARD, and `top` has to be released
+	   by hand for that to happen: `.hero__thread` above sets `inset: 0`, and
+	   with `top`, `height` and `bottom` all non-auto the browser DROPS
+	   `bottom` (CSS 2.1 §10.6.4) — the box would land at the board's top
+	   edge and hang 520px DOWN, across the identity card's face. Correct in
+	   the stylesheet, wrong on screen, which is the failure mode this
+	   project has shipped four of. `left`/`right` stay at 0, so the box is
+	   the board's width and the path's x fractions mean what they say.
+	   `pointer-events: none` is inherited from `.hero__thread` and is
+	   load-bearing here rather than tidy: this box overlays the title card's
+	   whole index and the language tab, which are the only links in the
+	   first phone viewport. Restated so it cannot be lost by refactor.
+	   z-index stays at `.hero__thread`'s -1 — NOT the `--mobile` rule's
+	   `auto` further down, which is scoped to that class — so the last few
+	   pixels at the pin tuck under the identity card's rotated top corner
+	   instead of printing on it. */
+	.hero__thread--entrance {
+		display: none;
+		top: auto;
+		bottom: 100%;
+		height: 520px;
+		pointer-events: none;
+	}
+
 	/* ---- the cluster on the hidden 12-col grid ----------------- */
 	/* TWO BANDS, read left to right, top to bottom, in document order.
 	   Band 1: the typed record (the claim) at the left, where reading
@@ -569,14 +875,31 @@ const THREAD_MOBILE = {
 		font-weight: 700;
 	}
 
-	/* The level statement: the card's bold, at the card's own size. It is a
-	   RANK below the claim on purpose — it quantifies the sentence above it
-	   and must not compete with it — and a rank above the record, because a
-	   bold band is a scanned object and a fourth body paragraph is not.
-	   The blank rule falls here, at the end of the head. */
-	.hero__intro-slot :global(.pin-card) p.hero__intro-anchor {
-		margin-bottom: calc(var(--baseline) * 3);
+	/* The level statement and the paid post: the card's bold, at the card's
+	   own size. Both are a RANK below the claim on purpose — one quantifies
+	   the sentence above it, the other answers the same question from the
+	   other side, and neither may compete with the claim or with the 20px
+	   name. They are a rank ABOVE the record because a bold band is a
+	   scanned object and a body paragraph is not: the post spent six years
+	   as sentence-half four of a six-line regular block and was measured
+	   219px below the band, at 1.6 % of the page.
+	   NOT SET AT --step-1. A typographer verified that the earlier
+	   correction landed AND did not overshoot — the name and the claim at
+	   20px/700 sit a clear rank above the record at 16px and a clear rank
+	   below the 24px band — and putting a third string at 20px would spend
+	   exactly that. Weight is the axis with room left on this card. */
+	.hero__intro-slot :global(.pin-card) p.hero__intro-anchor,
+	.hero__intro-slot :global(.pin-card) p.hero__intro-post {
 		font-weight: 700;
+	}
+
+	/* The blank rule falls at the END of the head, wherever the head ends:
+	   the post is conditional (see `derivePost` — every guard fails closed),
+	   so the rule is carried by whichever paragraph is last rather than by a
+	   fixed one. A card that loses the post must not also lose its blank
+	   rule and read as one undifferentiated block. */
+	.hero__intro-slot :global(.pin-card) p.hero__intro-head-end {
+		margin-bottom: calc(var(--baseline) * 3);
 	}
 
 	/* THE CREDENTIAL KEEPS ITS PLACE AND YIELDS ITS WEIGHT. It opens the
@@ -585,7 +908,11 @@ const THREAD_MOBILE = {
 	   was four to six rendered lines of bold, the card's only weight signal,
 	   and it pointed at a vocational certificate rather than at the product
 	   the wall exists to evidence. Position is one axis and weight is
-	   another; only one of them had to move. */
+	   another; only one of them had to move. DO NOT LET ANYONE FIX THIS
+	   BACK — including by way of the post above, which is why the split
+	   asserts the credential lands on THIS side of it before it will run at
+	   all. The qualification clause still follows one rule below, so its
+	   referent stays directly above it. */
 	.hero__intro-slot :global(.pin-card) p.hero__intro-role {
 		font-weight: 400;
 	}
@@ -813,6 +1140,13 @@ const THREAD_MOBILE = {
 		.hero__thread--mobile {
 			display: block;
 			z-index: auto;
+		}
+
+		/* the entrance is a stacked-column artifact only: above 1024 the
+		   desktop wall's own thread already enters at the board's top edge
+		   and crosses the whole frame (11,727 crimson pixels, y 41–899) */
+		.hero__thread--entrance {
+			display: block;
 		}
 
 		.hero__grid {

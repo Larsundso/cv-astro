@@ -263,7 +263,7 @@ export const properNouns: readonly string[] = [
  * that must not break. The two are independent — a German-language run may
  * also be a name — so they are separate flags rather than one enum.
  */
-export type LangRun = { text: string; de: boolean; proper?: boolean };
+export type LangRun = { text: string; de: boolean; proper?: boolean; nowrap?: boolean };
 
 /**
  * ISO 8601 dates as this wall prints them — YYYY-MM-DD and YYYY-MM.
@@ -294,7 +294,7 @@ const splitIsoDates = (text: string): LangRun[] => {
 	for (const match of text.matchAll(ISO_DATE)) {
 		const at = match.index ?? 0;
 		if (at > i) parts.push({ text: text.slice(i, at), de: false });
-		parts.push({ text: match[0], de: false, proper: true });
+		parts.push({ text: match[0], de: false, nowrap: true });
 		i = at + match[0].length;
 	}
 	if (i < text.length) parts.push({ text: text.slice(i), de: false });

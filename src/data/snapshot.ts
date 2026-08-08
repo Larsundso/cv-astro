@@ -355,6 +355,12 @@ export const ihk = {
 		certification: "company-certified as independently executed (»selbstständig ausgeführt«)",
 		repoUrl: "https://github.com/Larsundso/discord-bot-dashboard",
 		trackedHours: 102.4,
+		/** REAL servers, not simulated. Owner-corrected 2026-08-08: the load
+		 *  test ran against his own Ayako bot's token, so these are 7,000 live
+		 *  Discord servers the dashboard actually addressed — not a synthetic
+		 *  fixture. Every string that renders this figure must say so; the wall
+		 *  spent two cycles calling a production measurement a simulation and
+		 *  giving away the strongest thing about it. */
 		loadTestServers: 7_000,
 		performance: {
 			initialLoad: "<5 s initial load at 100 servers",

@@ -80,7 +80,14 @@ const year = new Date().getFullYear();
 		<div class="wall-grid contact-grid">
 			<!-- ============ the axis: marquee → note → address ============ -->
 			<div class="contact-main">
-				<PinCard variant="flyer" rotate={1} class="contact-title-card">
+				{/* `pin-card--dark` is the STOCK, STATED. The wall used to decide
+				    which flyers were screen-printed on dark board by whether their
+				    title happened to be an `<h2>` — so a sheet's material was a
+				    consequence of heading level rather than a decision. It also
+				    meant the reversed-type compensation, which keys on this class,
+				    never reached the two flyers that got their dark stock only via
+				    `:has(h2)` — this one and Telemetry's. */}
+				<PinCard variant="flyer" rotate={1} class="contact-title-card pin-card--dark">
 					<h2 id="contact-heading">{contact.title}</h2>
 					<svg class="contact-headrule" viewBox="0 0 150 8" aria-hidden="true">
 						<path

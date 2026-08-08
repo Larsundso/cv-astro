@@ -89,7 +89,17 @@ const rules = houseRules.rules.map((rule) => {
 >
 	<div class="wall-grid practice__grid">
 		<div class="practice__marquee">
-			<PinCard as="div" variant="flyer" rotate={-1}>
+			{/* `pin-card--dark` is the STOCK, STATED. Until now the wall
+			    decided which flyers were screen-printed on dark board by
+			    whether their title happened to be an `<h2>`: measured across
+			    all nine flyers, the five with an `<h2>` were dark and
+			    "House rules" (`h3`) and "The VR bench" (`h3`) were light.
+			    In one 1440x900 frame that put HOW I WORK reversed at
+			    y 11,904 and HOUSE RULES positive at y 12,044 — 140px apart,
+			    same face, same 48px, same 0.288px tracking, opposite
+			    grounds. A sheet's material is a decision; it may not be a
+			    consequence of heading level. */}
+			<PinCard as="div" variant="flyer" rotate={-1} class="pin-card--dark">
 				<h2 id="practice-title">{ui.nav.practice}</h2>
 			</PinCard>
 		</div>
@@ -135,6 +145,26 @@ const rules = houseRules.rules.map((rule) => {
 				   entire argument is "check me". The search URL that
 				   reproduces them ships with the copy. */
 			}
+			{/* KRAFT CANDIDATE, PENDING THE STOCK. The wall has no half-tone
+			    at all — 94.7 % of pixels sit between L* 65 and 100 and the
+			    L* 35–65 register holds 2.8 % — and a mid-tone stock is being
+			    cut for the subordinate artifacts: provenance and source
+			    cards, "Also pinned", channel slips. This card is one of
+			    them and is the likeliest carrier in this section, because it
+			    is the one here that sets no soft ink — its source line falls
+			    back to --ink. That is a necessary condition, not a
+			    sufficient one: against kraft at L* 58 the TOKENS measure
+			    --ink 4.73:1 and --ink-soft 2.96:1, and 4.73 is an upper
+			    bound computed against a flat fill. The stock will carry
+			    --lamp like every other sheet, and this wall has been burned
+			    three times by certifying a contrast against a token while a
+			    wash changed what actually painted. So: no class until the
+			    ink budget is measured on the RENDERED sheet, and the folded
+			    telemetry card in the record column cannot take the stock at
+			    all until `.pin-card--kraft` redefines --ink-soft the way the
+			    dark flyer rule already redefines it — its summaries are set
+			    in it. When both hold, this is a one-line change: add
+			    `pin-card--kraft` to the class below. */}
 			<PinCard as="article" variant="typed" rotate={-1} class="practice__github">
 				<h3 class="practice__github-title">{githubStats.title}</h3>
 				{githubStats.lines.map((line) => <p>{line}</p>)}
@@ -397,9 +427,20 @@ const rules = houseRules.rules.map((rule) => {
 		width: 100%;
 	}
 
+	/* THIS SETTING WAS DEAD CSS FOR TWO CYCLES. It asked for 38px on 40px
+	   and the sheet computed 48px/48px — the act marquee's size — which is
+	   why HOUSE RULES and HOW I WORK read as twins 140px apart. The
+	   compiler scopes with `:where(.astro-HASH)`, i.e. at zero specificity,
+	   so the raw selectors decide and `PinCard`'s flyer-heading rule at
+	   (0,1,1) beat this bare class at (0,1,0). No number of cycles of
+	   re-declaring it here would have worked. PinCard now takes the setting
+	   as an INHERITED property, so the caller's intent arrives without
+	   having to out-count the component's selector. One step under the
+	   marquee: the values statement is the loudest ARTIFACT in the room,
+	   and the room still gets to say its own name first. */
 	.practice__flyer-title {
-		font-size: var(--step-4);
-		line-height: var(--lh-4);
+		--flyer-step: var(--step-4);
+		--flyer-lh: var(--lh-4);
 	}
 
 	.practice__rule-line {

@@ -266,6 +266,42 @@ export const properNouns: readonly string[] = [
 export type LangRun = { text: string; de: boolean; proper?: boolean };
 
 /**
+ * ISO 8601 dates as this wall prints them — YYYY-MM-DD and YYYY-MM.
+ *
+ * DEFECT 6: an ISO date breaks at its own hyphens, so the wall printed
+ * `2026-08-` / `03` and opened a line with a bare `03` — on a wall whose
+ * rule is that a bare number is not a fact. The two characters that cause
+ * it are U+002D, and replacing them with U+2011 is the wrong trade: the
+ * date would stop pasting into anything that parses ISO 8601, on a wall
+ * whose whole argument is "check it yourself". So the date stays exactly
+ * the bytes it is and the fix is markup — the scanner marks it `proper`,
+ * which is the same flag a legal name carries, for the same reason: it is
+ * DATA, not prose, and it may not be split.
+ *
+ * NOT SUFFICIENT ON ITS OWN. `.proper` today sets only `hyphens: manual`
+ * (src/styles/wall.css:448), and `manual` is defined as permitting a break
+ * at an explicit hyphen — it suppresses AUTOMATIC hyphenation, which is
+ * the defect it was written for. Until that rule also forbids breaking at
+ * an explicit hyphen, this marking is inert. It cannot regress anything
+ * while it waits.
+ */
+const ISO_DATE = /\d{4}-\d{2}(?:-\d{2})?/g;
+
+/** Split a run at every ISO date in it, marking the dates unbreakable. */
+const splitIsoDates = (text: string): LangRun[] => {
+	const parts: LangRun[] = [];
+	let i = 0;
+	for (const match of text.matchAll(ISO_DATE)) {
+		const at = match.index ?? 0;
+		if (at > i) parts.push({ text: text.slice(i, at), de: false });
+		parts.push({ text: match[0], de: false, proper: true });
+		i = at + match[0].length;
+	}
+	if (i < text.length) parts.push({ text: text.slice(i), de: false });
+	return parts;
+};
+
+/**
  * Split a string into alternating native / German runs, longest match first
  * at any given position. Pure, and locale-agnostic: the run list is the
  * locale's business, this is only the scanner.
@@ -275,7 +311,7 @@ export const splitLangRuns = (
 	runs: readonly string[] = germanRuns,
 	names: readonly string[] = properNouns
 ): LangRun[] => {
-	if (runs.length === 0 && names.length === 0) return [{ text, de: false }];
+	if (runs.length === 0 && names.length === 0) return splitIsoDates(text);
 	/* One scan over both lists. A run carries its origin so a German-language
 	   passage and an unbreakable name stay independent flags. */
 	const marked = [
@@ -298,10 +334,10 @@ export const splitLangRuns = (
 			}
 		}
 		if (at === -1 || !hit) {
-			parts.push({ text: text.slice(i), de: false });
+			parts.push(...splitIsoDates(text.slice(i)));
 			break;
 		}
-		if (at > i) parts.push({ text: text.slice(i, at), de: false });
+		if (at > i) parts.push(...splitIsoDates(text.slice(i, at)));
 		parts.push({ text: hit.text, de: hit.de, proper: hit.proper });
 		i = at + hit.text.length;
 	}
@@ -316,7 +352,31 @@ export const splitLangRuns = (
 
 export const ui = {
 	nav: {
+		/**
+		 * The district SIGN, and it stays German.
+		 *
+		 * DEFECT 5: four of five nav labels predicted their destination and
+		 * this one did not — a German word on a page served `lang="en"`, in
+		 * front of the section a recruiter opens first. The word survives
+		 * where it is a LANDMARK and where the content under it explains it:
+		 * on the sign over the section (Timeline.astro, `lang="de"`).
+		 * Wayfinding is a different job and now has its own string below.
+		 */
 		werdegang: "Werdegang",
+		/**
+		 * The same destination, named for a reader who is deciding whether to
+		 * go there: the nav list on the title card and the rail tick in the
+		 * margin. A directory entry has to be parseable BEFORE the section is
+		 * read, which is exactly what the sign does not have to be.
+		 *
+		 * NOT YET RENDERED: WallPage.astro builds one `NAV` array for both the
+		 * list and the rail and reads `ui.nav.werdegang` for it, with a
+		 * hard-coded `lang: "de"` on that item. Point it here and drop the
+		 * `lang` — an English word tagged German is the same fault upside
+		 * down. The German wall keeps "Werdegang" in both slots; there it
+		 * predicts its destination already.
+		 */
+		werdegangWayfinding: "Career",
 		projects: "Projects",
 		telemetry: "Telemetry",
 		practice: "How I work",
@@ -682,6 +742,34 @@ export const hero = {
 	 * above it. The credential and the employer keep the card's first rule
 	 * and its bold; the name above them is the LEGAL form (the drawn
 	 * signature stays ASCII on purpose — see `person` in `meta`).
+	 *
+	 * THE INDICES ARE LOAD-BEARING AND READ POSITIONALLY. Hero.astro renders
+	 * [1] as the claim, splits [2] into the bold level statement and its
+	 * qualifier, and sets [0] as the record line — it does not map the array.
+	 * Reordering it promotes copy into the bold band that was never ranked
+	 * for it, so append; never insert.
+	 *
+	 * [3] and [4] are DEFECTS 3 and 2, and they belong to the first viewport:
+	 *
+	 * [3] — no technology was named above the fold at all. The first
+	 * "TypeScript" on the page sat at 18.8 % depth on phone, 17.8 % on
+	 * desktop, so a screener who reads one screen learned the credential, the
+	 * product and the region and never the stack. The figure is the wall's
+	 * own published language share, not a new claim, and it is interpolated
+	 * like every other figure here. The subject is TypeScript ALONE: 55.59 %
+	 * is a WakaTime LANGUAGE share and Node is a runtime that appears nowhere
+	 * in that census, so "TypeScript and Node — 55.59 %" would hang a
+	 * one-language measurement on a two-part subject.
+	 *
+	 * [4] — the most decision-relevant sentence on the site appeared once, at
+	 * 95.4 % depth on phone and 95.0 % on desktop. It is duplicated here word
+	 * for word from `contact.rightNow.lines[0]`, minus its invitation, which
+	 * belongs to the card that carries the address. The RIGHT NOW card is
+	 * unchanged. "Not urgently looking." is deliberately NOT carried up: that
+	 * is an open owner decision and the first viewport may not pre-empt it.
+	 *
+	 * NOT YET RENDERED: Hero.astro stops at [2]. Both lines belong on the
+	 * identity card after `location`, evidence first, ask last.
 	 */
 	intro: [
 		/* THE ENGLISH WALL LED WITH AN UNTRANSLATED GERMAN CREDENTIAL AND
@@ -714,7 +802,9 @@ export const hero = {
 		   arithmetic stays checkable on the card. Deliberately NOT widened to
 		   "production systems": Kiyu is labelled unverified and active only to
 		   2026-06, so the plural would outrun the evidence. */
-		`I have built and operated it for ${productionSpan} — ${PRODUCTION_START.display} to ${SNAPSHOT_AS_OF}. Qualified ${qualifiedYear}, after three years of in-company training.`
+		`I have built and operated it for ${productionSpan} — ${PRODUCTION_START.display} to ${SNAPSHOT_AS_OF}. Qualified ${qualifiedYear}, after three years of in-company training.`,
+		`TypeScript, day to day — ${pc(telemetry.lifetime.languages[0].percent)} of all tracked coding time, as of ${SNAPSHOT_AS_OF}.`,
+		"Open to TypeScript/Node product work — backend or full-stack."
 	],
 	location: "Bodensee-Oberschwaben region (Lake Constance), Germany — fully remote.",
 	languages: "German (native) · English (working language)",
@@ -778,6 +868,23 @@ export const hero = {
 /* ------------------------------------------------------------------ */
 /* Timeline — the red thread, December 2019 to today                   */
 /* ------------------------------------------------------------------ */
+/* DEFECT 1: THE CAREER SECTION HAD NO PERSON IN IT. First-person tokens
+ * per district were Hero 4, Projects 2, Telemetry 1, "How I work" 11,
+ * Contact 4 — and Werdegang 0, across 292 EN / 257 DE words. The six
+ * finite-verb sentences here took as their subjects *Ayako*, *It*,
+ * *WakaTime*, *someone else*, *The training company* and *The rewrite*, so
+ * the one district a recruiter reads first was the one district where the
+ * candidate never acts. Three of them are now his: the first pin, the
+ * apprenticeship and the current employer — the three that are about what
+ * he did rather than about what an instrument recorded. Not one fact,
+ * figure or date changed; only the subject.
+ *
+ * NOT rewritten, deliberately: the WakaTime line (the instrument really is
+ * the actor — claiming it as an achievement would be the effort-theatre
+ * reading the telemetry card was rewritten to avoid), the countersignature
+ * line (its whole point is that SOMEONE ELSE signed), and the v3 line
+ * (the rewrite's state is the fact, and authorship is stated on the card
+ * two sections down, measured). */
 
 export const timeline: TimelineEntry[] = [
 	{
@@ -786,7 +893,7 @@ export const timeline: TimelineEntry[] = [
 		sort: "2019-12",
 		title: "The first pin",
 		body: [
-			"December 2019. Ayako begins as a single JavaScript file. It has been in production ever since.",
+			"December 2019. I wrote Ayako as a single JavaScript file and have kept it in production ever since.",
 			`GitHub account since ${github.accountCreated}.`
 		],
 		annotation: { text: "one file, no plan, no users", ink: "green" }
@@ -812,7 +919,11 @@ export const timeline: TimelineEntry[] = [
 		sort: "2022-09",
 		title: "Three years at Columbus Interactive GmbH",
 		body: [
-			`${ihk.apprenticeship.start}: three years employed at ${ihk.trainingCompany}, training as ${ihk.profession} (IHK, ${ihk.track}).`,
+			/* "in Ravensburg" is NOT in this sentence and must not be added back:
+			   `ihk.trainingCompany` already reads "Columbus Interactive GmbH,
+			   Ravensburg", so the proposed wording would have printed the town
+			   twice on the card that evidences the apprenticeship. */
+			`${ihk.apprenticeship.start}: I joined ${ihk.trainingCompany} for three years, training as ${ihk.profession} (IHK, ${ihk.track}).`,
 			`${ihk.weeklyReports} countersigned weekly training records, Nr. 0–71 — every one of them read and signed by someone else. Vocational school: ${ihk.vocationalSchool} (${ihk.vocationalSchoolEn}). Final exam cycle: ${ihk.apprenticeship.examCycle}.`
 		]
 	},
@@ -833,7 +944,7 @@ export const timeline: TimelineEntry[] = [
 		sort: "2025-06",
 		title: "Raleo Digital GmbH",
 		body: [
-			"Since 2025: full-stack developer at Raleo Digital GmbH (raleo.de), an online marketplace for heating, heat pumps, and photovoltaics. Fully remote — the second company on this thread."
+			"Since 2025 I have been a full-stack developer at Raleo Digital GmbH (raleo.de), an online marketplace for heating, heat pumps, and photovoltaics. Fully remote — the second company on this thread."
 		]
 	},
 	{
@@ -1029,8 +1140,30 @@ export const projects: ProjectEntry[] = [
 			{ label: "top.gg listing", href: ayako.topGgUrl }
 		],
 		license: `v2 ${ayako.license.v2} · v3 ${ayako.license.v3}`,
-		promise: ayako.freeForeverPromise,
-		promiseNote: "Ayako is free. That has held since 2019 and it stays that way.",
+		/**
+		 * DEFECT 4: THE LARGEST SENTENCE ON THE WALL WAS A REFUSAL.
+		 *
+		 * At 38px display type the poster read "A feature that I cannot
+		 * provide for free will not be implemented." Read in isolation — which
+		 * is how display type IS read — a hiring manager gets *I decline work
+		 * I am not paid for*, and the sentence that disambiguates it sat
+		 * beside it at 15px. The two have swapped jobs. The poster now states
+		 * the promise's CONSEQUENCE, which is the part a stranger can use, and
+		 * the verbatim promise survives at full weight one size down, where a
+		 * quotation reads as a quotation. Nothing is softened and nothing is
+		 * dropped: the same words are on the same wall.
+		 *
+		 * BLOCKED ON Projects.astro:193. It renders this field as
+		 * `<blockquote lang="en"><p>“{promise}”</p></blockquote>` — the
+		 * component supplies the quotation marks and the language tag. This
+		 * string is no longer a quotation, so the marks have to go with it;
+		 * on the German wall the hard-coded `lang="en"` now sits on German
+		 * copy, which is the mirror of the defect being fixed here.
+		 */
+		promise: "Ayako has been free since 2019, and it stays free.",
+		/* The note carries what the poster no longer says, which is the note
+		   law on this wall: the promise in the words it was made in. */
+		promiseNote: `Made publicly, and quoted verbatim: “${ayako.freeForeverPromise}”`,
 		logo: "/Ayako.webp",
 		annotation: { text: "every outage since 2019, fixed by me", ink: "magenta" }
 	},

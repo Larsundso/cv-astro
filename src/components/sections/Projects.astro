@@ -116,7 +116,13 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 	<div class="wall-grid projects-grid">
 		<!-- STOP 1 · left — section headline: flyer + as-of stamp -->
 		<div class="g-head">
-			<PinCard variant="flyer" class="head-card">
+			{/* `pin-card--dark` is the STOCK, STATED. The dark treatment used
+			    to key on whether a flyer's title was an `<h2>` — heading
+			    LEVEL deciding what a sheet is printed on — so five of nine
+			    flyers were dark by grammatical accident and the two `<h3>`
+			    posters (House rules, The VR bench) were light. This card is
+			    a section flyer and is meant to be dark; it now says so. */}
+			<PinCard variant="flyer" class="head-card pin-card--dark">
 				<h2 id="projects-title"><span class="head-rule">{ui.nav.projects}</span></h2>
 			</PinCard>
 			<Stamp sub={sectionStrings.asOfStamp} label={SNAPSHOT_AS_OF} rotate={-7} class="head-stamp" />
@@ -124,7 +130,19 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 
 		<!-- …and the photograph, which is the tail of stop 1: the Ayako papers
 		     start beside it, one --stagger lower, and run down the right. -->
-		<Polaroid class="g-photo" rotate={-1} caption={`${ayako.name} — ${ayako.oneLiner}`}>
+		{/* THE CAPTION IS A CAPTION AGAIN. It used to carry the flagship's
+		    whole definition — "Ayako — Multi-purpose Discord bot, built and
+		    operated solo, in production since 2019" — at 13.97px, under the
+		    photo and under the card's own links, while every other project
+		    hands its one-liner to body type at 20px. So the wall's flagship
+		    was the single project whose genus was set smaller than anyone
+		    else's, and a reader arriving at Projects by nav met a card headed
+		    "Ayako" that never said what Ayako IS at a size they would read.
+		    The one-liner moved into the card as its first body line, the slot
+		    Kiyu and GIFfer already use; the photo keeps the name, which is
+		    all a photo caption ever owed it. No copy was written — one string
+		    changed slot. */}
+		<Polaroid class="g-photo" rotate={-1} caption={ayako.name}>
 			<img
 				src={ayako.logo ?? "/Ayako.webp"}
 				alt={ps.ayakoAlt}
@@ -141,6 +159,12 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 		<div class="g-ayako col-stack">
 			<PinCard variant="print" as="article" rotate={1} class="card-flow">
 				<h3 class="card-title">{ayako.name}</h3>
+				{/* the genus before the differentia: what Ayako IS, then how
+				    it is run. Same slot Kiyu and GIFfer give their one-liner
+				    — first line of the card's body — at the same printed
+				    step. It was reaching the reader at 13.97px in a photo
+				    caption; every other project's arrives at 20px. */}
+				<p>{ayako.oneLiner}</p>
 				<p>{ayakoBody}</p>
 				<ul class="links" role="list">
 					{ayako.links.map((link) => (
@@ -182,16 +206,20 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 			{
 				ayako.promise && (
 					<PinCard variant="flyer" rotate={1} class="promise-card pin-card--dark">
-						{/* The promise was made in English and is quoted verbatim in
-						    both locales — `wall.de.ts` says so in its own comment, and
-						    the German rendering of it is a separate artifact, the hand
-						    note below. So on the German page this is a run of English
-						    inside `lang="de"`, and a screen reader was pronouncing it
-						    with German phonemes. The tag names the run's language; the
-						    quote itself is untouched, which is the point of quoting. */}
-						<blockquote lang="en">
-							<p>“{ayako.promise}”</p>
-						</blockquote>
+						{/* THE POSTER SPEAKS THE PAGE'S OWN LANGUAGE. This used to be
+						    `blockquote lang="en"` wrapping the promise in typographic
+						    quote marks supplied here, because it was one English
+						    sentence quoted verbatim on both walls. The data layer has
+						    since translated it — `wall.de.ts` now carries a German
+						    promise and keeps the attributed English original in the
+						    hand note below — so all three of those decisions inverted
+						    at once: the loudest sentence in the German district was
+						    rendering in English (loud foreign, quiet native), a
+						    hard-coded `lang="en"` was mislabelling German copy to
+						    screen readers, and quotation marks were being printed
+						    around a statement that quotes nobody. A `<p>` is what this
+						    is now: the site's own claim, in the reader's language. */}
+						<p class="promise-line">{ayako.promise}</p>
 					</PinCard>
 				)
 			}
@@ -274,6 +302,20 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 		</div>
 
 		<!-- STOP 5 · left — breadth: the typed index, with its tail folded -->
+		{/* KRAFT CANDIDATE, PENDING THE STOCK AND ITS SOFT INK. The wall
+		    holds no half-tone — 94.7 % of pixels between L* 65 and 100, and
+		    2.8 % across the whole L* 35–65 register — and this "Also pinned"
+		    sheet is one of the subordinate artifacts a mid-tone stock is
+		    being cut for. It cannot take it yet: measured against kraft at
+		    L* 58, --ink clears at 4.73:1 but --ink-soft reaches only 2.96:1,
+		    and this card sets its "— " markers and its folded-tail summary
+		    in --ink-soft. The kraft variant has to redefine that token the
+		    way the dark flyer rule already redefines it — on kraft a 4.5:1
+		    ink has to sit at CIE L* <= 14.8, which is --ink itself, so there
+		    is no soft register left on this stock at all and the STOCK has
+		    to carry the subordination the ink used to. Once
+		    `.pin-card--kraft` exists and does that, this is a one-line
+		    change: add the class below. */}
 		<PinCard variant="typed" as="aside" rotate={1} class="g-breadth card-flow">
 			<h3 class="card-title">{ps.breadthTitle}</h3>
 			<ul class="facts" role="list">
@@ -548,15 +590,19 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 		color: var(--ink-soft);
 	}
 
-	/* the free-forever promise: poster stock, headline type only */
-	.g-promise blockquote {
-		margin: 0;
-	}
-	.g-promise blockquote p {
+	/* the free-forever promise: poster stock, headline type only.
+	   REVERSED, SO TRACKED WIDER. This 38px line and the VR bench heading
+	   below it were byte-identical settings on opposite grounds — same
+	   step, same 400, same 0.006em — and light forms on dark stock
+	   irradiate: strokes bloom, counters fill, the letterspacing closes.
+	   `--flyer-track` is PinCard's reversed track (0.006 → 0.018em),
+	   published by `.pin-card--dark`; the fallback is the base display
+	   track, so this line self-corrects if the sheet ever goes to paper. */
+	.promise-line {
 		margin: 0;
 		font-size: var(--step-4);
 		line-height: var(--lh-4);
-		letter-spacing: var(--track-display-lg);
+		letter-spacing: var(--flyer-track, var(--track-display-lg));
 	}
 
 	/* handwritten margin notes ride on small paper slips so every pride
@@ -573,10 +619,20 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 	}
 
 	/* the bench heading is a poster, but a smaller one than the section
-	   flyer — one step down, same face, so rank is never in question */
+	   flyer — one step down, same face, so rank is never in question.
+	   Stated as PinCard's inherited properties rather than as a font-size
+	   that has to out-count the component's own selector. This one DID win
+	   — (0,2,0) against PinCard's (0,1,1), and only because the wrapper
+	   class is in the selector — while the house-rules flyer made the same
+	   bet with one class and lost, and its 38/40 was dead CSS for two
+	   cycles. A rank that depends on a wrapper being named is not a rank.
+	   This sheet stays on PAPER, so it
+	   keeps the base display track — the reversed compensation belongs to
+	   the dark stock, and this heading is the paper twin the 38px pair was
+	   measured against. */
 	.g-vrbench .bench-flyer {
-		font-size: var(--step-4);
-		line-height: var(--lh-4);
+		--flyer-step: var(--step-4);
+		--flyer-lh: var(--lh-4);
 		letter-spacing: var(--track-display-lg);
 	}
 

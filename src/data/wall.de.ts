@@ -571,7 +571,14 @@ export const projects: ProjectEntry[] = [
 		body: [
 			"Discord RPC direkt über die lokale IPC-Pipe implementiert — ohne Bot-Token. Ausgeliefert als einzelne self-contained Executable mit Lizenz, Datenschutzerklärung, Nutzungsbedingungen und Release-Workflow."
 		],
-		facts: [`${n(4_059)} LOC in 15 Dateien.`],
+		/* Siehe wall.ts: Die GitHub-Beschreibung dieses Projekts beginnt mit
+		   "This project is majorly AI genned" — vom Eigentümer selbst, öffentlich.
+		   Die Karte zeigte nur die Zeilenzahl, und genau die bläht KI-Generierung
+		   auf. Vom Eigentümer bestätigt, 2026-08-08. */
+		facts: [
+			"Überwiegend KI-generiert, wie es im Repository steht.",
+			`${n(4_059)} LOC in 15 Dateien.`
+		],
 		stack: ["C#/.NET 8", "SkiaSharp", "DirectX 11 (Vortice)", "OpenVR", "Kestrel", "WebSocket"],
 		links: []
 	},
@@ -620,9 +627,16 @@ export const projects: ProjectEntry[] = [
 		oneLiner:
 			"Öffentliche, von Nutzern installierbare Discord-App, die Videos und YouTube-URLs zu GIF oder MP4 konvertiert — mit Trimmen und FPS-Steuerung.",
 		body: [
-			"Geführt wie ein echtes Open-Source-Projekt: striktes TypeScript, Kompression mit SSH/HTTP-Upload-Fallback, Docker-Packaging und eine SECURITY.md."
+			"Geführt mit der Disziplin eines öffentlichen Projekts: striktes TypeScript, Kompression mit SSH/HTTP-Upload-Fallback, Docker-Packaging und eine SECURITY.md."
 		],
-		facts: [`${n(3_264)} LOC striktes TypeScript in 75 Dateien.`],
+		/* Siehe wall.ts: Die GitHub-Beschreibung dieses Projekts beginnt mit
+		   "This project is majorly AI genned" — vom Eigentümer selbst, öffentlich.
+		   Die Karte zeigte nur die Zeilenzahl, und genau die bläht KI-Generierung
+		   auf. Vom Eigentümer bestätigt, 2026-08-08. */
+		facts: [
+			"Überwiegend KI-generiert, wie es im Repository steht.",
+			`${n(3_264)} LOC striktes TypeScript in 75 Dateien.`
+		],
 		stack: ["TypeScript", "ffmpeg", "youtube-dl-exec", "SWC", "Docker"],
 		links: [],
 		license: "CC BY-NC 4.0"
@@ -1199,7 +1213,7 @@ export const chartStrings = {
 		endpoint: (url: string) => `Prüf es selbst — öffentlich, ohne Schlüssel: ${url}`,
 		/** Was dieser Endpunkt belegt — und das eine, was er nicht belegt. */
 		checkable: (o: { reconstructed: string; shortfall: string; checkedOn: string }) =>
-			`Er bestätigt die Sprachanteile auf zwei Nachkommastellen. Den Gesamtwert bestätigt er nicht: Die Programmieraktivität steht auf diesem Profil auf privat, die API hält den Gesamtwert also zurück, und die einzige verbleibende Rekonstruktion — die Sprachzeilen aufaddieren — kommt auf ${o.reconstructed} und damit ${o.shortfall} zu wenig, weil diese Zeilen den Sammelposten „Other“ nicht enthalten. Diese Lücke ist der Sammelposten, keine Zahl zu meinen Gunsten — und der eine Wert hier, den du heute nicht nachprüfen kannst. Nachgeprüft ohne Anmeldung, ${o.checkedOn}.`,
+			`Er bestätigt die Sprachanteile bis auf Hundertstel genau; die kleinen Abweichungen sind Drift: Diese Seite ist datiert, der Endpunkt ist live. Den Gesamtwert bestätigt er nicht: Die Programmieraktivität steht auf diesem Profil auf privat, die API hält den Gesamtwert also zurück, und die einzige verbleibende Rekonstruktion — die Sprachzeilen aufaddieren — kommt auf ${o.reconstructed} und damit ${o.shortfall} zu wenig, weil die API für die Zeile „Other“ keine manuelle Zeit ausweist. Diese Lücke ist der Sammelposten, keine Zahl zu meinen Gunsten — und der eine Wert hier, den du heute nicht nachprüfen kannst. Nachgeprüft ohne Anmeldung, ${o.checkedOn}.`,
 		/** Ein datierter Snapshot driftet gegen einen Live-Abruf; sag es,
 		 *  bevor jemand den Unterschied findet und ihn für Nachlässigkeit
 		 *  hält. */

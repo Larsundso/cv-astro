@@ -644,7 +644,7 @@ export const chartStrings = {
 		endpoint: (url: string) => `Check it yourself — public, no key required: ${url}`,
 		/** What that endpoint settles, and the one thing it cannot. */
 		checkable: (o: { reconstructed: string; shortfall: string; checkedOn: string }) =>
-			`It confirms the language shares to two decimals. It cannot confirm the total: coding activity is private on that profile, so the API withholds the total and the only reconstruction left — adding up the per-language rows — comes to ${o.reconstructed}, ${o.shortfall} short, because those rows do not carry the “Other” bucket. That gap is the bucket, not a number in my favour, and it is the one figure here you cannot check today. Re-checked unauthenticated on ${o.checkedOn}.`,
+			`It confirms the language shares to within a hundredth of a point, and the small differences are drift: this page is dated, the endpoint is live. It cannot confirm the total: coding activity is private on that profile, so the API withholds the total and the only reconstruction left — adding up the per-language rows — comes to ${o.reconstructed}, ${o.shortfall} short, because the API reports no manual time against the “Other” row. That gap is the bucket, not a number in my favour, and it is the one figure here you cannot check today. Re-checked unauthenticated on ${o.checkedOn}.`,
 		/** A dated snapshot drifts from a live pull; say so before a reader
 		 *  finds the difference and reads it as staleness. */
 		drift: (live: string, printed: string, checkedOn: string) =>
@@ -1226,7 +1226,21 @@ export const projects: ProjectEntry[] = [
 		body: [
 			"Discord RPC implemented directly over the local IPC pipe — no bot token. Ships as a single self-contained executable with license, privacy policy, terms, and a release workflow."
 		],
-		facts: [`${n(4_059)} LOC across 15 files.`],
+		/* THE REPO SAYS SO, AND NOW SO DOES THE WALL. This project's GitHub
+		   description — written by the owner, in public — opens "This project is
+		   majorly AI genned". The card showed a LINE COUNT and said nothing, and
+		   line count is precisely the figure AI generation inflates.
+		   An adversarial screener found the mismatch in one API call and made it
+		   a rejection condition, on grounds this wall cannot argue with: its own
+		   rule is that it shows the source for every figure "including the ones
+		   that do not flatter me", and a disclaimer the owner had already
+		   published in public is the one omission that rule cannot absorb.
+		   Owner-confirmed 2026-08-08. It goes FIRST, before the LOC, so the
+		   number is read in its light rather than corrected by it afterwards. */
+		facts: [
+			"Majorly AI-generated, as the repository says.",
+			`${n(4_059)} LOC across 15 files.`
+		],
 		stack: ["C#/.NET 8", "SkiaSharp", "DirectX 11 (Vortice)", "OpenVR", "Kestrel", "WebSocket"],
 		links: []
 	},
@@ -1275,9 +1289,23 @@ export const projects: ProjectEntry[] = [
 		oneLiner:
 			"Public user-installable Discord app that converts video and YouTube URLs to GIF or MP4, with trimming and FPS control.",
 		body: [
-			"Run as a real open-source project: strict TypeScript, compression with SSH/HTTP upload fallback, Docker packaging, and a SECURITY.md."
+			"Run with the discipline of a public project: strict TypeScript, compression with SSH/HTTP upload fallback, Docker packaging, and a SECURITY.md."
 		],
-		facts: [`${n(3_264)} LOC of strict TypeScript across 75 files.`],
+		/* THE REPO SAYS SO, AND NOW SO DOES THE WALL. This project's GitHub
+		   description — written by the owner, in public — opens "This project is
+		   majorly AI genned". The card showed a LINE COUNT and said nothing, and
+		   line count is precisely the figure AI generation inflates.
+		   An adversarial screener found the mismatch in one API call and made it
+		   a rejection condition, on grounds this wall cannot argue with: its own
+		   rule is that it shows the source for every figure "including the ones
+		   that do not flatter me", and a disclaimer the owner had already
+		   published in public is the one omission that rule cannot absorb.
+		   Owner-confirmed 2026-08-08. It goes FIRST, before the LOC, so the
+		   number is read in its light rather than corrected by it afterwards. */
+		facts: [
+			"Majorly AI-generated, as the repository says.",
+			`${n(3_264)} LOC of strict TypeScript across 75 files.`
+		],
 		stack: ["TypeScript", "ffmpeg", "youtube-dl-exec", "SWC", "Docker"],
 		links: [],
 		license: "CC BY-NC 4.0"

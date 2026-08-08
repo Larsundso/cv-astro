@@ -154,7 +154,27 @@ export const hero = {
 	 *  Wand erklärt „Fachinformatiker für Anwendungsentwicklung“ inzwischen
 	 *  in einem Einschub, weil sie es muss. Hier braucht es keinen — und
 	 *  diese Asymmetrie ist korrekte zweisprachige Praxis, keine
-	 *  Inkonsistenz. */
+	 *  Inkonsistenz.
+	 *
+	 *  DIE INDIZES TRAGEN — siehe wall.ts: Hero.astro liest [0], [1] und [2]
+	 *  einzeln und zerlegt [2]; die Liste wird nicht durchlaufen. Also nur
+	 *  anhängen, nie einschieben.
+	 *
+	 *  [3] und [4] sind Defekt 3 und Defekt 2, beide für das erste Viewport:
+	 *  im ersten Bildschirm stand keine einzige Technologie (das erste
+	 *  „TypeScript“ kam bei 18,8 % Seitentiefe), und der Satz, der sagt, was
+	 *  er sucht, stand genau einmal — bei 95,4 %. [3] nennt die Zahl, die die
+	 *  Wand ohnehin veröffentlicht, und zwar für TypeScript ALLEIN: 55,59 %
+	 *  ist ein WakaTime-SPRACHANTEIL, und Node ist eine Laufzeitumgebung, die
+	 *  in dieser Erhebung überhaupt nicht vorkommt. [4] ist Wort für Wort
+	 *  `contact.rightNow.lines[0]` ohne die Aufforderung, die zur Karte mit
+	 *  der Adresse gehört. „Kein dringender Wechselwunsch“ wird bewusst NICHT
+	 *  mit nach oben genommen — das ist eine offene Entscheidung des
+	 *  Eigentümers.
+	 *
+	 *  NOCH NICHT GERENDERT: Hero.astro hört bei [2] auf. Beide Zeilen
+	 *  gehören auf die Identitätskarte hinter `location`, erst der Beleg,
+	 *  dann das Angebot. */
 	intro: [
 		"Fachinformatiker für Anwendungsentwicklung (IHK) und Full-Stack-Entwickler bei der Raleo Digital GmbH, remote.",
 		`Ich betreibe einen Discord-Bot mit ${users} Nutzern auf ${servers} Servern — allein, seit ${ayako.inProductionSince} im Produktivbetrieb.`,
@@ -167,7 +187,9 @@ export const hero = {
 		   deutsche Form für eine laufende Spanne —, Bezug, Zahlen und
 		   Zeitraum unverändert, die Rechnung bleibt auf der Karte
 		   nachprüfbar. */
-		`Ich baue und betreibe ihn seit ${productionSpanSince} — ${PRODUCTION_START.display} bis ${SNAPSHOT_AS_OF}. Abschluss ${qualifiedYear}, davor drei Jahre betriebliche Ausbildung.`
+		`Ich baue und betreibe ihn seit ${productionSpanSince} — ${PRODUCTION_START.display} bis ${SNAPSHOT_AS_OF}. Abschluss ${qualifiedYear}, davor drei Jahre betriebliche Ausbildung.`,
+		`TypeScript im Alltag — ${pc(telemetry.lifetime.languages[0].percent)} der gesamten erfassten Programmierzeit, Stand ${SNAPSHOT_AS_OF}.`,
+		"Offen für Produktarbeit mit TypeScript/Node — Backend oder Full-Stack."
 	],
 	location: "Region Bodensee-Oberschwaben, Deutschland — vollständig remote.",
 	languages: "Deutsch (Muttersprache) · Englisch (Arbeitssprache)",
@@ -221,6 +243,22 @@ export const hero = {
 /* Timeline — the red thread, December 2019 to today                   */
 /* ------------------------------------------------------------------ */
 
+/* DEFEKT 1: IM WERDEGANG KAM DIE PERSON NICHT VOR. Erste-Person-Belege pro
+ * Abschnitt: Hero 4, Projekte 2, Telemetrie 1, „Wie ich arbeite“ 11,
+ * Kontakt 4 — und Werdegang 0, auf 257 deutschen Wörtern. Die sechs Sätze
+ * mit finitem Verb hatten als Subjekt *Ayako*, *WakaTime*, *jemand
+ * anderes*, *der Ausbildungsbetrieb* und *der Rewrite*. Ausgerechnet der
+ * Abschnitt, den eine Personalabteilung zuerst liest, war der einzige ohne
+ * handelnde Person. Drei Sätze gehören jetzt ihm: der erste Pin, die
+ * Ausbildung, der aktuelle Arbeitgeber. Keine Angabe, keine Zahl und kein
+ * Datum hat sich geändert — nur das Subjekt.
+ *
+ * Bewusst NICHT umgeschrieben: die WakaTime-Zeile (dort ist wirklich das
+ * Instrument der Handelnde), die Zeile über die Ausbildungsnachweise (ihr
+ * ganzer Sinn ist, dass JEMAND ANDERES unterschrieben hat) und die
+ * v3-Zeile (Zustand des Rewrites ist die Angabe; die Autorschaft steht
+ * gemessen zwei Abschnitte weiter). */
+
 export const timeline: TimelineEntry[] = [
 	{
 		id: "start-2019",
@@ -234,7 +272,7 @@ export const timeline: TimelineEntry[] = [
 			   auf einer Wand, deren ganzer Anspruch die Nachprüfbarkeit ist,
 			   war das der einzige unbelegte Satz. „Seitdem im
 			   Produktivbetrieb“ deckt sich mit dem englischen Text. */
-			"Dezember 2019. Ayako beginnt als einzelne JavaScript-Datei. Seitdem im Produktivbetrieb.",
+			"Dezember 2019. Ich schreibe Ayako als einzelne JavaScript-Datei — und halte sie seitdem im Produktivbetrieb.",
 			`GitHub-Account seit ${github.accountCreated}.`
 		],
 		annotation: { text: "eine Datei, kein Plan, keine Nutzer", ink: "green" }
@@ -263,7 +301,12 @@ export const timeline: TimelineEntry[] = [
 		sort: "2022-09",
 		title: "Drei Jahre bei der Columbus Interactive GmbH",
 		body: [
-			`${ihk.apprenticeship.start}: drei Jahre angestellt bei der ${ihk.trainingCompany}, in Ausbildung zum ${ihk.profession} (IHK, DQR-Niveau 4).`,
+			/* Kein „in Ravensburg“: `ihk.trainingCompany` lautet bereits
+			   „Columbus Interactive GmbH, Ravensburg“ — der Ort stünde sonst
+			   zweimal in einem Satz. Und der Betrieb steht am Satzende, weil
+			   die Apposition „GmbH, Ravensburg“ mitten im Satz ein zweites
+			   Komma bräuchte, das der Satz nicht hergibt. */
+			`${ihk.apprenticeship.start}: Ich mache drei Jahre Ausbildung zum ${ihk.profession} (IHK, DQR-Niveau 4), angestellt bei der ${ihk.trainingCompany}.`,
 			`${ihk.weeklyReports} gegengezeichnete wöchentliche Ausbildungsnachweise, Nr. 0–71 — jeder einzelne von jemand anderem gelesen und unterschrieben. Berufsschule: ${ihk.vocationalSchool}. Abschlussprüfung: ${ihk.apprenticeship.examCycle}.`
 		]
 	},
@@ -284,7 +327,7 @@ export const timeline: TimelineEntry[] = [
 		sort: "2025-06",
 		title: "Raleo Digital GmbH",
 		body: [
-			"Seit 2025: Full-Stack-Entwickler bei der Raleo Digital GmbH (raleo.de), einem Online-Marktplatz für Heizungen, Wärmepumpen und Photovoltaik. Vollständig remote — das zweite Unternehmen an diesem Faden."
+			"Seit 2025 bin ich Full-Stack-Entwickler bei der Raleo Digital GmbH (raleo.de), einem Online-Marktplatz für Heizungen, Wärmepumpen und Photovoltaik. Vollständig remote — das zweite Unternehmen an diesem Faden."
 		]
 	},
 	{
@@ -438,10 +481,29 @@ export const projects: ProjectEntry[] = [
 			{ label: "top.gg-Eintrag", href: ayako.topGgUrl }
 		],
 		license: `v2 ${ayako.license.v2} · v3 ${ayako.license.v3}`,
-		/** Public promise, made in English — quoted verbatim, never translated. */
-		promise: ayako.freeForeverPromise,
-		promiseNote:
-			"Auf Deutsch: „Eine Funktion, die ich nicht kostenlos anbieten kann, wird nicht umgesetzt.“ Ayako ist kostenlos — das gilt seit 2019, und dabei bleibt es.",
+		/**
+		 * DEFEKT 4, UND AUF DIESER WAND WAR ER SCHLIMMER. Der größte Satz der
+		 * Seite war eine Absage — „A feature that I cannot provide for free
+		 * will not be implemented.“ —, und auf der deutschen Wand stand er in
+		 * 38 px auf ENGLISCH, während das Deutsche in einer handschriftlichen
+		 * Notiz mit 13,97 px daneben lag: laut war fremd, leise war die eigene
+		 * Sprache. Beides ist getauscht. Das Plakat sagt jetzt auf Deutsch,
+		 * was das Versprechen für Lesende bedeutet; das englische Original
+		 * bleibt vollständig erhalten — als Zitat in der Notiz, wo ein Zitat
+		 * auch als Zitat gelesen wird. Gestrichen wurde nichts.
+		 *
+		 * BLOCKIERT DURCH Projects.astro:193: dort steht
+		 * `<blockquote lang="en"><p>“{promise}”</p></blockquote>`. Die
+		 * Anführungszeichen und das `lang="en"` kommen aus dem Component —
+		 * beide müssen weg, sonst steht deutscher Text unter englischer
+		 * Sprachauszeichnung, also genau der Fehler, der hier behoben wird.
+		 */
+		promise: "Ayako ist seit 2019 kostenlos — und bleibt es.",
+		/* Die Notiz trägt, was das Plakat nicht mehr sagt: das Versprechen im
+		   Wortlaut. Es wurde auf Englisch gegeben und wird deshalb auf
+		   Englisch zitiert; die Übersetzung steht daneben, nicht an seiner
+		   Stelle. */
+		promiseNote: `Öffentlich gegeben, im Wortlaut: „${ayako.freeForeverPromise}“ — auf Deutsch: „Eine Funktion, die ich nicht kostenlos anbieten kann, wird nicht umgesetzt.“`,
 		logo: "/Ayako.webp",
 		annotation: {
 			text: "jeden Ausfall seit 2019 habe ich selbst behoben",
@@ -879,7 +941,19 @@ export type { LangRun } from "./wall";
 
 export const ui = {
 	nav: {
+		/** Das Schild über dem Abschnitt. */
 		werdegang: "Werdegang",
+		/**
+		 * Dasselbe Ziel in der Navigation und am Randlineal — siehe wall.ts:
+		 * dort ist „Werdegang“ das einzige Nav-Label, das seinem englischen
+		 * Publikum sein Ziel nicht verrät, und bekommt deshalb einen
+		 * englischen Wegweiser. Auf dieser Wand verrät das Wort sein Ziel
+		 * bereits, also steht in beiden Rollen dasselbe. Der Schlüssel
+		 * existiert hier trotzdem: `getWall` castet dieses Modul durch
+		 * `unknown`, ein fehlender Schlüssel fällt also nicht in tsc auf,
+		 * sondern erst als `undefined` auf der Seite.
+		 */
+		werdegangWayfinding: "Werdegang",
 		projects: "Projekte",
 		telemetry: "Telemetrie",
 		practice: "Wie ich arbeite",

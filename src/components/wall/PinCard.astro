@@ -111,11 +111,15 @@ const Tag = as;
 	   So: one period while the type fits it, two the moment it does not.
 	   1.05em, not 1em, because type exactly as tall as its period has no
 	   descender room. 16px -> 24, 20px -> 24, 24px -> 48.
-	   MEASURED, THIS CURRENTLY CHANGES NOTHING: the one heading on the wall
-	   that is actually set at 24px on a 24px ruling is Timeline's peak-row
-	   title, and `Timeline.astro:765-771` sets its leading with a stronger
-	   selector and a comment defending the value. This declaration is the
-	   component's own statement of the rule, not a fix for that node. */
+	   MEASURED, THIS CURRENTLY CHANGES NOTHING, AND THAT IS THE POINT: no
+	   heading on the wall is set at 24px on a 24px ruling any more. The one
+	   that was — Timeline's peak-row title — is back at --step-1 after its
+	   24px turned out to be a rounding artifact of the type-ladder
+	   migration rather than a rank decision, so every typed heading now
+	   resolves to one period. This declaration is the component's standing
+	   statement of the rule, not a fix for any current node; the moment a
+	   caller sets a typed heading above 22.9px it takes two periods instead
+	   of overlapping the line above. */
 	.pin-card--typed :global(:is(h3, h4)) {
 		line-height: round(up, 1.05em, calc(var(--baseline) * 3));
 	}
@@ -130,12 +134,52 @@ const Tag = as;
 	   size — set on the card it resolved to 0.16px and inherited as an
 	   absolute value into a 72px headline, i.e. 0.002em where 0.01em was
 	   intended. Display caps need more tracking small, less large. */
+	/* A CALLER'S SETTING MAY NOT HAVE TO WIN A SPECIFICITY FIGHT TO EXIST.
+	   `Practice.astro` declared --step-4/--lh-4 on the house-rules flyer
+	   title and the sheet computed 48px/48px — the act marquee's size — so
+	   38/40 was dead CSS that read as live intent, and HOUSE RULES and
+	   HOW I WORK came out as twins 140px apart.
+	   VERIFIED, because the reason is not the one the specificity table
+	   suggests: this build's compiler scopes with `:where(.astro-HASH)`,
+	   which contributes ZERO specificity, so component styles carry no
+	   extra weight at all and the raw selectors decide. This rule is
+	   (0,1,1) — a class plus an element — against a caller's bare class at
+	   (0,1,0). A single class can therefore NEVER reach a flyer heading
+	   from outside; `Projects`' `.g-vrbench .bench-flyer` only lands
+	   because it happens to carry two.
+	   The three properties below settle it by INHERITANCE instead: a caller
+	   states the setting on its heading (or on the card) and the value
+	   arrives here, with no dependence on how many classes either selector
+	   happens to carry or on how the compiler scopes. The fallbacks are the
+	   flyer's own setting, so a caller that says nothing is unchanged. */
 	.pin-card--flyer :global(:is(h1, h2, h3)) {
 		margin: 0;
 		font-weight: 400;
-		font-size: var(--step-5);
-		line-height: var(--lh-5);
-		letter-spacing: var(--track-display-lg);
+		font-size: var(--flyer-step, var(--step-5));
+		line-height: var(--flyer-lh, var(--lh-5));
+		letter-spacing: var(--flyer-track, var(--track-display-lg));
+	}
+
+	/* REVERSED TYPE IS TYPESET, NOT RECOLOURED. Three settings on this wall
+	   were byte-identical on opposite grounds — 48px/400/0.006em, 38px and
+	   24px — with zero delta in size, weight, tracking or leading between
+	   the dark-stock sheet and its paper twin. Light forms on a dark ground
+	   irradiate: the strokes bloom, the counters fill, the letterspacing
+	   closes and the setting reads bolder and smaller than the same numbers
+	   on paper. A dark artifact whose type is byte-identical to its paper
+	   twin has made no decision.
+	   Weight is unavailable: League Gothic ships 400 ONLY on this build —
+	   verified by enumerating the loaded `FontFace` entries, because
+	   `document.fonts.check()` lies here and returns true for weights that
+	   are not loaded. So the compensation is TRACKING: +0.012em, i.e.
+	   0.006 → 0.018em, which at 48px is +0.58px per character and widens
+	   "HOW I WORK" by 5.8px. The screen-print this stock imitates spreads
+	   ink physically as it is pulled, so fidelity and optics agree.
+	   Keyed on `.pin-card--dark`, the caller-applied opt-in — NOT on
+	   `:has(h2)`, which is the heading-level accident this cycle is
+	   removing from `wall.css`. */
+	.pin-card--flyer.pin-card--dark {
+		--flyer-track: calc(var(--track-display-lg) + 0.012em);
 	}
 
 	/* print-out: clean white, figures align */

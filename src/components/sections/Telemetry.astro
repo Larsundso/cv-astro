@@ -34,7 +34,10 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 
 <section class:list={["telemetry", "wall-max", className]} id="telemetry" aria-labelledby="telemetry-title">
 	<div class="wall-grid telemetry__grid">
-		<PinCard as="div" variant="flyer" rotate={-1} class="telemetry__headline">
+		{/* `pin-card--dark`: the stock is stated, not inferred from the
+		    heading level — and stating it is what lets the reversed-type
+		    tracking compensation reach this flyer at all. */}
+		<PinCard as="div" variant="flyer" rotate={-1} class="telemetry__headline pin-card--dark">
 			<h2 class="telemetry__h" id="telemetry-title">{ui.nav.telemetry}</h2>
 			<div class="telemetry__rule" aria-hidden="true"></div>
 			<p class="telemetry__since">{tf.trackedSince(trackingStart)}</p>
@@ -217,10 +220,25 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 	/* League Gothic below 24px was reading at the printed body's size — a
 	   display face borrowing the record's band. The subline of a poster is
 	   still poster. */
+	/* REVERSED TYPE IS A DIFFERENT SETTING, NOT A RECOLOUR. This is the
+	   wall's 24px reversed node, and it was byte-identical to its paper
+	   twins — same size, same weight, same tracking, opposite ground.
+	   Irradiation makes light forms on dark bloom: counters fill,
+	   letterspacing closes, the line reads bolder and smaller than the same
+	   setting on paper. League Gothic ships weight 400 only on this build
+	   (verified by enumerating loaded FontFace entries — `document.fonts
+	   .check()` lies here and returns true for weights that are not
+	   loaded), so "one weight down" is unavailable and the compensation has
+	   to be tracking. It comes through `--flyer-track`, which PinCard sets
+	   on `.pin-card--dark`, so this line follows the stock automatically
+	   instead of hard-coding a number that would drift from it.
+	   Its colour is already handled: the dark rule redefines `--ink-soft`
+	   for reversed stock. The defect here was only ever the tracking. */
 	.telemetry__since {
 		margin: calc(var(--baseline) * 2) 0 0;
 		font-size: var(--step-2);
 		line-height: var(--lh-2);
+		letter-spacing: var(--flyer-track, var(--track-display-lg));
 		color: var(--ink-soft);
 	}
 

@@ -305,7 +305,14 @@ const links = layout.map(({ side }, i) => {
 		<header class="rf-head">
 			<span class="rf-line rf-line--full" aria-hidden="true"></span>
 			<div class="rf-headwrap">
-				<PinCard variant="flyer" rotate={-1}>
+				<PinCard variant="flyer" rotate={-1} class="pin-card--dark">
+					{/* `pin-card--dark` is the STOCK, STATED. The dark treatment
+					    used to key on `:has(h2)` — heading LEVEL deciding what a
+					    sheet is printed on — which made five of nine flyers dark
+					    by grammatical accident and left the two `<h3>` posters
+					    (House rules, The VR bench) on paper. This is a section
+					    flyer and is meant to be screen-printed; it says so now,
+					    and the `:has(h2)` arm can leave `wall.css`. */}
 					<h2 id="werdegang" lang="de">{ui.nav.werdegang}</h2>
 					<svg class="rf-headrule" viewBox="0 0 150 8" aria-hidden="true">
 						<path
@@ -745,13 +752,24 @@ const links = layout.map(({ side }, i) => {
 		margin-top: calc(var(--baseline) * 0.5);
 	}
 
-	/* dateline: the same step and the same display tracking as every other
-	   dateline on the wall. Was 1.25rem / 0.08em, a size and a track that
-	   existed nowhere else. */
+	/* dateline: the display tracking every other dateline on the wall
+	   takes. Was 1.25rem / 0.08em, a size and a track that existed nowhere
+	   else.
+	   ONE STEP UP, BECAUSE IT IS REVERSED. At --step--1 this was the
+	   SMALLEST reversed setting on the wall — 14px of League Gothic knocked
+	   out of dark stock — and irradiation costs most at the small end: on a
+	   dark ground light strokes bloom, counters fill and the setting reads
+	   smaller than the same number on paper. League Gothic ships weight 400
+	   only on this build (verified by enumerating the loaded `FontFace`
+	   entries; `document.fonts.check()` returns true for weights that are
+	   not loaded), so there is no lighter cut to fall back on and the
+	   compensation is size: 14px → 16px, one step, still on a whole
+	   baseline multiple. The larger reversed settings take tracking instead
+	   — see PinCard's `--flyer-track`. */
 	.rf-headdates {
 		margin: calc(var(--baseline)) 0 0;
-		font-size: var(--step--1);
-		line-height: var(--lh--1);
+		font-size: var(--step-0);
+		line-height: var(--lh-0);
 		letter-spacing: var(--track-display);
 	}
 
@@ -926,25 +944,40 @@ const links = layout.map(({ side }, i) => {
 	}
 
 	/* the two peaks — the IHK final project and the job it led to */
-	/* THE STEP-UP HIT THE RULING AND THE RULING DID NOT MOVE. `--step-2`
-	   resolves to 24px at ≥1200px against `--lh-1`'s fixed 24px: measured
-	   24/24 = ratio 1.000 at 1200, 1440 and 2560 on both peaks, in both
-	   locales, with both titles wrapping to two lines. On the German wall
-	   the `ü` of »für« then sat inside the descenders of »Abschlussprojekt«
-	   on the line above. Before the step-up these titles were --step-1 on
-	   the same 24px rule — ratio 1.20.
-	   A card on a 24px ruling cannot take an arbitrary leading, so the
-	   answer is not a ratio but the next rule down: 48px is a typist
-	   skipping a line, and the sheet stays registered to its rules at every
-	   width. It is deliberately unconditional — the narrow widths resolve
-	   --step-2 to 21px on the same 24px pitch (ratio 1.14, also under the
-	   1.20 these titles used to have), and one value keeps the two peaks
-	   from being set differently on either side of a breakpoint. */
-	.rf-row--peak .rf-cardwrap h3,
-	.rf-row--flagship .rf-cardwrap h3 {
-		font-size: var(--step-2);
-		line-height: calc(var(--baseline) * 6);
-	}
+	/* THE STEP-UP WAS NEVER A RANK DECISION, AND THE CURE WAS WORSE THAN
+	   THE DISEASE. This selector has now been three things: 20/24
+	   (ratio 1.20), then 24/24 (1.000, descenders of »Abschlussprojekt«
+	   sitting on the `ü` of »für« below), then 24/48 (2.000) — and 2.000 is
+	   how a heading ends up more loosely led than the 16/24 prose it heads,
+	   two lines below it on the same sheet. Both peak titles wrap to two
+	   lines in both locales, so the IHK card read
+	   `IHK final project: »User` / — a blank ruled line — /
+	   `Interface für Discord Bots«`: one title looking like two.
+	   THE HISTORY SETTLES IT. Before the type ladder existed, these titles
+	   were a hand-typed 1.1875rem against the other cards' 1.0625rem — 19px
+	   against 17px, a ratio of 1.118, i.e. a whisper. `09bd50d` migrated
+	   every raw size onto the ladder and had to round: 17px went to
+	   --step-1 and 19px went UP to --step-2, turning a 2px difference into
+	   a 4px one and landing 24px of type on a 24px ruling. The step-up is
+	   an artifact of that rounding, not a decision anyone took about rank.
+	   So the size goes back to --step-1 on ONE ruling period — 20/24, ratio
+	   1.20, the sheet registered to its own rules at every width — and no
+	   substitute rank signal is introduced, because none is owed and the
+	   two obvious ones are both category errors: --thread is the wall's
+	   connector and a heading wearing it makes a node paint itself in the
+	   edge's ink (it is also the underline colour of every link on this
+	   wall), and --lift is material THICKNESS, so raising it claims two
+	   cards out of the same box are cut from different stock.
+	   The peaks already out-rank their neighbours without spending any of
+	   that: `--cols` 7 and 8 against 5 and 6, the flagship alone at
+	   rotate 0 and centred, and its stamp alone carrying the "IHK" sub.
+	   Rank here is the CARD's, not the title's. And size is exhausted in
+	   any case — the ladder offers 16, 20, then 24, and 24 is the step that
+	   breaks a 24px ruling.
+	   THERE IS DELIBERATELY NO RULE UNDER THIS COMMENT. The peaks take the
+	   general title setting above, and a selector restating it would be the
+	   same dead CSS this cycle deleted elsewhere. The note stays so the
+	   fourth attempt at a step-up has to argue with the measurement first. */
 
 	/* A SCHOOL is a record and nothing else: a name and a span. It steps
 	   down a size so the employed years above it read as the louder rank —

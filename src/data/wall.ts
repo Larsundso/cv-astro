@@ -823,7 +823,7 @@ export const timeline: TimelineEntry[] = [
 		title: `IHK final project: »${ihk.finalProject.title}«`,
 		body: [
 			`The training company assessed the work: ${ihk.finalProject.certification}, signed company confirmation dated 2025-06-01. ${h(ihk.finalProject.hours)}, ${ihk.finalProject.window.start} to ${ihk.finalProject.window.end}.`,
-			`Measured under load: ${n(ihk.finalProject.loadTestServers)} simulated Discord servers.`
+			`Measured under load: ${n(ihk.finalProject.loadTestServers)} real Discord servers — run against my own bot's token, not simulated.`
 		],
 		annotation: { text: `${h(ihk.finalProject.hours)} is the IHK’s ceiling for the project`, ink: "teal" }
 	},
@@ -1044,7 +1044,7 @@ export const projects: ProjectEntry[] = [
 		],
 		facts: [
 			`${h(ihk.finalProject.hours)}, ${ihk.finalProject.window.start} to ${ihk.finalProject.window.end} — ${ihk.finalProject.certification}.`,
-			`Load-tested to ${n(ihk.finalProject.loadTestServers)} simulated Discord servers (project documentation, 2025-06).`,
+			`Load-tested against ${n(ihk.finalProject.loadTestServers)} real Discord servers, on my own bot's live token (project documentation, 2025-06).`,
 			`${ihk.finalProject.performance.initialLoad} · ${ihk.finalProject.performance.serverSwitch} · ${ihk.finalProject.performance.cacheHitRate} · ${ihk.finalProject.performance.fps} (project documentation, 2025-06).`,
 			`${ihk.finalProject.code.typescript.files} TypeScript files (${n(ihk.finalProject.code.typescript.linesOfCode)} LOC) + ${ihk.finalProject.code.svelte.files} Svelte files (${n(ihk.finalProject.code.svelte.linesOfCode)} LOC).`,
 			`${h(ihk.finalProject.trackedHours)} tracked on the repo.`

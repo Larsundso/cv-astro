@@ -274,7 +274,7 @@ export const timeline: TimelineEntry[] = [
 		title: `IHK-Abschlussprojekt: »${ihk.finalProject.title}«`,
 		body: [
 			`Der Ausbildungsbetrieb hat die Arbeit beurteilt: als »selbstständig ausgeführt« abgezeichnet, Unterschriftsdatum 2025-06-01. ${h(ihk.finalProject.hours)}, ${ihk.finalProject.window.start} bis ${ihk.finalProject.window.end}.`,
-			`Unter Last gemessen: ${n(ihk.finalProject.loadTestServers)} simulierte Discord-Server.`
+			`Unter Last gemessen: ${n(ihk.finalProject.loadTestServers)} echte Discord-Server — über den Token meines eigenen Bots, nicht simuliert.`
 		],
 		annotation: { text: `${h(ihk.finalProject.hours)} ist die Obergrenze, die die IHK für das Projekt setzt`, ink: "teal" }
 	},
@@ -459,7 +459,7 @@ export const projects: ProjectEntry[] = [
 		],
 		facts: [
 			`${h(ihk.finalProject.hours)}, ${ihk.finalProject.window.start} bis ${ihk.finalProject.window.end} — vom Ausbildungsbetrieb als »selbstständig ausgeführt« abgezeichnet.`,
-			`Lasttest mit ${n(ihk.finalProject.loadTestServers)} simulierten Discord-Servern (Projektdokumentation, 2025-06).`,
+			`Lasttest mit ${n(ihk.finalProject.loadTestServers)} echten Discord-Servern, über den Live-Token meines eigenen Bots (Projektdokumentation, 2025-06).`,
 			"<5 s Erstladezeit bei 100 Servern · <200 ms Serverwechsel · >95 % Cache-Trefferquote · konstant 30 FPS (Projektdokumentation, 2025-06).",
 			`${ihk.finalProject.code.typescript.files} TypeScript-Dateien (${n(ihk.finalProject.code.typescript.linesOfCode)} LOC) + ${ihk.finalProject.code.svelte.files} Svelte-Dateien (${n(ihk.finalProject.code.svelte.linesOfCode)} LOC).`,
 			`${h(ihk.finalProject.trackedHours)} auf dem Repo erfasst.`

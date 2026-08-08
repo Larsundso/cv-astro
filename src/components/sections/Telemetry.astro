@@ -294,6 +294,45 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 		margin-block-start: calc(var(--baseline) * 2);
 	}
 
+	/* THE HABIT FIELD WAS TWO THIRDS OF EVERY MARK ON THE WALL, FOR TWO
+	   NUMBERS. Two disciplines measured it from opposite directions and
+	   agreed. By mark-area: the field is 64.7 % of all data-graphic ink on
+	   the site (400,272 + 46,128 of 689,940px²) and encodes two figures,
+	   both restated as a sentence 20px beneath it — and its filled block
+	   runs 538px, 60 % of a 900px viewport, so a whole screen is solid.
+	   By chroma: pixels at C*>=25 were 16.84 % of that frame, 99.4 % of them
+	   green, against 0.065 % crimson — a 258:1 ratio against the thread the
+	   site is NAMED after and which wall.css declares the only structural
+	   accent. The chroma half is fixed at the fill (getCharts.ts): C* 46.31
+	   to 16.95, which drops the field out of that census entirely while
+	   holding L*≈36 so it still reads as the dark mass.
+
+	   This is the area half, and it belongs here rather than in the chart:
+	   the block's size is `width: 100%` over a viewBox, so the SVG cannot
+	   cap itself, and the only lever inside getCharts is the column count —
+	   which is the wrong trade. At 390 the field renders at 0.4827x, so past
+	   ~54 columns the 3-unit gap falls under 0.95px while the hollow cell's
+	   stroke is a non-scaling 1.25px: adjacent strokes merge, the empty days
+	   become a grey mesh, and the 1,575-vs-164 distinction the two-block
+	   split exists to make is destroyed on the phone in order to fix a
+	   defect measured at 1440.
+
+	   Habit area is 0.8026·W² against a fixed 243,540px² for every other
+	   chart, so W=498 puts the field at ~45 % of mark-area with the filled
+	   block at 360px — 40 % of a viewport rather than 60 % — and cells at
+	   8.19px, comfortably above the merge threshold. It is NOT a size
+	   reduction of the data: every one of the 1,739 cells is still drawn.
+
+	   It must apply to BOTH blocks identically or the two cell sizes diverge
+	   and the 1,575:164 area proportion — the whole point of the split —
+	   stops being readable. Hence the shared cap on `.telemetry__block`, not
+	   on the filled one alone.
+	   At 390 the field is already 293.5px, so this binds at desktop only and
+	   costs the phone nothing. */
+	.telemetry__field .telemetry__block {
+		max-inline-size: 498px;
+	}
+
 	.telemetry__chart :global(svg),
 	.telemetry__field :global(svg) {
 		display: block;

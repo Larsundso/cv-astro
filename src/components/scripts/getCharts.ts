@@ -107,6 +107,67 @@ const INK_HEX: Record<PrideInk, string> = {
 /** Fixed assignment order — CVD-safe adjacency (see module doc). */
 const SERIES_ORDER: readonly PrideInk[] = ["magenta", "blue", "amber", "teal", "violet", "green"];
 
+/**
+ * THE WALL'S LARGEST MASS MAY NOT ALSO BE ITS MOST SATURATED ONE.
+ *
+ * Two disciplines arrived at the habit field from opposite directions and
+ * met on its paint.
+ *
+ * Measured as chroma, over the habit card's frame: pixels at CIE C* >= 25
+ * were 16.84 % of the viewport and 99.4 % of those were THIS green, while
+ * `--thread` — the wall's declared single structural accent, the thing the
+ * site is named after — was 0.065 % of the same frame. A ratio of 258:1.
+ * The filled block is ~377,400px² of stippled mid-dark, 6.8x the area of
+ * the largest district sign. wall.css:39-40 states that `--thread` is the
+ * only structural accent; measured, it was the third-strongest.
+ *
+ * Measured as mark-area: this field is 64.7 % of ALL data-graphic area on
+ * the site, and it encodes two numbers, both restated as a sentence 20px
+ * beneath it. What those two numbers attest is PRESENCE, not competence —
+ * the exact objection levelled at the GitHub contribution graph, and the
+ * weakest claim the wall makes. The wall was drawing hardest the one thing
+ * only it can attest.
+ *
+ * So the fill keeps `--ink-green`'s lightness and hue and gives up two
+ * thirds of its chroma: `oklch(44% 0.045 150)` against the token's
+ * `oklch(44% 0.12 150)`. Computed on the resolved hex, not assumed —
+ * OKLCH 44 % is not CIE L* 44, so both were converted:
+ *   CIE C* 46.31 -> 16.95 — under the 25 that census counted, so the field
+ *     drops out of that measurement altogether rather than merely scoring
+ *     lower in it;
+ *   CIE L* 36.57 -> 35.72 — still the same dark mass, which is the half of
+ *     the graphic that was never the problem;
+ *   7.069:1 against `--paper` (the file's own convention: reproducing
+ *     INK_MUTED by this method returns its declared 3.121:1 exactly), far
+ *     past the 3:1 floor for a graphical object. Unlike the hairline
+ *     failures recorded above (14.989 -> 1.281, 3.12 -> 1.623) this figure
+ *     cannot collapse between declaration and render: those were sub-pixel
+ *     STROKES, and a pattern-filled rect has fully inked interior pixels at
+ *     any cell size the field can reach.
+ * Against INK_MUTED, which outlines the hollow cell, it separates by 22.7
+ * points of L* — solid-and-dark still cannot be mistaken for hollow-and-
+ * grey, so "hollow means absence, solid means not-itemised" survives intact.
+ *
+ * This is a SEPARATE constant, deliberately, not an edit to INK_HEX.green:
+ * that hex is SERIES_ORDER[5] and a series ink, and its value is
+ * load-bearing for the brute-forced CVD adjacency claimed in the module doc.
+ * The green ANNOTATION ink on this same card is likewise untouched — green
+ * still names the claim ("the run"); the field simply stops being a flag
+ * flown in it and becomes a value.
+ *
+ * The second half of the finding — the block's rendered HEIGHT, 538px, 60 %
+ * of a 900px viewport — is not fixable here. That height is `width: 100%`
+ * in the consumer's stylesheet applied to this viewBox, and the only lever
+ * in this file is HABIT_COLS. Widening it is the wrong trade: at 390 the
+ * field renders at 0.4827x, so past ~54 columns the 3-unit gap falls below
+ * 0.95px while the hollow cell's stroke is a non-scaling 1.25px, and the
+ * empty days merge into a grey mesh — which destroys the exact distinction
+ * the two-block split exists to make, to fix a defect measured at 1440. A
+ * max-width on the field, applied identically to BOTH blocks so their cell
+ * sizes cannot diverge, belongs in the stylesheet.
+ */
+const HABIT_FILL = "#415a45"; // oklch(44% 0.045 150)
+
 /* ------------------------------------------------------------------ */
 /* The annotation ink rule                                             */
 /* ------------------------------------------------------------------ */
@@ -139,6 +200,49 @@ const CLAIM_INK = {
 const FONT_BODY = '"Atkinson Hyperlegible", "Segoe UI", sans-serif';
 /** Ranked bars stay legible when scaled down to a phone-wide card. */
 const RANKED_W = 460;
+
+/**
+ * THE ONE FILE IN src/ THAT DECLARES A RAW FONT SIZE, RECONCILED WITH THE
+ * LADDER.
+ *
+ * ECharts takes a number, not a token, and that number is written in the
+ * SVG's OWN user units — then the consumer scales the whole sheet
+ * (`width: 100%` over a 460-unit viewBox). Measured on the render at 1440:
+ * the ranked sheets sit in a 539.9px card, `getScreenCTM()` = 1.1738, and a
+ * nominal 15 was reaching the reader at 17.61px. Fourteen labels — seven
+ * rows across the two snapshot sheets, each carrying a category label and a
+ * value label — in both locales.
+ *
+ * Neither number is on the ladder, which at 1440 resolves to
+ * 10.86 / 13.97 / 16 / 20 / 24 / 30 / 38 / 48. So the chart's labels sat
+ * fractionally larger than the caption directly above them (`--step-0`,
+ * 16px at 1440) for no reason a reader could name, and wall.css:118-122
+ * says nothing in src/ may declare a raw size.
+ *
+ * So the size is declared as the STEP DIVIDED BY THE SCALE IT WILL BE SEEN
+ * THROUGH: 16 / 1.1738 = 13.63, which lands at 15.999px — the caption's own
+ * size, to a hundredth of a pixel.
+ *
+ * The better version reads the step at runtime
+ * (`parseFloat(getComputedStyle(host).fontSize) / ctm`) and tracks the
+ * ladder at every width instead of only at 1440. It is not available here,
+ * and not for want of trying: these SVGs come out of
+ * `echarts.init(null, null, { ssr: true })` at build time — no host node, no
+ * document, no layout to compute a CTM from — and the markup ships static
+ * and aria-hidden, with no client script to correct it afterwards. The match
+ * is therefore exact at 1440 and approximate below it, where the card width
+ * and the clamp() shrink on different curves. That residue is inherent to a
+ * viewBox-scaled label and is not repaired by choosing a different constant.
+ *
+ * Bar geometry is untouched by this: `grid.left` stays 138 and
+ * `axisLabel.width` stays 130 — the pair that took the plot width off the
+ * length of a category label and put the two snapshot sheets on one domain.
+ * Smaller labels give that cap more headroom; tightening it would hand the
+ * bars' length back to the words, which is the defect it was fixed for.
+ */
+const RANKED_CTM = 1.1738; // measured: 539.9px rendered / 460 viewBox units
+const STEP_0_AT_1440 = 16; // --step-0 clamps to 1rem at 1440 (0.906rem + 0.14vw = 16.51)
+const RANKED_LABEL = Math.round((STEP_0_AT_1440 / RANKED_CTM) * 100) / 100; // 13.63
 /** Seven stacked days + legend need the full sheet; consumers pan on narrow screens. */
 const STACKED_W = 620;
 
@@ -448,7 +552,7 @@ const rankedBarSvg = (rows: RankedRow[], axisMax?: number): string =>
 			axisLabel: {
 				color: INK,
 				fontFamily: FONT_BODY,
-				fontSize: 15,
+				fontSize: RANKED_LABEL,
 				width: 130,
 				overflow: "truncate"
 			}
@@ -468,7 +572,7 @@ const rankedBarSvg = (rows: RankedRow[], axisMax?: number): string =>
 					color: INK,
 					fontFamily: FONT_BODY,
 					fontWeight: "bold",
-					fontSize: 15,
+					fontSize: RANKED_LABEL,
 					formatter: (p: { dataIndex: number }) => rows[p.dataIndex].time
 				}
 			}
@@ -596,6 +700,14 @@ const stackedDays = (
 		data: seconds.map((s) => round2(s / 3600))
 	});
 
+	/* The 12s below are NOT reconciled with the ladder the way the ranked
+	   sheets' labels are, and deliberately so. That reconciliation needs the
+	   scale the sheet is seen through, and these sheets have none to measure:
+	   they exist only on a live pull, and their card is a pan region
+	   (`overflow-x: auto`, `min-width: 34rem`), so the scale is whatever the
+	   pan leaves rather than a card width. Guessing a divisor would put a
+	   number on the ladder in this comment and off it on the screen. These
+	   stay 12 until they are measured on a live build. */
 	const svg = renderSvg(STACKED_W, 368, {
 		/* The key sits directly above the marks it names, not parked below
 		 * the axis, and it prints the whole name: 620 px across five or six
@@ -711,7 +823,7 @@ const dayBlockSvg = (count: number, kind: "on" | "off"): string => {
 	const id = `rf-day-${kind}`;
 	const cell =
 		kind === "on"
-			? `<rect width="${HABIT_CELL}" height="${HABIT_CELL}" rx="2" fill="${INK_HEX.green}"/>`
+			? `<rect width="${HABIT_CELL}" height="${HABIT_CELL}" rx="2" fill="${HABIT_FILL}"/>`
 			: /* the hollow cell is a MARK, not chrome: it was outlined in the
 			     axis grey at 2.808:1, under the 3:1 floor for a graphical
 			     object, on the one graphic whose whole point is that the

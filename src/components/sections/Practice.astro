@@ -429,15 +429,21 @@ const rules = houseRules.rules.map((rule) => {
 
 	/* THIS SETTING WAS DEAD CSS FOR TWO CYCLES. It asked for 38px on 40px
 	   and the sheet computed 48px/48px — the act marquee's size — which is
-	   why HOUSE RULES and HOW I WORK read as twins 140px apart. The
-	   compiler scopes with `:where(.astro-HASH)`, i.e. at zero specificity,
-	   so the raw selectors decide and `PinCard`'s flyer-heading rule at
-	   (0,1,1) beat this bare class at (0,1,0). No number of cycles of
-	   re-declaring it here would have worked. PinCard now takes the setting
-	   as an INHERITED property, so the caller's intent arrives without
-	   having to out-count the component's selector. One step under the
-	   marquee: the values statement is the loudest ARTIFACT in the room,
-	   and the room still gets to say its own name first. */
+	   why HOUSE RULES and HOW I WORK read as twins 140px apart.
+	   It lost an ordinary specificity race: this build scopes with an
+	   ATTRIBUTE selector — the built CSS emits
+	   `.pin-card[data-astro-cid-XXXX]`, and contains no `:where()` wrapper
+	   at all — so PinCard's flyer-heading rule out-counted this bare class.
+	   (An earlier pass asserted `:where()` and zero specificity, having run
+	   @astrojs/compiler standalone with a different `scopedStyleStrategy`
+	   than this project ships. It measured a compiler we do not use. A
+	   caller override would in fact have worked.)
+	   PinCard now takes the setting as an INHERITED property anyway, because
+	   settling a component's own setting by inheritance is more durable than
+	   winning a specificity race that a future refactor can silently flip.
+	   One step under the marquee: the values statement is the loudest
+	   ARTIFACT in the room, and the room still gets to say its own name
+	   first. */
 	.practice__flyer-title {
 		--flyer-step: var(--step-4);
 		--flyer-lh: var(--lh-4);

@@ -1171,13 +1171,25 @@ const build = async (locale: Locale): Promise<ChartsBundle> => {
 			? { svg: dayBlockSvg(idleCount, "off"), label: found.idleBlockLabel(idleDays) }
 			: null,
 		/* en-US, in every locale: for a screen-reader user this sentence is
-		   the only provenance the graphic has, and it is quoted verbatim
-		   elsewhere. See the note on `pctIn`. */
+		   the only provenance the graphic has. THAT REASON HAS EXPIRED, and
+		   this was the last place still acting on it — the same correction
+		   was already applied to `rankedAlt`. The `<details>` data tables
+		   carry every figure correctly localised one click away, so the alt
+		   text is no longer anyone's only provenance; meanwhile the cost fell
+		   entirely on the one audience that cannot see the visible card. A
+		   German screen reader speaking `1,739` says *eins Komma sieben drei
+		   neun*, so the wall's largest graphic announced itself as 1.7 cells
+		   and 90.6 % as ninety point six — while the VISIBLE German text
+		   beside it read `1.575 von 1.739` and `90,6 %` correctly.
+		   It is also the one chart of the three with no data-table escape
+		   hatch, so the broken label was the only accessible route to the
+		   figure. The value is untouched; this is a format, never a
+		   separator swap. */
 		alt: cs.alt.habit({
-			elapsed: figure(elapsed),
+			elapsed: figure(elapsed, locale),
 			start: career.range.start,
 			end: career.range.end,
-			active: figure(active),
+			active: figure(active, locale),
 			ratePercent,
 			asOf: career.asOf
 		}),

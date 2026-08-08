@@ -326,8 +326,18 @@ export const timeline: TimelineEntry[] = [
 		dateLabel: "2025",
 		sort: "2025-06",
 		title: "Raleo Digital GmbH",
+		/* Siehe wall.ts: die Karte, die vier Hiring-Gutachter unabhängig
+		   voneinander als das größte Problem benannt haben — 0 Technologien,
+		   0 Zahlen, 0 Ergebnisse, und die Hälfte davon über das Geschäft des
+		   ARBEITGEBERS statt über die Arbeit. Vom Eigentümer geliefert am
+		   2026-08-08, nach seiner Freigaberegel: keine internen System- oder
+		   Repository-Namen, kein Hersteller und kein Lieferant genannt. */
 		body: [
-			"Seit 2025 bin ich Full-Stack-Entwickler bei der Raleo Digital GmbH (raleo.de), einem Online-Marktplatz für Heizungen, Wärmepumpen und Photovoltaik. Vollständig remote — das zweite Unternehmen an diesem Faden."
+			"Seit Juli 2025 bin ich Full-Stack-Entwickler bei der Raleo Digital GmbH (raleo.de), einem Online-Marktplatz für Heizungen, Wärmepumpen und Photovoltaik. Vollständig remote — das zweite Unternehmen an diesem Faden.",
+			"Stack: TypeScript und Node.",
+			"Mir gehört der Ingest-Dienst, auf dem der Marktplatz läuft. Er holt regelmäßig Verfügbarkeit, Preis, Bestand, Bilder und Beschreibungen von Herstellerseiten in die Produktdatenbank und zieht Versanddokumente aus Lieferantenportalen, damit Kundinnen und Kunden wissen, wo ihre Bestellung steht.",
+			"Er ist systemkritisch, und die Fehlerfälle sind teuer statt peinlich: Ein falscher Bestand kostet Geld, eine veraltete Verfügbarkeit kostet den Verkauf.",
+			"Die Quellen sind nicht dafür gebaut, maschinell gelesen zu werden, sie wehren sich dagegen, und sie ändern sich ohne Ankündigung. Der größte Teil der Arbeit ist, das unbeaufsichtigte Einsammeln trotzdem korrekt zu halten."
 		]
 	},
 	{

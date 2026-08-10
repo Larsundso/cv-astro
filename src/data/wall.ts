@@ -1332,7 +1332,20 @@ export const projects: ProjectEntry[] = [
 			{ label: "GitHub: AyakoBot", href: "https://github.com/AyakoBot" },
 			{ label: "top.gg listing", href: ayako.topGgUrl }
 		],
-		license: `v2 ${ayako.license.v2} · v3 ${ayako.license.v3}`,
+		/* THE LICENCE LINE SAYS WHAT IS PERMITTED, NOT ONLY WHAT IS FORBIDDEN.
+		   It used to print `v2 source-available (CC BY-NC 4.0) · v3 open
+		   source (AGPL-3.0)` — and the v3 half was false: every v3 repository
+		   carries CC BY-NC 4.0, which an adversarial screener checked and made
+		   its rejection condition. Owner-confirmed 2026-08-10: the commercial
+		   restriction is deliberate and applies to both versions, so the two
+		   halves are now identical and collapse into one.
+		   The wording changed with them. "Source-available" is accurate and
+		   tells a reader only what they may NOT do. The owner's actual
+		   position is a permission with one restriction — fork it, run it
+		   yourself, do not sell it — and that is the same ethic as the
+		   free-forever promise on this card, so it belongs in the same voice.
+		   The identifier stays because it is the checkable part. */
+		license: "CC BY-NC 4.0, v2 and v3 — fork it and run it yourself; you may not sell it.",
 		/**
 		 * DEFECT 4: THE LARGEST SENTENCE ON THE WALL WAS A REFUSAL.
 		 *

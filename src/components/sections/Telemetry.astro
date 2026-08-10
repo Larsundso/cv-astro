@@ -182,7 +182,35 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 		}
 		<PinCard as="div" variant="typed" rotate={1} class="telemetry__prov pin-card--kraft">
 			<h3 class="telemetry__prov-title">{tf.sourceHeading}</h3>
-			{provenance.map((line) => <p class="telemetry__prov-line">{line}</p>)}
+			{
+				/* "CHECK IT YOURSELF" WAS NOT CLICKABLE. The provenance card prints
+				   the public, keyless WakaTime endpoint and invites the reader to
+				   open it — and it shipped as plain text inside a <p>. A hiring
+				   manager checked all 40 hrefs on the page, found this was not one
+				   of them, and called it "cheap and slightly embarrassing given the
+				   argument the page makes". He is right: this is the single
+				   invitation the whole wall is built on.
+				   Linkified at the RENDER rather than by putting markup in the data,
+				   for two reasons. The data layer is plain strings by law — every
+				   figure is interpolated from snapshot.ts and the copy carries no
+				   HTML — and a URL that appears in a future provenance line would
+				   otherwise ship unlinked again for the same reason this one did.
+				   The URL keeps its full literal text: it is meant to be READ and
+				   copied as much as clicked, so it is not shortened to a label. */
+			}
+			{provenance.map((line) => (
+				<p class="telemetry__prov-line">
+					{line
+						.split(/(https?:\/\/[^\s)]+)/g)
+						.map((part) =>
+							/^https?:\/\//.test(part) ? (
+								<a class="rf-link" href={part} rel="noopener">{part}</a>
+							) : (
+								part
+							)
+						)}
+				</p>
+			))}
 		</PinCard>
 	</div>
 </section>

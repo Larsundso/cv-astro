@@ -1241,7 +1241,7 @@ export const githubStats = {
 		   Stated in the wall's own register: bounded, not diminished. The
 		   largest of the eleven is a feature in discord.js, and it is named
 		   here rather than left for a screener to find. */
-		"The limit: the newest of the eleven merged on 2024-11-25. By title, two are documentation typo fixes and one is a dependency bump. The largest adds an OAuth2 token-revocation method — two pull requests, discord.js and its types package."
+		`The limit: the newest of the eleven merged on ${github.mergedUpstream.newestMergedOn}. By title, two are documentation typo fixes and one is a dependency bump. The largest adds an OAuth2 token-revocation method — two pull requests, discord.js and its types package.`
 	],
 	/** The query that returns the eleven — run it rather than trust it. */
 	search: {
@@ -1404,7 +1404,11 @@ export const projects: ProjectEntry[] = [
 	},
 	{
 		id: "vr-discord-vc-overlay",
-		name: "VR-Discord-VC-Overlay",
+		/* THE NAME NOW MATCHES THE REPOSITORY. "VR-Discord-VC-Overlay"
+		   returns zero results against his account — a screener who searched
+		   the name this card printed found nothing, on a wall built to be
+		   checked. The public repo is `SteamVR-Discord-Overlay`. */
+		name: "SteamVR-Discord-Overlay",
 		role: "vr",
 		oneLiner:
 			"C#/.NET 8 SteamVR overlay rendering Discord voice state in-headset, with interactive mute and deafen.",
@@ -1427,7 +1431,7 @@ export const projects: ProjectEntry[] = [
 			`${n(4_059)} LOC across 15 files.`
 		],
 		stack: ["C#/.NET 8", "SkiaSharp", "DirectX 11 (Vortice)", "OpenVR", "Kestrel", "WebSocket"],
-		links: []
+		links: [{ label: "the repo", href: "https://github.com/Larsundso/SteamVR-Discord-Overlay" }]
 	},
 	{
 		id: "vrc-inviter",
@@ -1437,7 +1441,9 @@ export const projects: ProjectEntry[] = [
 		body: [
 			"Spec-first: the design document is dated 2026-04-16, before implementation. DPAPI-encrypted credentials, a loopback-only web dashboard, and SQLite persistence."
 		],
-		facts: [`${n(4_481)} LOC across 55 files · 7-module xUnit suite.`],
+		facts: [`${n(4_481)} LOC across 55 files · 7-module xUnit suite.`,
+			"No public repository — this one is not open to check."
+		],
 		stack: ["C#/.NET 8", "Svelte 5", "SQLite", "xUnit", "Kestrel"],
 		links: []
 	},
@@ -1450,7 +1456,9 @@ export const projects: ProjectEntry[] = [
 		body: [
 			"The Discord IPC RPC client — OAuth handshake and frame protocol included — is hand-rolled rather than pulled from a library."
 		],
-		facts: [`${n(2_436)} LOC across 36 files · vitest suite with undici MockAgent.`],
+		facts: [`${n(2_436)} LOC across 36 files · vitest suite with undici MockAgent.`,
+			"No public repository — this one is not open to check."
+		],
 		stack: ["TypeScript", "Node.js", "vitest"],
 		links: []
 	},
@@ -1463,7 +1471,9 @@ export const projects: ProjectEntry[] = [
 		body: [
 			"Speech is recognized locally with Faster-Whisper and routed to the VRChat chatbox over OSC; the overlay renders dashboard, HUD, and wrist views in-headset."
 		],
-		facts: [`${n(32_427)} LOC across 121 files · 15 backend service modules · 19 test files.`],
+		facts: [`${n(32_427)} LOC across 121 files · 15 backend service modules · 19 test files.`,
+			"No public repository — this one is not open to check."
+		],
 		stack: ["Python", "FastAPI", "Faster-Whisper", "Electron", "React", "OpenVR", "WebSocket", "OSC"],
 		links: []
 	},
@@ -1492,7 +1502,7 @@ export const projects: ProjectEntry[] = [
 			`${n(3_264)} LOC of strict TypeScript across 75 files.`
 		],
 		stack: ["TypeScript", "ffmpeg", "youtube-dl-exec", "SWC", "Docker"],
-		links: [],
+		links: [{ label: "the repo", href: "https://github.com/Larsundso/GIFfer" }],
 		license: "CC BY-NC 4.0"
 	}
 ];

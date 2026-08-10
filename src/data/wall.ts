@@ -880,7 +880,20 @@ export const hero = {
 		   migrations) and closes on the measurement that backs it. */
 		lines: [
 			`In production since ${ayako.inProductionSince} — through ${ayako.generations} generations and ${ayako.discordLibraries} Discord libraries.`,
-			`${hm(telemetry.lifetime.total.seconds)} tracked coding behind it, as of ${SNAPSHOT_AS_OF}.`,
+			/* "BEHIND IT" BOUND THE LIFETIME TOTAL TO ONE PRODUCT. The card
+			   opens on what the hours SUSTAINED — a system still in production
+			   after seven rewrites — and that framing is right and stays. The
+			   connective was not: "5,432 h tracked coding behind it" reads as
+			   5,432 hours of Ayako, while the projects card 40 % further down
+			   says "2,800 h across 7 generations and 3 Discord libraries" —
+			   the same scope phrase, word for word, two figures 1.94x apart.
+			   It had propagated into <meta name="description"> in both
+			   locales. This is the one defect on the wall a sceptic could turn
+			   into "he inflates", and it sat two cards from the top.
+			   Now the total is stated as a lifetime and the share is named in
+			   the same breath, so outcome-first order survives and the number
+			   stops over-claiming. */
+			`${hm(telemetry.lifetime.total.seconds)} tracked coding lifetime, as of ${SNAPSHOT_AS_OF} — ${hm(telemetry.lifetime.ayakoFamily.seconds)} of it on this system.`,
 			`${n(telemetry.lifetime.activeDays.active)} of ${n(telemetry.lifetime.activeDays.elapsed)} days active — ${pc(telemetry.lifetime.activeDays.ratePercent)}, ${telemetry.trackingStart} to ${telemetry.trackingEnd}.`
 		],
 		sourceNote: "WakaTime API",

@@ -14,8 +14,9 @@
  *              card: the name and the 2.4M-user claim one step up at the
  *              typewriter's bold, then the level statement AND THE PAID
  *              POST bold at the card's own size, and the record —
- *              credential, qualification, geography, technology, the
- *              offer, languages — under a blank rule.
+ *              technology, the offer, whatever else the copy module has
+ *              appended, then credential, qualification, geography,
+ *              languages — under a blank rule.
  *              It sits in the fold's primary optical area (top-left)
  *              because job title and current employer are the top two
  *              fixation points in recruiter eye-tracking and are the
@@ -171,6 +172,31 @@ const CREDENTIAL_RUN = "Fachinformatiker für Anwendungsentwicklung";
 /* boundary characters a clause may open on, in either locale — structural
    punctuation only, never a word */
 const CLAUSE_OPENERS = ["—", "–", ")", ";", ":"];
+
+/* A SENTENCE BOUNDARY IS AN OPENER TOO, AND LEAVING IT OUT FAILED OPEN.
+   The split takes the LAST opener before the employer. On today's English
+   entry — "…(IHK) — the German state-recognised … — and full-stack developer
+   at Raleo Digital GmbH, remote." — that is the second em dash, the gloss
+   stays in the record, and the promotion is correct. Write the same fact
+   with the gloss as its own sentence, which is ordinary copy editing —
+   "…(IHK) — the German … in application development. Full-stack developer at
+   Raleo Digital GmbH, remote, since 07/2025." — and the last CHARACTER
+   opener before the employer is the FIRST dash: the head still holds the
+   credential, the tail still holds the employer, both assertions below pass,
+   and 22 words of gloss are promoted into the card's bold band. Silent, and
+   fails OPEN, which is the one thing every other guard here refuses to do.
+   IT IS NOT `lastIndexOf(".")`, BECAUSE `.` IS NOT ALWAYS A FULL STOP. The
+   copy on this wall already prints "discord.js" and "raleo.de", and an ISO
+   date is next door. A full stop counts only where whitespace follows it,
+   which no domain or package name on this wall does.
+   Measured no-op on the copy as it stands: neither locale has a full stop
+   before the employer's name, so today's render is byte-identical. */
+const lastSentenceEnd = (line: string, before: number) => {
+	for (let i = before - 1; i > 0; i--) {
+		if (line[i] === "." && /\s/.test(line[i + 1] ?? "")) return i;
+	}
+	return -1;
+};
 /* stripped only where the split already succeeded, so a miss cannot leave a
    sentence beginning with a conjunction */
 const LEADING_CONJUNCTION = /^(?:and|und|sowie|&)\s+/i;
@@ -199,7 +225,10 @@ const derivePost = () => {
 	if (!line.includes(CREDENTIAL_RUN)) return { at, post: line, record: null };
 
 	const employerAt = line.indexOf(employer);
-	const opener = Math.max(...CLAUSE_OPENERS.map((c) => line.lastIndexOf(c, employerAt)));
+	const opener = Math.max(
+		...CLAUSE_OPENERS.map((c) => line.lastIndexOf(c, employerAt)),
+		lastSentenceEnd(line, employerAt)
+	);
 	if (opener < 0) return null;
 	/* a bracket closes the head it belongs to; a dash is spent on the seam */
 	const keep = line[opener] === ")" ? opener + 1 : opener;
@@ -227,9 +256,40 @@ const post = derivePost();
    positions as load-bearing; everything else is taken by structure, so a
    line APPENDED to the array (the module's stated contract) lands in the
    record on its own instead of being silently dropped — which is how the
-   card once lost text. Order in the record: the credential opens it, the
-   qualification clause follows so its referent sits one rule above it, then
-   geography, then whatever the copy module has appended, then languages. */
+   card once lost text.
+
+   THE APPENDED ENTRIES NOW OPEN THE RECORD, AND THE CREDENTIAL FOLLOWS THEM.
+   The two lines added last cycle to put a technology in the first viewport
+   landed on DESKTOP ONLY. Measured on the served build at 390 × 844, root 16,
+   both locales: "TypeScript, day to day — 55.59 % …" began at y 850 English
+   and y 826 German, and "Open to TypeScript/Node product work …" at y 922 in
+   both, against a fold at 844. On the surface a screener actually uses, a
+   candidate selling TypeScript/Node showed neither: the only technical noun
+   above the English fold was "Discord bot". Desktop had them at y 597 and 616
+   and the check stopped there — the same one-surface verification error this
+   file has now paid for four times.
+   The displacement was measured, not guessed. Between the head's last rule
+   and those two lines stood the credential with its English gloss (5 printed
+   rules, 120px at 390), the qualification clause (2 rules, 48px) and the
+   geography (3 rules, 72px) — 240px, against the 236px by which the ask
+   overran the fold. No arrangement keeps the credential in the record's first
+   position AND the ask above 844: the gloss alone is half the deficit. So the
+   axis the credential yields this time is POSITION, the same trade the paid
+   post made in the other direction one cycle ago — and it keeps everything
+   else: its own rule, the qualification clause directly beneath it, and its
+   place on the card a reader reaches in one flick.
+   Re-measured with the same probe after the change, at 390 × 844 root 16,
+   with this cycle's copy in place and the post's start month modelled at its
+   longest ("— since July 2025."): English technology 596→674, ask 668→746;
+   German 644→746 and 740→818. Both clear 844 in both locales, the German ask
+   by 26px, which is the binding case. At root 20 and 24 nothing past the
+   head fits on any arrangement — the head alone is 842px at root 20 — but
+   both lines move up by the same 240px there too, so the enlarged case is
+   improved and not traded.
+   Order in the record, therefore: whatever the copy module has appended
+   (currently the technology, the ask and the merged-upstream line), then the
+   credential, then the qualification clause one rule below the referent it
+   qualifies, then geography, then languages. */
 const recordOpen = post && post.at === 0 ? post.record : hero.intro[0];
 const recordRest = hero.intro.filter((_, i) => i > SENIORITY_LINE && i !== post?.at);
 
@@ -345,35 +405,71 @@ const BEND = (x: number, y: number): Station => ({ x, y, pin: false });
    German (`scratchpad/fix3/hero/thread.mjs`, pixel diff against the same
    board with the thread hidden).
 
-   STALE AS OF 2026-08-08, AND BY A KNOWN AMOUNT. The record card took two
-   APPENDED copy lines this cycle (the technology line and the offer) and
-   the head took the paid post. Measured on the served build at 1440 × 900
-   by rebuilding the card in the DOM: the post costs one rule and the
-   credential's remainder gives one back, so the RANK change is height-
-   neutral in both locales — the whole growth is the two appended lines, at
-   +96px (four rules) English and German alike. Card 444 → 540; board 867 →
-   963 en, 847 → 943 de. Every band-2 vertex below therefore sits ~96px
-   above where its pin now is, which is 13 pin heads: RE-MEASURE before this
-   cycle ships. What does NOT come back is the dash defect — the box is 1500
-   × 1100 against a rendered/authored ratio of 0.821/0.817, and 96px more
-   board moves that to roughly 0.85, still well under 1. */
+   RE-MEASURED 2026-08-10, and the note it replaces was right that it had to
+   be: the previous vertices had gone stale by 83 viewBox units — 77px, or 11
+   pin heads — at the polaroid's pin, which is a thread ending in bare cork
+   beside the sheet it is supposed to be tied to. Two cycles of copy did it:
+   the technology line and the offer (+96px, never re-measured) and this
+   cycle's merged-upstream line and the post's start month. Board 867 → 1059
+   en and 847 → 1015 de at 1440 × 900.
+   Every P below is a brass pin's centre read off the rendered page and
+   converted into this viewBox by the same fraction the SVG uses
+   (`(x − boardLeft) / boardWidth × 1500`, `(y − boardTop) / boardHeight ×
+   1100`). Measured on a private copy of the build with this cycle's copy
+   injected into the DOM — the merged-upstream line in both locales, the ask
+   in its `Produktentwicklung` form, and the post's start month modelled at
+   its longest ("— since July 2025." / "— seit Juli 2025."). If that month
+   does not ship the band-2 vertices are 26 units high, which is 24px, inside
+   the 7px head only for x; re-measure against the built page when the copy
+   is frozen. It is a strictly smaller error than the 83 it replaces.
+   THE BEND IS THE ONE VERTEX A 1440 MEASUREMENT NO LONGER SETTLES, and this
+   is the cycle that stopped being true. Its whole job is that the leg west
+   runs in the open cork BELOW the record card instead of diving under it, so
+   it has to sit under that card's bottom edge at every width the desktop
+   path is drawn at — and the desktop path starts at 1024, where the shell is
+   viewport-limited, the card is narrower and wraps to more rules, and its
+   bottom edge sits LOWER as a fraction of the board. Measured, this cycle's
+   copy, both locales:
+     1280 and 1440 are identical (shell capped at 78rem, board 1248 × 1059 en
+       / 1015 de): card bottom 654.5 en, 656.8 de; polaroid pin 674.2 / 677.4.
+     1024 (board 1009 × 1148 en / 1148 de): card bottom 673.0 / 671.5;
+       polaroid pin 693.0 / 690.9.
+   The band gap is 20 units wide and the whole band drifts 19 units between
+   those widths, so the two windows barely intersect: 673.0 < y < 677.4 is
+   everything both locales allow, and 675 is inside it — 2.0 units below the
+   1024 card in English, 3.5 in German, and within a unit of the polaroid's
+   pin at the tuned width, where the leg simply arrives level. Tuned at 1440
+   alone it would have been 663, which is 10 units INSIDE the card at 1024 —
+   the leg hidden for more than half its length, which is the defect the bend
+   exists to remove. Both locales therefore carry the same number here, for
+   the first time, because that is where the two windows overlap.
+   AND THE RECORD CARD HAS NOW SPENT THIS MECHANISM. Four more units of card
+   and the windows stop intersecting at all; at that point the bend needs a
+   different resolution, not another nudge.
+   THE DASH DEFECT DOES NOT COME BACK. Measured on the render by walking the
+   path and mapping every sample through the element's own screen CTM:
+   rendered/authored is 0.863 en and 0.854 de against a 1500 × 1100 box. That
+   reading was taken on the PRE-TUNE vertices at the post-copy board height —
+   the re-tune moves rendered and authored together, so the conclusion holds,
+   but re-verify it on the built page rather than quoting these two figures
+   for the path below. */
 const DESKTOP_STATIONS: Record<Locale, Station[]> = {
 	en: [
-		P(388, 1),
+		P(390, 1),
 		P(1115, 1),
-		BEND(1131, 565),
-		P(264, 580),
-		P(807, 610),
-		P(1302, 735),
+		BEND(1131, 675),
+		P(264, 674),
+		P(807, 699),
+		P(1302, 801),
 		P(1002, 1100)
 	],
 	de: [
-		P(388, 1),
+		P(390, 1),
 		P(1115, 1),
-		BEND(1131, 579),
-		P(264, 594),
-		P(807, 625),
-		P(1302, 752),
+		BEND(1131, 675),
+		P(264, 677),
+		P(807, 703),
+		P(1302, 810),
 		P(1002, 1100)
 	]
 };
@@ -454,31 +550,53 @@ const THREAD_DESKTOP = {
    still start at x = 153.7, so the detour's two vertices are unchanged and
    the left clearance is still 17.7 units.
 
-   STALE AS OF 2026-08-08, same cause as the desktop stations above: the
-   record card grew 96px on two APPENDED copy lines (the rank change itself
-   is height-neutral — one rule to the post, one rule back from the
-   credential's remainder). Every vertex below the card slides down by that
-   much, and the STAMP DETOUR is the one that cannot be left to drift: its
-   whole job is 17.7 units of clearance past an artifact with no paper under
-   it. RE-MEASURE. The ratio this note makes load-bearing survives on
-   arithmetic alone: 0.792 en / 0.855 de against a board growing ~96px is
-   ~0.829 / ~0.896, still under 1, with the ~340px of headroom cut to
-   ~240px. */
+   RE-MEASURED 2026-08-10, AND THE BOX IS NOW 3000 TALL, NOT 2400, WITH EVERY
+   COORDINATE SCALED BY THE SAME 1.25. Two things had gone wrong and only one
+   of them was visible.
+   THE DASH RATIO HAD WALKED UP TO 0.988. Measured on the rendered page rather
+   than inferred — sampling the path 4,000 times and mapping every sample
+   through the element's own screen CTM, then dividing the summed screen
+   length by `getTotalLength()`: 2,425px rendered against 2,454 authored units
+   on the German wall at 390 × 844, with this cycle's copy in the card. That
+   is 1.2 % from the tail not painting at all, which is the exact defect the
+   two paragraphs above exist to prevent, and it arrived through the data
+   layer rather than through this file — the stacked board went 2,231 → 2,375
+   px on the merged-upstream line and the post's start month. One more rule of
+   German copy crosses it. Scaling the box AND every coordinate by k leaves
+   the picture identical and multiplies only the authored length, so at
+   k = 1.25 the ratio is 0.79 and the column has ~600px of growth in hand.
+   THE STATIONS HAD GONE STALE BY UP TO 228 UNITS of the old box at the
+   signature's pin. It matters less here than on the desktop wall — this run
+   is a vertical stitch, so a y error slides ALONG the line rather than off it,
+   which is why nothing looked wrong — but the STAMP DETOUR is the exception,
+   and it had inverted: its hook back sat at 2,334 of the old box while the
+   stamp's own box now bottoms out at 2,341 en / 2,343 de, i.e. the run that
+   exists to pass the stamp had climbed INTO it. Every value below is measured
+   off the rendered page (pin centres, and the stamp's own box for the
+   detour), averaged across the two locales for the reason the paragraph above
+   gives, and then scaled: signature 976, exhibit 1193, evidence 1716, pin
+   2352 in 400 × 2400 units; the detour leaves the line 61 units above the
+   stamp's top edge, as it did before, and hooks back 1 unit under its bottom.
+   The detour's x is derived rather than kept: the stamp's left edge reads
+   189.75 in the new box, and 167 leaves it 22.75 units — 17.1px at a 375px
+   board, the same clearance the note above records.
+   Same caveat as the desktop stations: the post's start month is modelled at
+   its longest, so if it does not ship these sit ~30 units low. */
 const THREAD_MOBILE = {
-	width: 400,
-	height: 2400,
+	width: 500,
+	height: 3000,
 	path: tautPath(
 		[
-			[206, 0],
-			[198, 760],
-			[204, 1014],
-			[196, 1619],
-			[136, 2180],
-			[136, 2334],
-			[200, 2344],
-			[200, 2400]
+			[258, 0],
+			[248, 1220],
+			[255, 1491],
+			[245, 2145],
+			[167, 2735],
+			[167, 2929],
+			[250, 2940],
+			[250, 3000]
 		],
-		6
+		7.5
 	)
 };
 
@@ -549,6 +667,17 @@ const THREAD_MOBILE = {
    Expected visible run at 390 × 844, root 16: 284px down the corridor plus
    186px on the leg = 470px of path at a 2.5px stroke, against an acceptance
    floor of 400 crimson pixels above the fold.
+   THE CORRIDOR IS 38px SHORTER SINCE 2026-08-10, because the head above it
+   is: the narrow `.wall-head` block in WallPage.astro went 277.3 → 239.3px,
+   so the board's top edge rose from y 301.3 to 263.3 and the visible run
+   from 284 to 246px — 432px of path in total. Two things keep that inside
+   the floor rather than near it. The stroke is `--thread-w`, 4px and not the
+   2.5 this note was written against, so the run is ~1,730 crimson pixels
+   where the floor is 400. And the geometry is untouched: the bend is
+   measured from the BOARD's top edge, not from the page's, and the gap
+   between the language chit and that edge is the hero's own padding —
+   re-measured at 23.0px after the compression, exactly what it was before,
+   against the 17px the bend sits at.
 
    COORDINATES ×3 AGAINST A ×3 BOX, for the dash reason this file records
    twice already: `stroke-dasharray: 1` against `pathLength="1"` under
@@ -621,8 +750,9 @@ const THREAD_ENTRANCE = {
 			     fourth equal-weight paragraph.
 			     The card is a head and a record. The HEAD is the name, the
 			     claim, the level statement and the paid post; the RECORD is
-			     the credential, the qualification, the geography, whatever the
-			     copy module has appended, and the languages.
+			     whatever the copy module has appended (the technology, the
+			     ask), then the credential, the qualification, the geography
+			     and the languages.
 			     The claim keeps the strongest slot on the card and the level
 			     statement stays directly beneath it, because "I have built and
 			     operated IT" needs the bot as its nearest antecedent — putting
@@ -661,7 +791,22 @@ const THREAD_ENTRANCE = {
 							{runs(post.post).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.nowrap ? <span class="nowrap">{part.text}</span> : part.text))}
 						</p>
 					)}
-					{/* the record proper, at the card's own size and weight */}
+					{/* THE RECORD OPENS ON WHAT THE COPY MODULE APPENDED — currently
+					    the technology, the ask and the merged-upstream line. They are
+					    here rather than at the foot of the card because at 390 × 844
+					    the credential, the qualification clause and the geography cost
+					    240px between the head and them, and the ask overran the fold
+					    by 236 (measured, both locales; see `recordRest` above for the
+					    whole census). Body rank is unchanged and deliberate: the ask's
+					    value is that it is in the first viewport at all, and a fifth
+					    bold rule would spend the band the last cycle repaired.
+					    ARRAY ORDER IS PRESERVED INSIDE THIS BLOCK, which is what the
+					    data module's "append; never insert" contract buys — a line
+					    appended after the ask still prints after the ask. */}
+					{recordRest.map((line) => (
+						<p>{runs(line).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.nowrap ? <span class="nowrap">{part.text}</span> : part.text))}</p>
+					))}
+					{/* the credential, at the card's own size and weight */}
 					{recordOpen && (
 						<p class="hero__intro-role">
 							{runs(recordOpen).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.nowrap ? <span class="nowrap">{part.text}</span> : part.text))}
@@ -671,14 +816,6 @@ const THREAD_ENTRANCE = {
 						<p>{runs(seniorityQualifier).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.nowrap ? <span class="nowrap">{part.text}</span> : part.text))}</p>
 					)}
 					<p>{hero.location}</p>
-					{/* whatever the copy module has appended after the three
-					    load-bearing entries — currently the technology line and the
-					    offer. Body rank on purpose: the offer's value is that it
-					    exists in the first viewport at all, and a fifth bold rule
-					    would spend the band this cycle just repaired. */}
-					{recordRest.map((line) => (
-						<p>{runs(line).map((part) => (part.de ? <span lang="de">{part.text}</span> : part.proper ? <span class="proper">{part.text}</span> : part.nowrap ? <span class="nowrap">{part.text}</span> : part.text))}</p>
-					))}
 					<p class="hero__intro-langs">{hero.languages}</p>
 				</PinCard>
 			</div>
@@ -902,17 +1039,24 @@ const THREAD_ENTRANCE = {
 		margin-bottom: calc(var(--baseline) * 3);
 	}
 
-	/* THE CREDENTIAL KEEPS ITS PLACE AND YIELDS ITS WEIGHT. It opens the
-	   record, still inside the first screen at both breakpoints, still the
-	   first thing a German stage-1 filter looks for — but at 400. At 700 it
-	   was four to six rendered lines of bold, the card's only weight signal,
-	   and it pointed at a vocational certificate rather than at the product
-	   the wall exists to evidence. Position is one axis and weight is
-	   another; only one of them had to move. DO NOT LET ANYONE FIX THIS
-	   BACK — including by way of the post above, which is why the split
-	   asserts the credential lands on THIS side of it before it will run at
-	   all. The qualification clause still follows one rule below, so its
-	   referent stays directly above it. */
+	/* THE CREDENTIAL YIELDED ITS WEIGHT ONE CYCLE AND ITS POSITION THE NEXT,
+	   and both were paid for a measurement rather than a preference.
+	   WEIGHT, and this half must not be undone: at 700 it was four to six
+	   rendered lines of bold, the card's only weight signal, pointing at a
+	   vocational certificate rather than at the product the wall exists to
+	   evidence. It stays at 400. DO NOT LET ANYONE FIX THIS BACK — including
+	   by way of the post, which is why the split asserts the credential lands
+	   on the record's side of it before it will run at all.
+	   POSITION: it no longer opens the record. At 390 × 844 the credential,
+	   its qualification clause and the geography stood 240px between the
+	   head's last rule and the two lines that name a technology and state the
+	   ask, and those two overran the fold by 236px — with the English gloss
+	   alone accounting for 120px of it. There is no ordering that keeps this
+	   line first AND puts the ask on the phone's first screen; see
+	   `recordRest` for the full census. It still carries the record's own
+	   rule, the qualification clause still sits one rule below it so its
+	   referent stays directly above, and on the German wall — where it is the
+	   stage-1 filter — it is 2 printed rules rather than 5. */
 	.hero__intro-slot :global(.pin-card) p.hero__intro-role {
 		font-weight: 400;
 	}

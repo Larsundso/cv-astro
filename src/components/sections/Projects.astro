@@ -241,6 +241,31 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 				{kiyu.body.map((paragraph) => <p>{paragraph}</p>)}
 				{kiyu.facts.map((fact) => <p class="fact-line">{fact}</p>)}
 				<p class="stack">{kiyu.stack.join(" · ")}</p>
+				{/* THE RENDER SITE EXISTS EVEN WHERE THE LINK DOES NOT.
+				    Seven entries on this wall carried `links: []` — GIFfer,
+				    all four VR-bench tools, vr-diag and this site's own
+				    repository — on a page whose central argument is that the
+				    work can be opened rather than taken on trust. GIFfer's
+				    card states it ships "a SECURITY.md" and gave a reader no
+				    way to go and look at it.
+				    Half of that defect is data and half is this file: Ayako's
+				    card held the ONLY `links` block in the section, so a URL
+				    added to `wall.ts` for Kiyu, GIFfer or any bench tool
+				    would have rendered nowhere. This is the half this file
+				    owns — three render sites, each of which draws nothing
+				    while its array is empty.
+				    Kiyu is expected to stay empty, and that is not a gap to
+				    be closed: the codebase is private, the card says so, and
+				    the amber note beside it labels what that costs the
+				    reader. An empty array renders no list, so an honest
+				    absence stays an absence. */}
+				{kiyu.links.length > 0 && (
+					<ul class="links" role="list">
+						{kiyu.links.map((link) => (
+							<li><a href={link.href}>{link.label}</a></li>
+						))}
+					</ul>
+				)}
 			</PinCard>
 			{
 				kiyu.annotation && (
@@ -259,6 +284,17 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 			{giffer.facts.map((fact) => <p class="fact-line">{fact}</p>)}
 			<p class="stack">{giffer.stack.join(" · ")}</p>
 			{giffer.license && <p class="license">{ps.licenseLabel} {giffer.license}</p>}
+			{/* the repository is public and this card describes its contents
+			    down to the SECURITY.md — see the note on the Kiyu card for
+			    the census. The link is last on the sheet because it is what
+			    the reader does AFTER the figures, not instead of them. */}
+			{giffer.links.length > 0 && (
+				<ul class="links" role="list">
+					{giffer.links.map((link) => (
+						<li><a href={link.href}>{link.label}</a></li>
+					))}
+				</ul>
+			)}
 		</PinCard>
 
 		<!-- STOP 4 · right — the VR bench: one sheet for four small tools.
@@ -282,6 +318,23 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 										{tool.body.map((paragraph) => <p>{paragraph}</p>)}
 										{tool.facts.map((fact) => <p class="fact-line">{fact}</p>)}
 										<p class="stack">{tool.stack.join(" · ")}</p>
+										{/* all four bench tools carried `links: []` and this
+										    sheet had nowhere to draw one — see the Kiyu card
+										    for the census. No count is asserted here: the
+										    repository that matches the first tool is published
+										    under a DIFFERENT NAME than the wall gives it, so
+										    the wall's own name returns nothing when searched,
+										    and that defect lives in `wall.ts`. The empty array
+										    renders nothing rather than an empty row, so this
+										    site is inert until the names and the URLs are
+										    settled together. */}
+										{tool.links.length > 0 && (
+											<ul class="links" role="list">
+												{tool.links.map((link) => (
+													<li><a href={link.href}>{link.label}</a></li>
+												))}
+											</ul>
+										)}
 									</div>
 								</details>
 							</li>
@@ -302,21 +355,28 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 		</div>
 
 		<!-- STOP 5 · left — breadth: the typed index, with its tail folded -->
-		{/* KRAFT CANDIDATE, PENDING THE STOCK AND ITS SOFT INK. The wall
-		    holds no half-tone — 94.7 % of pixels between L* 65 and 100, and
-		    2.8 % across the whole L* 35–65 register — and this "Also pinned"
-		    sheet is one of the subordinate artifacts a mid-tone stock is
-		    being cut for. It cannot take it yet: measured against kraft at
-		    L* 58, --ink clears at 4.73:1 but --ink-soft reaches only 2.96:1,
-		    and this card sets its "— " markers and its folded-tail summary
-		    in --ink-soft. The kraft variant has to redefine that token the
-		    way the dark flyer rule already redefines it — on kraft a 4.5:1
-		    ink has to sit at CIE L* <= 14.8, which is --ink itself, so there
-		    is no soft register left on this stock at all and the STOCK has
-		    to carry the subordination the ink used to. Once
-		    `.pin-card--kraft` exists and does that, this is a one-line
-		    change: add the class below. */}
-		<PinCard variant="typed" as="aside" rotate={1} class="g-breadth card-flow">
+		{/* KRAFT, APPLIED — the stock exists and it redefines the soft ink.
+		    The wall held no half-tone: 94.7 % of pixels between L* 65 and
+		    100, and 2.8 % across the whole L* 35–65 register where a picture
+		    keeps its structure. This "Also pinned" index is the plainest
+		    subordinate artifact in the section — a tail, filed under the work
+		    rather than standing beside it — so it is one of the sheets the
+		    mid-tone was cut for.
+		    The blocker was --ink-soft, and it is gone. The wall's own
+		    --ink-soft (L* 27.98) measures 2.96:1 on kraft, and this card
+		    sets both its "— " markers and its folded-tail summary in it.
+		    `.pin-card--kraft` re-strikes the token to oklch(24% 0.012 60):
+		    4.60:1 against the sheet's SHADED corner (L* 56.42), not against
+		    the flat token. --ink lands at 4.90:1, --thread at 3.24:1 — a
+		    legal rule, not a legal word, which is what the hover rule below
+		    is for.
+		    NO PRIDE INK MAY BE PINNED TO THIS STOCK: on kraft the six inks
+		    land between 1.97:1 (amber) and 2.91:1, where --paper gives them
+		    6.23 to 8.58. This card carries none — the three note slips in
+		    this section are separate artifacts on --paper — and the sticker
+		    is pinned to the cork OUTSIDE the sheet, at `right: 100 %`, so no
+		    annotation colour touches the stock. */}
+		<PinCard variant="typed" as="aside" rotate={1} class="g-breadth card-flow pin-card--kraft">
 			<h3 class="card-title">{ps.breadthTitle}</h3>
 			<ul class="facts" role="list">
 				{
@@ -377,9 +437,38 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 		grid-column: 1 / 7;
 		position: relative;
 	}
+	/* THE PHOTOGRAPH MAY NOT OUT-SIZE THE WORK IT INTRODUCES. Measured
+	   473 x 529px at y 6,119 — the largest single element in this act — and
+	   it OPENS the act, so the district carrying the strongest work on the
+	   wall led with a picture instead of the work. A hiring manager: "at a
+	   quarter of the size nothing is lost and the Ayako card leads instead."
+	   REDUCED, NOT REORDERED, and the reasons are structural: the red thread
+	   is computed at runtime from the laid-out pin centres, so moving this
+	   artifact re-routes the thread the whole section is built around; the
+	   staircase above it records measured hand-over throws (188 → 612 → 0 →
+	   0) that a reorder invalidates; and below 48rem the source order IS the
+	   reading order, so it would drop the photo into the middle of the
+	   flagship's own paper stack. A cap is local, holds at every width, and
+	   leaves both routes exactly as measured.
+	   15rem = 240px at the default root: 50.7 % of the measured width. The
+	   frame is that width less 24px of declared padding, so 449px → 216px,
+	   a factor of 0.481; the frame carries `aspect-ratio: 8/9`, so the
+	   picture AREA falls as the square of that — 23.1 % of what it was. The
+	   quarter that was asked for, and the cut stops there.
+	   DERIVED FROM WIDTH ONLY, deliberately: the declared geometry (12px top
+	   padding, 8/9 frame, caption at --step--1 on --lh--1, 16px bottom
+	   padding) predicts 565px of height from a 473px width, and the judges
+	   measured 529. That 36px is unreconciled, so no height figure here is
+	   load-bearing and none is claimed. Six disciplines
+	   have defended this artifact and one wanted it LARGER; this is a
+	   proportion fix, not a verdict on the picture, and the next pass should
+	   not read a smaller photo as licence to shrink it again.
+	   In rem rather than px because the defect is proportion: at a 32px root
+	   the whole wall doubles and the photo has to double with it. */
 	.projects :global(.g-photo) {
 		grid-row: 2;
 		grid-column: 1 / 6;
+		max-inline-size: 15rem;
 	}
 	.g-ayako {
 		grid-row: 2;
@@ -570,6 +659,36 @@ const foldedNames = pinnedFolded.map((item) => nameOf(item.text)).join(" · ");
 	.links a:hover,
 	.facts a:hover {
 		color: var(--thread);
+	}
+
+	/* A HOVER MAY NOT STAIN A WORD WITH AN INK THE STOCK CANNOT CARRY.
+	   On --paper the thread measures 6.18:1 (5.72:1 in the sheet's shaded
+	   corner), so a hovered link stays over 4.5:1 there. On kraft the rule
+	   re-strikes --thread to oklch(36% 0.13 22), which is 3.24:1 against the
+	   shaded corner: over the 3:1 an underline needs and under the 4.5:1 a
+	   word needs. Recolouring text on hover would therefore have taken the
+	   "Also pinned" links and its folded-tail summary BELOW the floor at the
+	   moment the reader points at them — a regression introduced by the
+	   stock, not present before it.
+	   So on kraft the hover goes UP the ink ladder instead of sideways into
+	   colour: --ink-soft 4.60:1 → --ink 4.90:1, and the link thickens its
+	   own underline, which is the one place the kraft thread is legal. */
+	.projects :global(.pin-card--kraft) .facts a:hover {
+		color: var(--ink);
+		text-decoration-thickness: 3px;
+	}
+
+	/* This summary carries no underline of its own, so dropping the thread
+	   from its hover would have left --ink-soft → --ink as the only signal:
+	   4.60:1 → 4.90:1, a 6 % step in luminance that a reader will not see.
+	   A hover that cannot be perceived is not an affordance, so the rule
+	   the thread was providing is drawn here instead — in the ink, which is
+	   legal on this stock at any weight. */
+	.projects :global(.pin-card--kraft) .fold--tail > summary:hover {
+		color: var(--ink);
+		text-decoration: underline;
+		text-decoration-thickness: 2px;
+		text-underline-offset: 3px;
 	}
 
 	/* the authorship proof: the figure IS the title. Atkinson bold at

@@ -401,10 +401,29 @@ export const sectionStrings = {
 	/** Stamp sub-line above an as-of date, e.g. "as of / 2026-08-03". */
 	asOfStamp: "as of",
 	timeline: {
-		/** Handwritten scrap beside the Werdegang flyer. It counts the
-		 *  employers, because a reader who does not count them reads this
-		 *  section as one job and a school record. */
-		headNote: "two employers since 2022 — career and education, stitched in order.",
+		/**
+		 * Handwritten scrap beside the Werdegang flyer. It counts the
+		 * employers, because a reader who does not count them reads this
+		 * section as one job and a school record.
+		 *
+		 * IT NOW NAMES THE POST, because the head did not. A recruiter who
+		 * jumps to this section met a 16-year span ("2010 – today") and a
+		 * count, and the current job was first named 3,802 px further down —
+		 * so the one section written for the reader who scans nothing else
+		 * withheld the fact that reader came for.
+		 * IT GOES IN THE NOTE, NOT IN `headDates`. Measured, not assumed:
+		 * `.rf-headdates` renders raw — no `splitLangRuns`, so `properNouns`
+		 * never reaches it — and it is outside the `hyphens: manual`
+		 * allowlist in wall.css, while `html:lang(de)` sets
+		 * `hyphenate-limit-chars: 6 3 3`. "Raleo Digital GmbH" there can print
+		 * `Digi-/tal` on the German wall, which is the exact defect that list
+		 * exists to prevent. `.rf-headwrap` is also `width: fit-content` below
+		 * the grid breakpoint, so a longer scope line resizes the flyer. The
+		 * hand note is `.hand-note`: hyphenation off, and its width is already
+		 * capped at `min(26rem, …)`.
+		 */
+		headNote:
+			"two employers since 2022 — now full-stack developer at Raleo Digital GmbH. Career and education, stitched in order.",
 		/** The district sign's scope line, under the Werdegang rule. The
 		 *  proper noun WERDEGANG stays German on both walls — it is the one
 		 *  untranslated word on the route, and a landmark because of it —
@@ -768,8 +787,17 @@ export const hero = {
 	 * unchanged. "Not urgently looking." is deliberately NOT carried up: that
 	 * is an open owner decision and the first viewport may not pre-empt it.
 	 *
-	 * NOT YET RENDERED: Hero.astro stops at [2]. Both lines belong on the
-	 * identity card after `location`, evidence first, ask last.
+	 * [5] — the external-validation headline; see the note on the entry.
+	 *
+	 * RENDERED, all of them. Hero.astro:234 builds `recordRest` as
+	 * `intro.filter((_, i) => i > SENIORITY_LINE && i !== post?.at)` and
+	 * prints it in ARRAY ORDER — the "stops at [2]" that stood here is two
+	 * builds out of date. The consequence, stated so it is a decision and not
+	 * a surprise: append-only means [5] prints AFTER the ask in [4], and this
+	 * card's own rule is evidence first, ask last. Putting the merged-code
+	 * line back in front of the ask is a change to the RENDER order, not to
+	 * this array — Hero.astro owns rank, and the index contract here stays
+	 * append-only.
 	 */
 	intro: [
 		/* THE ENGLISH WALL LED WITH AN UNTRANSLATED GERMAN CREDENTIAL AND
@@ -804,7 +832,25 @@ export const hero = {
 		   2026-06, so the plural would outrun the evidence. */
 		`I have built and operated it for ${productionSpan} — ${PRODUCTION_START.display} to ${SNAPSHOT_AS_OF}. Qualified ${qualifiedYear}, after three years of in-company training.`,
 		`TypeScript, day to day — ${pc(telemetry.lifetime.languages[0].percent)} of all tracked coding time, as of ${SNAPSHOT_AS_OF}.`,
-		"Open to TypeScript/Node product work — backend or full-stack."
+		"Open to TypeScript/Node product work — backend or full-stack.",
+		/* [5] — THE ONLY CLAIM ON THIS WALL A THIRD PARTY VOUCHED FOR, filed at
+		   90.3 % page depth. Measured: y 14,139 of 15,651 on desktop, 84.6 % on
+		   phone, behind roughly two hundred self-reported figures. Every other
+		   number here is his instrument measuring his own work, however
+		   scrupulously; these merges were read against someone else's standard
+		   by maintainers who owe him nothing, which is the scarcest signal a
+		   portfolio can carry and the one the page buried.
+		   HEADLINE ONLY. The full list of 8 repositories, the per-repository
+		   counts and the search URL stay exactly where they are, on
+		   `githubStats` — that card is where a reader re-runs the check, and it
+		   does not move. Three names are hand-picked out of
+		   `github.mergedUpstream.repositories` for recognition on sight; if a
+		   re-pull changes that list, this line changes with it.
+		   APPENDED, NEVER INSERTED: Hero.astro reads [0], [1] and [2] by index
+		   and prints the rest in array order, so an insert promotes unranked
+		   copy into the card's bold band. */
+		`Code merged into discord.js, unocss and tsx. ${github.mergedUpstream.count} pull requests into ` +
+			`${github.mergedUpstream.repositories.length} repositories I do not own, checked ${github.mergedUpstream.checkedOn}.`
 	],
 	location: "Bodensee-Oberschwaben region (Lake Constance), Germany — fully remote.",
 	languages: "German (native) · English (working language)",
@@ -1002,23 +1048,6 @@ export const careerStats = {
 	]
 } as const;
 
-/**
- * NOT RENDERED — and the claim inside it was false until now.
- *
- * `is:pr author:Larsundso is:merged` returns 37, and this card was ready to
- * publish that as "merged upstream". 26 of the 37 are merges into
- * repositories the owner owns, so the number fails the first check a
- * sceptic can run — the same class of error as "the 4 most-tracked
- * languages", on a wall whose entire argument is that its figures survive
- * being checked.
- *
- * The claim is now the one that holds: 11 merged into 8 repositories he
- * does not own, verified against the GitHub search API on 2026-08-05, with
- * `search` carrying the query that reproduces it. These are also the only
- * claims on this wall that a third party attested to — every charted figure
- * is self-instrumented — which is why the card is worth wiring up rather
- * than deleting.
- */
 /* ------------------------------------------------------------------ */
 /* Client work — the three employed years, evidenced                   */
 /* ------------------------------------------------------------------ */
@@ -1045,9 +1074,66 @@ export const careerStats = {
  * it. That is the one claim a language census structurally cannot make, and
  * it is why this belongs under Columbus rather than in Projects.
  */
+/**
+ * THE TWELVE THAT COULD NOT BE OPENED.
+ *
+ * `close` promises that all twenty-five sites can be opened rather than
+ * taken on trust, and the card handed over thirteen hrefs. The twelve trade
+ * fairs were a comma-separated string, and their domains are not guessable:
+ * `fairnamic.com` is not a .de, `pferdbodensee.de` has no hyphen,
+ * `tuningworldbodensee.com` has neither. An adversarial screener spent four
+ * rounds of probing plus a web search closing a set that twelve links close
+ * — the sentence promised openability for twenty-five and delivered it for
+ * thirteen.
+ *
+ * All twenty-five re-checked here 2026-08-10, unauthenticated: HTTP 200 on
+ * every one, so the liveness claim now carries the date it was measured on.
+ * The domains are written in the same bare form as the thirteen already on
+ * the card; every one of them redirects to its own `www.` host, and the
+ * redirect is the site's business, not the wall's.
+ *
+ * The labels are the ones the previous site published, unchanged, and the
+ * plain-text `also` line is DERIVED from this list — one edit cannot leave
+ * the names and the links disagreeing.
+ *
+ * NOT RENDERED YET. Timeline.astro prints `({item.also})` as plain text and
+ * does not read `alsoLinks`; until it does, the twelve are still names
+ * without hrefs. Nothing regresses while it waits, because `also` still
+ * produces the exact string it produced before.
+ */
+export const MESSE_FAIRS: readonly WallLink[] = [
+	{ label: "Aero Expo", href: "https://aero-expo.de/" },
+	{ label: "Americana", href: "https://americana.de/" },
+	{ label: "Aqua Fisch", href: "https://aqua-fisch.de/" },
+	{ label: "Fairnamic", href: "https://fairnamic.com/" },
+	{ label: "HAM-Radio", href: "https://hamradio-friedrichshafen.de/" },
+	{ label: "IBO Messe", href: "https://ibo-messe.de/" },
+	{ label: "Interboot", href: "https://interboot.de/" },
+	{ label: "Klassikwelt Bodensee", href: "https://klassikwelt-bodensee.de/" },
+	{ label: "Motorradwelt Bodensee", href: "https://motorradwelt-bodensee.de/" },
+	{ label: "Pferd Bodensee", href: "https://pferdbodensee.de/" },
+	{ label: "Tuningworld Bodensee", href: "https://tuningworldbodensee.com/" },
+	{ label: "Vertical Pro", href: "https://vertical-pro.de/" }
+];
+
 export const clientWork = {
 	title: "What I shipped there",
-	lead: "25 live sites, in a stack I had not used before. I wrote no PHP, no Typo3 and no CraftCMS before 2022-09-01, and I write none of them today.",
+	/* THE ROSTER WAS SOLD AS ADAPTABILITY AND THAT IS NOT WHAT IT PROVES.
+	   Nine of the twenty-five are maintenance only, mostly Typo3, and
+	   maintaining a Typo3 site demonstrates that somebody employed him and he
+	   showed up — not that he transfers between paradigms. Nobody is hired
+	   for having maintained Typo3, and a hiring manager who reads the old
+	   lead as a transfer claim discounts the whole card.
+	   What it uniquely is: the only three years on this wall in which
+	   somebody else decided what he worked on, with countersigned paper to
+	   prove he was there for all of them. Every other artefact on this page
+	   is solo work he scoped himself, so this is the one section that answers
+	   "can he take an assignment?" — which is the question the rest of the
+	   wall structurally cannot. The Developed / Maintained split stays, and
+	   the counts are now stated rather than left to be tallied off the list.
+	   The stack disclaimer is not dropped, only demoted: it keeps its date
+	   and moves to `close`, under the roster it explains. */
+	lead: "Three years in which somebody else decided what I worked on. 25 live sites came out of them, in a stack I had not used before. Everything else on this wall is work I scoped for myself; these are the three years with countersigned paper behind them.",
 	/** The tags are the ones published per site — developed, or only kept running. */
 	tagNote: "Split the way I logged it: what I developed, and what I only maintained.",
 	groups: [
@@ -1058,7 +1144,10 @@ export const clientWork = {
 					name: "Messe Friedrichshafen — 13 trade-fair sites",
 					stack: "CraftCMS · PHP · Twig · SCSS · Bootstrap",
 					href: "https://messe-friedrichshafen.de/",
-					also: "Aero Expo, Americana, Aqua Fisch, Fairnamic, HAM-Radio, IBO Messe, Interboot, Klassikwelt Bodensee, Motorradwelt Bodensee, Pferd Bodensee, Tuningworld Bodensee, Vertical Pro"
+					/* the plain-text fallback the component prints today, built
+					   from the list so it cannot drift from the hrefs */
+					also: MESSE_FAIRS.map((fair) => fair.label).join(", "),
+					alsoLinks: MESSE_FAIRS
 				},
 				{
 					name: "Simply-V",
@@ -1097,9 +1186,34 @@ export const clientWork = {
 			]
 		}
 	],
-	close: "Every one of them is still live, so the work can be opened rather than taken on trust. The stack was new to me on the first day and I have not used it since — which is the part of three employed years a language census cannot show."
+	/* The openability promise now carries the date it was measured on, and the
+	   split it used to leave implicit is counted out: 16 developed, 9
+	   maintained only, 25 in total. A reader who tallies the list gets the
+	   same answer, which is the point. */
+	close: "Every one of them is still live, so the work can be opened rather than taken on trust. All 25 checked 2026-08-10. 16 of the 25 I developed; 9 I only maintained. I wrote no PHP, no Typo3 and no CraftCMS before 2022-09-01, and I write none of them today."
 } as const;
 
+/**
+ * The GitHub record card — RENDERED. Practice.astro maps `lines` to one
+ * paragraph each and prints `search` beneath them, so an appended line
+ * appears without a component change.
+ *
+ * THE CLAIM INSIDE IT WAS FALSE UNTIL 2026-08-05. `is:pr author:Larsundso
+ * is:merged` returns 37, and the card was ready to publish that as "merged
+ * upstream". 26 of the 37 are merges into repositories the owner owns, so
+ * the number failed the first check a sceptic can run — the same class of
+ * error as "the 4 most-tracked languages", on a wall whose entire argument
+ * is that its figures survive being checked. The claim is now the one that
+ * holds: 11 merged into 8 repositories he does not own, with `search`
+ * carrying the query that reproduces it.
+ *
+ * IT IS ALSO THE ONLY CLAIM ON THIS WALL A THIRD PARTY VOUCHED FOR — every
+ * charted figure is self-instrumented — and it was filed at 90.3 % page
+ * depth (y 14,139 of 15,651 desktop, 84.6 % on phone). The headline was
+ * lifted into `hero.intro[5]` for that reason; the LIST, the counts and the
+ * search link stay here, because this is where the check is run. Do not
+ * move them up and do not delete the duplicate: the two do different jobs.
+ */
 export const githubStats = {
 	title: "GitHub record",
 	asOf: SNAPSHOT_AS_OF,
@@ -1107,7 +1221,27 @@ export const githubStats = {
 	lines: [
 		`${n(github.contributions.lifetime)} contributions since ${github.accountCreated} — peak year ${github.contributions.peakYear.year}: ${n(github.contributions.peakYear.contributions)}; rolling 12 months: ${n(github.contributions.rolling12Months)}.`,
 		`${github.pullRequestsAuthored} pull requests authored, lifetime.`,
-		`${github.mergedUpstream.count} of them merged into ${github.mergedUpstream.repositories.length} repositories I do not own: ${github.mergedUpstream.repositories.map((r) => r.repo).join(", ")}. Checked ${github.mergedUpstream.checkedOn}.`
+		`${github.mergedUpstream.count} of them merged into ${github.mergedUpstream.repositories.length} repositories I do not own: ${github.mergedUpstream.repositories.map((r) => r.repo).join(", ")}. Checked ${github.mergedUpstream.checkedOn}.`,
+		/* THE ONE PLACE THE WALL DID NOT APPLY ITS OWN RULE. The amber ink is
+		   defined on this page as "the limit: where does this claim stop?" and
+		   every other claim here states its own stop. This one did not, and it
+		   was the claim that could afford it least: the eleven are real,
+		   reproduce exactly against the search URL above, and are also small
+		   and old. Re-verified unauthenticated against the GitHub search API on
+		   2026-08-10 — total_count 11, merge dates 2022-10-27 to 2024-11-25.
+		   COUNTED FROM THE TITLES, so a reader who opens all eleven gets the
+		   same number: two carry a `docs:` typo prefix (unocss/unocss,
+		   privatenumber/tsx) and one is a version bump
+		   (Shashank3736/captcha-canvas). The pair in discordjs/discord.js and
+		   discordjs/discord-api-types is one OAuth2 token-revocation feature
+		   split across a library and its types package — NOT "the same change
+		   on the same day", which the review that raised this stated: the
+		   merges are 2024-08-14 and 2024-08-20, six days apart. Do not restore
+		   that wording.
+		   Stated in the wall's own register: bounded, not diminished. The
+		   largest of the eleven is a feature in discord.js, and it is named
+		   here rather than left for a screener to find. */
+		"The limit: the newest of the eleven merged on 2024-11-25. By title, two are documentation typo fixes and one is a dependency bump. The largest adds an OAuth2 token-revocation method — two pull requests, discord.js and its types package."
 	],
 	/** The query that returns the eleven — run it rather than trust it. */
 	search: {
@@ -1142,8 +1276,29 @@ export const projects: ProjectEntry[] = [
 			`Monorepo-wide: ${n(ayako.monorepo.files)} source files across ${ayako.workspace.packagesAndApps} packages (TypeScript, Svelte, Rust).`,
 			`${ayako.workspace.dockerComposeServices} Docker Compose services · ${ayako.workspace.prismaModels} Prisma models.`,
 			`${h(telemetry.lifetime.ayakoFamily.hours)} across ${ayako.generations} generations and ${ayako.discordLibraries} Discord libraries — ${pc(telemetry.lifetime.ayakoFamily.percent)} of all tracked coding time.`,
-			`${pc(github.ayakoAuthorship.v2Percent)} of v2 default-branch commits self-authored (${n(github.ayakoAuthorship.v2Commits.own)} of ${n(github.ayakoAuthorship.v2Commits.total)}).`,
-			`v3: ${ayako.v3.commits} commits, ${pc(100)} self-authored · ${ayako.v3.featurePlugins} feature plugins · ${ayako.v3.testFiles} colocated test files.`
+			/* THE FIGURE IS REAL AND ITS OLD LABEL ANSWERED THE WRONG QUESTION.
+			   "99.8 % of v2 commits self-authored" reads in 2026 as a claim
+			   about who wrote the code — and it structurally cannot be one,
+			   because the governance card two sections down guarantees the
+			   outcome: "Agents never commit, stage, or push. I write and review
+			   every commit myself." Under that rule the percentage is 99.8 %
+			   whoever drafted the lines, so it cannot discriminate, and a
+			   screener who works that out has caught the wall arguing from a
+			   number that could not have come out otherwise. snapshot.ts bans
+			   two figures for exactly this fault in its own words — "a real
+			   number attached to the wrong denominator … fails the first check
+			   a sceptic can run" — and this was the third.
+			   RELABELLED, NOT DELETED. The question it does settle is whether
+			   anybody else contributed, and solo ownership of a 2.4M-user
+			   product is the point of the card. Checked unauthenticated against
+			   the GitHub contributors endpoint on 2026-08-10: AyakoBot/Ayako-v2
+			   lists exactly two contributors — Larsundso 2,325 and
+			   dependabot[bot] 5 — so the remainder is named rather than left as
+			   a gap for a reader to fill in unfavourably. */
+			`No other person has committed to v2: ${n(github.ayakoAuthorship.v2Commits.own)} of ${n(github.ayakoAuthorship.v2Commits.total)} default-branch commits are mine — ${pc(github.ayakoAuthorship.v2Percent)}. The other ${n(github.ayakoAuthorship.v2Commits.total - github.ayakoAuthorship.v2Commits.own)} are dependabot.`,
+			/* v3 takes the same relabel, and it is the stronger form: not one
+			   commit on it comes from anyone else, dependabot included. */
+			`v3: ${ayako.v3.commits} commits, no other contributor · ${ayako.v3.featurePlugins} feature plugins · ${ayako.v3.testFiles} colocated test files.`
 		],
 		stack: [
 			"TypeScript",
@@ -1232,7 +1387,12 @@ export const projects: ProjectEntry[] = [
 		],
 		facts: [
 			"Self-described “10,000+ servers” — repo metadata, unverified.",
-			`332 files · ${n(17_250)} LOC · 128 commits, 100 % self-authored.`,
+			/* Same relabel as the Ayako card, for the same reason: under the
+			   governance rule "100 % self-authored" cannot answer who drafted the
+			   code, only whether anyone else contributed. This repository is
+			   private, so unlike v2 the figure cannot be re-checked from outside —
+			   which the card's amber note already says. */
+			`332 files · ${n(17_250)} LOC · 128 commits, no other contributor.`,
 			"Active through 2026-06."
 		],
 		stack: ["TypeScript", "discord.js 14", "Prisma", "discord-hybrid-sharding", "socket.io"],

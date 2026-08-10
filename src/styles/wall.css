@@ -28,9 +28,19 @@
      contrast, and because retiring it would silently invalidate every such
      figure on the wall. If you are looking for the value that governs how
      dark the board actually paints, it is in `body`, and the arithmetic that
-     fixes it is written there. The live constraint is unchanged: stamp ink
-     (Stamp.astro's 44/56 mix, Y 0.0426) needs the board at CIE L* >= 67.04
-     for 4.5:1, and the darkest painted board measures 70.33. */
+     fixes it is written there.
+     AND IT IS NOW A HISTORICAL VALUE, NOT A REFERENCE. Rendered and read
+     back, this token is CIE L* 70.620 and --cork is 72.474. The board it is
+     supposed to stand for paints down to L* 69.50 on an 11px patch and
+     64.43 on its darkest single pixel, measured over the two bare 96px
+     columns at 1440 — see `body` for the method and its limits. So a
+     component that quotes --cork-deep as "the dark end" is quoting a value
+     1.12 L* above the painted floor at glyph scale and 6.19 L* above it per
+     pixel. The token is left alone because moving it would move every such
+     quotation at once, and none of them is wrong about its own subject; it
+     is the LABEL that is wrong. Quote the measured board, not this.
+     The live constraint is unchanged: stamp ink (Stamp.astro's 44/56 mix,
+     Y 0.0426) needs the board at CIE L* >= 67.04 for 4.5:1. */
   --cork: oklch(76.5% 0.045 75);
   --cork-deep: oklch(75% 0.048 72);
   --paper: oklch(97.5% 0.008 90);
@@ -64,6 +74,25 @@
   --ink-soft: oklch(38% 0.015 60);
 
   /* thread + pins — --thread is the only structural accent */
+  /* THE PROGRESS RAIL'S MARKS DO NOT CLEAR 3:1 ON BARE CORK, AND THE FIX IS
+     NOT HERE. `WallPage.astro`'s `.rail__tick::after` is a state indicator,
+     so SC 1.4.11 wants 3:1, and it is drawn from this token and from --shade.
+     The desktop rail is `position: fixed` over a `background-attachment:
+     scroll` board, so it meets the board's whole range, trough included.
+     Measured on the painted board, worst matched patch over the full field
+     (2026-08-10), darkest board first:
+       unlit tick, oklch(var(--shade)/0.55)   2.64 per px | 2.80 at 11x11
+       current tick, --thread                 2.43 per px | 2.86 at 11x11
+       groove, oklch(var(--shade)/0.25)       1.50 per px | 1.54 at 11x11
+     On the palest board the two ticks reach 3.04 and 3.55. The groove is a
+     rest state and is not claimed as an indicator; the ticks ARE the
+     indicators, and on the dark half of the lamp neither of them passes.
+     Do NOT fix this by moving --thread or --shade. --thread is the wall's one
+     structural accent and is quoted at its current value in several files;
+     --shade carries all four layers of --pin-shadow and every --lift, so
+     moving it re-seats 51 pins. The rail needs a GROUND, which is the
+     argument the focus-ring block below already makes and which the narrow
+     strip already has in its plinth. That belongs in WallPage.astro. */
   --thread: oklch(50% 0.19 22);
   --brass: oklch(70% 0.09 85);
 
@@ -372,26 +401,92 @@ body {
      out of that, so the horizontal wash gives most of its amplitude up — from
      6.47 L* to 1.6 — and the reader gets it back on the axis they actually
      travel: 96px of bare cork sideways against 14,366px down.
-     Resulting field, measured in CIE L* on the base gradient:
-       left column  71.0 -> +1.4..+7.6  =  72.40 .. 78.60  (p2p 6.20)
-       right column 69.4 -> +1.5..+8.0  =  70.88 .. 77.42  (p2p 6.54)
+     Resulting field, read back off the render in CIE L* (2026-08-10):
+       left  bare column  72.17 .. 77.90  (p2p 5.73)
+       right bare column  70.55 .. 76.84  (p2p 6.30)
+     Those are 0.2-0.7 L* below the figures this block used to carry. The
+     declarations are untouched, so the gap is in the reading, not the paint;
+     the older numbers were never re-read off a render. On this file's own
+     relation mean|dL*| = s * TV / pageHeight, the binding s=400 acceptance
+     figure recomputes to ~0.35 on the measured amplitude, against its 0.30
+     floor. It still passes, with less room than the table below claims.
      THE BASE SITS 1.4 L* ABOVE WHERE THE VERTICAL BUDGET ALONE WOULD PUT IT,
      and that is not slack: every dark thing on this wall sits on the board,
-     not only the stamps. `main.astro`'s footer is --ink-soft (L* 27.98) at
-     --step--1 on BARE CORK, centred, at y=100% — i.e. standing in the swell's
-     lower trough. One L* of board is 0.141 of contrast ratio there, so a base
-     tuned only to the stamp floor took it from 4.66:1 to 4.38:1 and put 13px
-     text under 4.5. At this base it measures 4.57:1. The stamp is unharmed by
-     the same lift: darkest painted board 70.33, stamp ink on it 4.99:1
-     against the 4.98:1 it measured before this change.
-     What the lift costs is the pale end: palest painted board 79.15, paper on
-     it 1.623:1 against 1.684:1 before. The MEDIAN is the number the house rule
-     actually defends, and it lands at 1.868:1 against the defended 1.862:1.
-     Board mean 74.38 against the old ~73.2. If the built render disagrees,
-     the lever is this gradient's third stop: raise or lower all three
-     together — the vertical alphas are relative, so the whole profile rides
-     with the base and the total variation, hence every s-test below, is
-     preserved exactly.
+     not only the stamps. `main.astro`'s footer is --ink-soft (L* 28.12
+     rendered) at --step--1 on BARE CORK, centred, at y=100% — i.e. standing
+     in the swell's lower trough. One L* of board is 0.15 of contrast ratio
+     there, so a base tuned only to the stamp floor put 13px text under 4.5.
+     THAT LINE IS STILL UNDER 4.5 AT GLYPH SCALE, AND THE OLD FIGURE HID IT.
+     4.57:1 stood here and it is a SMOOTH-BASE number — it carries no noise
+     allowance at all. Rendered over the centre column at the trough, with the
+     full stack on it (2026-08-10):
+       smooth base  71.76 -> 4.60:1     16x16 patch  70.75 -> 4.46:1
+       22x22 patch  71.09 -> 4.51:1     11x11 patch  70.15 -> 4.38:1
+                                         1x1  pixel  65.28 -> 3.75:1
+     It passes only if the auditor averages a 22px patch, which is twice the
+     type's own size. This is the more serious of the two shortfalls on this
+     board: the stamp legend is deliberately below the reading scale, and this
+     is body text. The cheap fix is ~0.5 L* on --ink-soft, which costs nothing
+     on paper — but that token is quoted with contrast figures in files this
+     one does not own, so it is reported rather than taken here.
+
+     THE NOISE ALLOWANCE, RE-DERIVED, BECAUSE ONE POINT IS NOT A CALIBRATION.
+     This block used to carry a single figure, -0.55 L*, applied symmetrically
+     to both ends of the field. Method for the re-derivation, stated so the
+     next person does not have to guess it: a uniform base, the three noise
+     layers at their true phase, measured over 96 x 400 px. That is every
+     phase a bare column can ever meet, because all three bitmaps repeat at
+     exactly 400px. Eighteen base colours, L* 70.55-77.90.
+     THE SAMPLE IS THE TWO BARE 96px COLUMNS AT 1440, AND THAT IS ITS LIMIT.
+     Bare cork also runs full width through every `.act-break`, at x-phases
+     these columns never visit. A wider sample can only find the floor lower,
+     never higher. The centre column was rendered separately for the footer
+     below and sits between the two: 11x11 floor 70.15, darkest pixel 65.28.
+     THE STATISTIC IS THE MEAN OF AN 11 x 11 px PATCH — about the area of one
+     10.9px stamp glyph — minimised over every position in that field.
+     Measured, as delta from each tile's own base:
+       whole-field mean     +0.78 .. +1.36   (the stack LIGHTENS the board)
+       16x16 patch minimum  -0.56 .. -0.86
+       11x11 patch minimum  -1.05 .. -1.33
+        5x5  patch minimum  -2.05 .. -2.57
+        1x1  pixel minimum  -5.44 .. -6.68
+     The allowance is near-stationary in base lightness: 0.28 L* of spread at
+     11x11 across seven L* of board. It is a strong function of the PATCH the
+     auditor uses, and -0.55 is the 16x16 value at the one darkest point,
+     which is where the magnitude is smallest. The old number was not merely
+     under-sampled. It was sampled at the field's most flattering point.
+
+     WHAT THAT COSTS THE STAMP. Darkest painted board, and the ink on it:
+       22x22 patch  70.12  ->  4.96:1
+       16x16 patch  69.99  ->  4.94:1
+       11x11 patch  69.50  ->  4.86:1
+        5x5  patch  68.50  ->  4.72:1
+        3x3  patch  66.79  ->  4.47:1
+        1x1  pixel  64.43  ->  4.14:1
+     So the stamp holds at glyph scale and fails on grain. The margin on
+     record was 0.49 over the 4.50 floor; it is 0.36 at 11x11 and it is gone
+     below a 5px patch. The upper tail was understated by the same symmetry:
+     the palest 11x11 patch is 82.65, not 79.15, and --paper on it is 1.47:1.
+     That last figure is not a like-for-like failure — the wall's 1.571
+     minimum was struck token against token — but the two are not comparable
+     and should not be quoted as if they were.
+
+     THE OVERLAY PIVOT IS NOT THE PROBLEM, AND THAT IS MEASURED, NOT ASSUMED.
+     `overlay` branches on the backdrop at 0.5, and blue is the channel
+     sitting nearest it. Rendered WITHOUT the chip layer, the backdrop that
+     layer actually sees has blue 0.5613 mean and 0.5294 at p1 on the darkest
+     board, and 0.6743 mean on the palest. No pixel of either field is below
+     0.5. The branch never flips, so the allowance carries no discontinuity.
+
+     THE LEVER IS SPENT, SO THE WASH DID NOT MOVE. Raising the three stops
+     together lightens the board, which lowers paper-on-cork. --paper is
+     Y 0.9301, so one L* of board is 0.056 of that ratio, and the recorded
+     median is 1.868 against a defended 1.862. That is 0.11 L* of travel.
+     Carrying the stamp's per-pixel floor to 4.5:1 needs +2.6 L*, some
+     twenty-four times the room available. A gradient that cannot move far
+     enough to fix the thing is not the place to fix it: if the single-pixel
+     reading is the one that has to pass, the change belongs in Stamp.astro's
+     44/56 ink mix. The three stops are therefore left exactly as they were.
 
      SHAPE: one swell with one shoulder — trough at the top, a pause at
      22-30%, crest at 48%, back to the trough at the foot. Trough-at-top is
@@ -423,7 +518,12 @@ body {
   color: var(--ink);
   font-family: var(--font-body);
   font-size: 1rem;
-  line-height: 1.5; /* 24px on the 8px baseline */
+  /* 1.5 is 3 baselines at EVERY root, not 24px at one. --baseline is 0.5rem
+     and this ratio is against 1rem, so both sides scale together and the
+     body text keeps landing on the ruling. The old note here read "24px on
+     the 8px baseline", which stopped being true the moment the ruling took
+     the type's unit — it is 48px on a 16px baseline at root 32. */
+  line-height: 1.5;
   overflow-x: clip;
 }
 
@@ -819,6 +919,16 @@ html:lang(de) {
 /* ---- hidden grid ------------------------------------------- */
 /* 12 columns under the collage; the grid organizes, never shows. */
 
+/* THE ONE PLACE IN THIS FILE WHERE THE RULING PAYS FOR A DEVICE CONSTRAINT.
+   Every other --baseline use here is typographic: leadings, sheet padding,
+   the rhythm between rows. This gutter is not — it is the margin between the
+   text and the edge of the SCREEN, and --baseline became 0.5rem, so it now
+   grows with the reader's text size. At root 16 it is 24px a side; at root 32
+   it is 48px, i.e. 96px of a 320px viewport spent on empty gutter. That is a
+   squeeze, not a break, and it is bounded: the measure caps at 78rem anyway,
+   and at 320px/root 32 the content still gets 224px. Left as is. If it ever
+   to stop scaling, the unit to reach for is the one the constraint is about
+   — the viewport's — and not a bare px. */
 .wall-max {
   width: 100%;
   max-width: 78rem;

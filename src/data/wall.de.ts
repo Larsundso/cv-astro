@@ -19,6 +19,14 @@
  */
 import { ai, ayako, github, ihk, SNAPSHOT_AS_OF, telemetry } from "~/data/snapshot";
 import { figure, formatHCoarse, formatHMCoarse, millionsPlus, pct } from "~/data/telemetry";
+/* EINE URL IST KEINE ÜBERSETZUNG. Die zwölf Messe-Domains und ihre Namen sind
+ * auf beiden Wänden dieselben, also stehen sie einmal — in wall.ts — und
+ * werden hier importiert statt abgetippt. Zwölf handkopierte URLs sind zwölf
+ * Gelegenheiten, dass die Wände auseinanderlaufen, und `fairnamic.com`,
+ * `pferdbodensee.de` und `tuningworldbodensee.com` sind genau die Schreibungen,
+ * die man beim Abtippen falsch rät. Dasselbe Muster wie bei `splitLangRuns`
+ * weiter unten: Logik und Daten werden geteilt, nur Sprache nicht. */
+import { MESSE_FAIRS } from "./wall";
 import type {
 	AiPracticeEntry,
 	Annotation,
@@ -172,9 +180,17 @@ export const hero = {
 	 *  mit nach oben genommen — das ist eine offene Entscheidung des
 	 *  Eigentümers.
 	 *
-	 *  NOCH NICHT GERENDERT: Hero.astro hört bei [2] auf. Beide Zeilen
-	 *  gehören auf die Identitätskarte hinter `location`, erst der Beleg,
-	 *  dann das Angebot. */
+	 *  [5] ist die Überschrift des einzigen fremdbestätigten Belegs der Wand;
+	 *  die Begründung steht am Eintrag selbst.
+	 *
+	 *  ALLE WERDEN GERENDERT. Hero.astro:234 baut `recordRest` als
+	 *  `intro.filter((_, i) => i > SENIORITY_LINE && i !== post?.at)` und
+	 *  druckt in ARRAY-REIHENFOLGE — das „hört bei [2] auf“, das hier stand,
+	 *  ist zwei Builds alt. Die Folge, ausgesprochen statt überrascht: Weil
+	 *  nur angehängt werden darf, steht [5] HINTER dem Angebot in [4],
+	 *  obwohl die Karte „erst der Beleg, dann das Angebot“ verlangt. Das ist
+	 *  eine Frage der RENDER-Reihenfolge und gehört Hero.astro; hier bleibt
+	 *  es beim Anhängen. */
 	intro: [
 		"Fachinformatiker für Anwendungsentwicklung (IHK) und Full-Stack-Entwickler bei der Raleo Digital GmbH, remote.",
 		`Ich betreibe einen Discord-Bot mit ${users} Nutzern auf ${servers} Servern — allein, seit ${ayako.inProductionSince} im Produktivbetrieb.`,
@@ -189,7 +205,24 @@ export const hero = {
 		   nachprüfbar. */
 		`Ich baue und betreibe ihn seit ${productionSpanSince} — ${PRODUCTION_START.display} bis ${SNAPSHOT_AS_OF}. Abschluss ${qualifiedYear}, davor drei Jahre betriebliche Ausbildung.`,
 		`TypeScript im Alltag — ${pc(telemetry.lifetime.languages[0].percent)} der gesamten erfassten Programmierzeit, Stand ${SNAPSHOT_AS_OF}.`,
-		"Offen für Produktarbeit mit TypeScript/Node — Backend oder Full-Stack."
+		/* „Produktarbeit“ ist kein deutsches Wort. Es ist eine verständliche
+		   Lehnübersetzung von „product work“, die in keiner Stellenanzeige, bei
+		   keinem Recruiter und bei keinem Entwickler vorkommt — und sie stand
+		   ausgerechnet auf den beiden Zeilen, die sagen, was er sucht, also auf
+		   dem Satz, den ein Recruiter nach Stichwort abgleicht. */
+		"Offen für Produktentwicklung mit TypeScript/Node — Backend oder Full-Stack.",
+		/* [5] — siehe wall.ts: die einzige Aussage dieser Wand, für die
+		   jemand Drittes geradesteht, stand bei 90,3 % Seitentiefe (y 14.139
+		   von 15.651 am Desktop, 84,6 % am Telefon), hinter rund zweihundert
+		   selbst gemessenen Zahlen. Alles andere hier misst er an seiner
+		   eigenen Arbeit selbst; diese Merges haben Maintainer geprüft, die ihm
+		   nichts schulden.
+		   NUR DIE ÜBERSCHRIFT: die vollständige Liste der 8 Repositories, die
+		   Zahlen pro Repository und die Suche bleiben genau dort, wo sie sind
+		   (`githubStats`). Nur angehängt, nie eingeschoben — Hero.astro liest
+		   [0], [1] und [2] über den Index. */
+		`Code von mir ist in discord.js, unocss und tsx gemerged. ${github.mergedUpstream.count} Pull Requests in ` +
+			`${github.mergedUpstream.repositories.length} Repositories, die mir nicht gehören — geprüft ${github.mergedUpstream.checkedOn}.`
 	],
 	location: "Region Bodensee-Oberschwaben, Deutschland — vollständig remote.",
 	languages: "Deutsch (Muttersprache) · Englisch (Arbeitssprache)",
@@ -201,8 +234,17 @@ export const hero = {
 		/** Printed as the caption's first line: what this artifact is. */
 		label: "Ayako — mein Discord-Bot",
 		caption: `${users} Nutzer · ${servers} Server · ${ayako.rating.value} auf ${ayako.rating.platform}`,
+		/* „Rufbereitschaft“ MUSSTE WEG, und es war die folgenreichste
+		   Wortänderung der Seite. Rufbereitschaft ist in Deutschland ein
+		   definierter arbeitsrechtlicher Status: geregelt und vergütet. Auf ein
+		   privates Projekt angewandt macht das Wort aus dem Projekt ARBEIT —
+		   und zwar genau an der Stelle, an der ein Arbeitgeber die Frage nach
+		   der Nebentätigkeit stellt und die Antwort „keine Arbeit“ lauten muss.
+		   Dazu war es eine englische Doppelpunkt-Apposition, die im Deutschen
+		   nicht als Satz durchgeht. Der Witz der englischen Wand („one on-call
+		   rotation, and it is me“) bleibt, der Rechtsbegriff geht. */
 		annotation: {
-			text: "Rufbereitschaft: ich",
+			text: "die Bereitschaft bin ich",
 			ink: "magenta"
 		} satisfies Annotation
 	},
@@ -306,7 +348,16 @@ export const timeline: TimelineEntry[] = [
 			   zweimal in einem Satz. Und der Betrieb steht am Satzende, weil
 			   die Apposition „GmbH, Ravensburg“ mitten im Satz ein zweites
 			   Komma bräuchte, das der Satz nicht hergibt. */
-			`${ihk.apprenticeship.start}: Ich mache drei Jahre Ausbildung zum ${ihk.profession} (IHK, DQR-Niveau 4), angestellt bei der ${ihk.trainingCompany}.`,
+			/* HIER GEHT DAS HISTORISCHE PRÄSENS DANEBEN, und nur hier. Als
+			   Erzählform trägt es diese Wand („Ich schreibe Ayako als einzelne
+			   JavaScript-Datei“) und bleibt überall sonst stehen. Auf dieser
+			   Zeile aber sucht eine deutsche Personalabteilung den STATUS, und
+			   „Ich mache drei Jahre Ausbildung zum …“ liest sich als laufend —
+			   also genau falsch für jemanden, der 2025 abgeschlossen hat, und
+			   falsch an der einen Stelle, an der die Fehllesung Geld kostet.
+			   Vergangenheitsform, sonst unverändert: Datum, Betrieb, Niveau und
+			   Berufsbezeichnung stehen wie zuvor. */
+			`${ihk.apprenticeship.start}: Ich habe drei Jahre Ausbildung zum ${ihk.profession} (IHK, DQR-Niveau 4) gemacht, angestellt bei der ${ihk.trainingCompany}.`,
 			`${ihk.weeklyReports} gegengezeichnete wöchentliche Ausbildungsnachweise, Nr. 0–71 — jeder einzelne von jemand anderem gelesen und unterschrieben. Berufsschule: ${ihk.vocationalSchool}. Abschlussprüfung: ${ihk.apprenticeship.examCycle}.`
 		]
 	},
@@ -377,7 +428,20 @@ export const careerStats = {
  *  gewartet wurde, heißt gewartet — nie gebaut. */
 export const clientWork = {
 	title: "Was ich dort ausgeliefert habe",
-	lead: "25 Websites im Produktivbetrieb, in einem Stack, den ich vorher nicht benutzt hatte. Vor dem 2022-09-01 habe ich kein PHP, kein Typo3 und kein CraftCMS geschrieben — und heute schreibe ich keins davon.",
+	/* Siehe wall.ts: verkauft war das als Anpassungsfähigkeit, und das belegt
+	   es nicht. Neun der 25 wurden nur gewartet, überwiegend Typo3 — wer eine
+	   Typo3-Seite wartet, belegt damit, dass er angestellt war und zuverlässig
+	   erschienen ist, nicht dass er zwischen Paradigmen wechselt. Was dieser
+	   Abschnitt als einziger belegt: die einzigen drei Jahre dieser Wand, in
+	   denen jemand anderes entschieden hat, woran er arbeitet — mit
+	   gegengezeichnetem Papier darüber. Alles andere hier ist Arbeit, die er
+	   sich selbst zugeschnitten hat. Der Hinweis auf den fremden Stack bleibt,
+	   mit Datum, rutscht aber unter die Liste, die er erklärt. */
+	/* Beide Verben im Präteritum: „entschieden hat, woran ich arbeite“ mischt
+	   Vergangenheit und Gegenwart und lässt sich als „entscheidet bis heute“
+	   lesen — derselbe Fehler wie beim historischen Präsens auf der
+	   Ausbildungskarte, nur andersherum. */
+	lead: "Drei Jahre, in denen jemand anderes entschied, woran ich arbeitete. 25 Websites im Produktivbetrieb sind dabei entstanden, in einem Stack, den ich vorher nicht benutzt hatte. Alles andere an dieser Wand habe ich mir selbst zugeschnitten; das hier sind die drei Jahre mit gegengezeichnetem Papier dahinter.",
 	tagNote: "Aufgeteilt so, wie ich es festgehalten habe: was ich entwickelt habe, und was ich nur gewartet habe.",
 	groups: [
 		{
@@ -387,7 +451,11 @@ export const clientWork = {
 					name: "Messe Friedrichshafen — 13 Messe-Websites",
 					stack: "CraftCMS · PHP · Twig · SCSS · Bootstrap",
 					href: "https://messe-friedrichshafen.de/",
-					also: "Aero Expo, Americana, Aqua Fisch, Fairnamic, HAM-Radio, IBO Messe, Interboot, Klassikwelt Bodensee, Motorradwelt Bodensee, Pferd Bodensee, Tuningworld Bodensee, Vertical Pro"
+					/* Der Klartext, den das Component heute druckt — aus der
+					   Liste gebaut, damit Namen und Links nicht auseinanderlaufen
+					   können. */
+					also: MESSE_FAIRS.map((fair) => fair.label).join(", "),
+					alsoLinks: MESSE_FAIRS
 				},
 				{
 					name: "Simply-V",
@@ -426,7 +494,10 @@ export const clientWork = {
 			]
 		}
 	],
-	close: "Alle sind bis heute online, die Arbeit lässt sich also öffnen statt glauben. Der Stack war mir am ersten Tag neu und ich habe ihn seitdem nicht mehr benutzt — genau das, was drei angestellte Jahre ausmacht und was keine Sprachstatistik zeigen kann."
+	/* Das Versprechen der Nachprüfbarkeit trägt jetzt sein Prüfdatum, und die
+	   Aufteilung wird ausgezählt statt angedeutet: 16 entwickelt, 9 nur
+	   gewartet, 25 insgesamt. Wer die Liste selbst zählt, kommt auf dasselbe. */
+	close: "Alle sind bis heute online, die Arbeit lässt sich also öffnen statt glauben. Alle 25 geprüft 2026-08-10. 16 der 25 habe ich entwickelt, 9 nur gewartet. Vor dem 2022-09-01 habe ich kein PHP, kein Typo3 und kein CraftCMS geschrieben — und heute schreibe ich keins davon."
 } as const;
 
 export const githubStats = {
@@ -436,7 +507,18 @@ export const githubStats = {
 	lines: [
 		`${n(github.contributions.lifetime)} Beiträge seit ${github.accountCreated} — Spitzenjahr ${github.contributions.peakYear.year}: ${n(github.contributions.peakYear.contributions)}; letzte 12 Monate: ${n(github.contributions.rolling12Months)}.`,
 		`${github.pullRequestsAuthored} Pull Requests insgesamt verfasst.`,
-		`${github.mergedUpstream.count} davon gemerged in ${github.mergedUpstream.repositories.length} Repositories, die mir nicht gehören: ${github.mergedUpstream.repositories.map((r) => r.repo).join(", ")}. Geprüft ${github.mergedUpstream.checkedOn}.`
+		`${github.mergedUpstream.count} davon gemerged in ${github.mergedUpstream.repositories.length} Repositories, die mir nicht gehören: ${github.mergedUpstream.repositories.map((r) => r.repo).join(", ")}. Geprüft ${github.mergedUpstream.checkedOn}.`,
+		/* Siehe wall.ts: die einzige Stelle der Wand, an der ihre eigene Regel
+		   nicht angewandt war — Bernstein heißt hier „die Grenze: wo hört diese
+		   Aussage auf?“. Am 2026-08-10 unangemeldet gegen die GitHub-Such-API
+		   nachgeprüft: total_count 11, Merge-Daten 2022-10-27 bis 2024-11-25.
+		   Nach den TITELN gezählt, damit dieselbe Zahl herauskommt, wenn jemand
+		   alle elf öffnet. Die beiden PRs in discordjs/discord.js und
+		   discordjs/discord-api-types sind EIN Feature über Bibliothek und
+		   Typen-Paket, NICHT „dieselbe Änderung am selben Tag“ (so stand es im
+		   Gutachten): 2024-08-14 und 2024-08-20, sechs Tage auseinander. Diese
+		   Formulierung bitte nicht zurückholen. */
+		"Die Grenze: Der jüngste der elf ist von 2024-11-25. Nach den Titeln sind zwei davon Tippfehler-Korrekturen in der Dokumentation und einer ein Dependency-Update. Der größte ergänzt eine Methode zum Widerrufen von OAuth2-Tokens — zwei Pull Requests, discord.js und das zugehörige Types-Paket."
 	],
 	/** Die Suche, die genau diese elf zurückgibt — nachlaufen statt glauben. */
 	search: {
@@ -468,8 +550,22 @@ export const projects: ProjectEntry[] = [
 			`Monorepo-weit: ${n(ayako.monorepo.files)} Quelldateien in ${ayako.workspace.packagesAndApps} Packages (TypeScript, Svelte, Rust).`,
 			`${ayako.workspace.dockerComposeServices} Docker-Compose-Services · ${ayako.workspace.prismaModels} Prisma-Modelle.`,
 			`${h(telemetry.lifetime.ayakoFamily.hours)} über ${ayako.generations} Generationen und ${ayako.discordLibraries} Discord-Bibliotheken — ${pc(telemetry.lifetime.ayakoFamily.percent)} der gesamten erfassten Programmierzeit.`,
-			`${pc(github.ayakoAuthorship.v2Percent)} der v2-Commits auf dem Default-Branch selbst verfasst (${n(github.ayakoAuthorship.v2Commits.own)} von ${n(github.ayakoAuthorship.v2Commits.total)}).`,
-			`v3: ${ayako.v3.commits} Commits, 100 % selbst verfasst · ${ayako.v3.featurePlugins} Feature-Plugins · ${ayako.v3.testFiles} Testdateien direkt neben dem Code.`
+			/* Siehe wall.ts: die Zahl stimmt, ihre Beschriftung beantwortete die
+			   falsche Frage. „99,8 % selbst verfasst“ liest sich 2026 als Aussage
+			   darüber, wer den Code geschrieben hat — und das kann sie strukturell
+			   nicht sein, weil die Governance-Karte zwei Abschnitte weiter das
+			   Ergebnis garantiert: „Agenten committen, stagen und pushen nie.“ Unter
+			   dieser Regel stünden dort 99,8 %, egal wer entworfen hat.
+			   NEU BESCHRIFTET, NICHT GESTRICHEN: Was die Zahl beantwortet, ist, ob
+			   noch jemand beigetragen hat — und Alleinbesitz an einem Produkt mit
+			   2,4 Mio. Nutzern ist der Punkt dieser Karte. Unangemeldet gegen den
+			   GitHub-Contributors-Endpunkt geprüft, 2026-08-10: AyakoBot/Ayako-v2
+			   führt genau zwei Mitwirkende, Larsundso mit 2.325 und dependabot[bot]
+			   mit 5. Deshalb steht der Rest jetzt da, statt als Lücke zu wirken. */
+			`Bei v2 gibt es außer mir keinen weiteren Mitwirkenden: ${n(github.ayakoAuthorship.v2Commits.own)} von ${n(github.ayakoAuthorship.v2Commits.total)} Commits auf dem Default-Branch sind meine — ${pc(github.ayakoAuthorship.v2Percent)}. Die übrigen ${n(github.ayakoAuthorship.v2Commits.total - github.ayakoAuthorship.v2Commits.own)} stammen von dependabot.`,
+			/* v3 bekommt dieselbe Beschriftung, und dort ist sie die stärkere:
+			   kein einziger Commit kommt von jemand anderem, dependabot inklusive. */
+			`v3: ${ayako.v3.commits} Commits, kein weiterer Mitwirkender · ${ayako.v3.featurePlugins} Feature-Plugins · ${ayako.v3.testFiles} Testdateien direkt neben dem Code.`
 		],
 		stack: [
 			"TypeScript",
@@ -562,7 +658,11 @@ export const projects: ProjectEntry[] = [
 		facts: [
 			/* Fremdzitat: die Angabe des Repos, unverändert übernommen. */
 			"Eigenangabe „10,000+ servers“ — Repo-Metadaten, nicht verifiziert.",
-			`332 Dateien · ${n(17_250)} LOC · 128 Commits, 100 % selbst verfasst.`,
+			/* Dieselbe Neubeschriftung wie auf der Ayako-Karte, aus demselben
+			   Grund. Dieses Repository ist privat, die Zahl also — anders als bei
+			   v2 — von außen nicht nachprüfbar; die bernsteinfarbene Notiz der
+			   Karte sagt das bereits. */
+			`332 Dateien · ${n(17_250)} LOC · 128 Commits, kein weiterer Mitwirkender.`,
 			"Aktiv bis 2026-06."
 		],
 		stack: ["TypeScript", "discord.js 14", "Prisma", "discord-hybrid-sharding", "socket.io"],
@@ -830,7 +930,10 @@ export const contact = {
 	rightNow: {
 		title: "Aktuell",
 		lines: [
-			"Offen für Produktarbeit mit TypeScript/Node — Backend oder Full-Stack. Erzähl mir davon.",
+			/* „Produktarbeit“ gibt es im Deutschen nicht — siehe hero.intro. Das
+			   ist die zweite der beiden Zeilen, die sagen, was er sucht, und
+			   damit der Satz, den ein Recruiter nach Stichwort abgleicht. */
+			"Offen für Produktentwicklung mit TypeScript/Node — Backend oder Full-Stack. Erzähl mir davon.",
 			"Seit 2025 Full-Stack-Entwickler bei der Raleo Digital GmbH. Kein dringender Wechselwunsch.",
 			"Remote, oder vor Ort in der Region Bodensee-Oberschwaben.",
 			"Ich beantworte jede Mail an diese Adresse."
@@ -958,6 +1061,9 @@ export const germanRuns: readonly string[] = [];
 
 export { splitLangRuns } from "./wall";
 export type { LangRun } from "./wall";
+/* Damit dieses Modul weiterhin JEDEN benannten Export von wall.ts spiegelt —
+ * die Zusage im Kopf dieser Datei. Der Wert ist derselbe, nicht nur die Form. */
+export { MESSE_FAIRS };
 
 /* ------------------------------------------------------------------ */
 /* UI strings — shared interface contract                              */
@@ -1001,10 +1107,23 @@ export const sectionStrings = {
 	/** Stamp sub-line above an as-of date, e.g. "Stand / 2026-08-03". */
 	asOfStamp: "Stand",
 	timeline: {
-		/** Handschriftlicher Zettel neben dem Werdegang-Flyer. Er zählt die
-		 *  Arbeitgeber, denn wer sie nicht zählt, liest diesen Abschnitt als
-		 *  eine Stelle und ein Zeugnis. */
-		headNote: "zwei Arbeitgeber seit 2022 — Beruf und Ausbildung, der Reihe nach aufgefädelt.",
+		/**
+		 * Handschriftlicher Zettel neben dem Werdegang-Flyer. Er zählt die
+		 * Arbeitgeber, denn wer sie nicht zählt, liest diesen Abschnitt als
+		 * eine Stelle und ein Zeugnis.
+		 *
+		 * ER NENNT JETZT DIE STELLE — siehe wall.ts. Der Kopf des Abschnitts
+		 * zeigte 16 Jahre („2010 – heute“) und eine Anzahl; die aktuelle Stelle
+		 * stand erst 3.802 px weiter unten. Sie steht im ZETTEL und nicht in
+		 * `headDates`: `.rf-headdates` wird roh gerendert (kein
+		 * `splitLangRuns`, also erreicht `properNouns` die Zeile nie) und steht
+		 * außerhalb der `hyphens: manual`-Liste in wall.css, während
+		 * `html:lang(de)` `hyphenate-limit-chars: 6 3 3` setzt — „Raleo Digital
+		 * GmbH“ könnte dort als `Digi-/tal` brechen. Der Zettel ist
+		 * `.hand-note`: keine Trennung, Breite bereits gedeckelt.
+		 */
+		headNote:
+			"zwei Arbeitgeber seit 2022 — aktuell Full-Stack-Entwickler bei der Raleo Digital GmbH. Beruf und Ausbildung, der Reihe nach aufgefädelt.",
 		/** Scope line under the Werdegang rule; see wall.ts. */
 		headDates: "2010 – heute",
 		/** Education card date line while ongoing, e.g. "seit 2022-09". */
@@ -1070,8 +1189,11 @@ const asOfSuffix = (window: string, asOf: string): string =>
 
 export const chartStrings = {
 	titles: {
+		/* dritte und letzte Fundstelle von „Produktarbeit“ — das Wort ist keine
+		   Frage des Registers, es existiert im Deutschen nicht, also fällt es
+		   auch aus einer Diagramm-Überschrift */
 		topProjects: (count: number) =>
-			`Produktarbeit seit ${ayako.inProductionSince} — die Top ${count} nach erfassten Stunden`,
+			`Produktentwicklung seit ${ayako.inProductionSince} — die Top ${count} nach erfassten Stunden`,
 		ayakoFamily: `Ein Produkt, ${ayako.generations} Generationen, seit ${ayako.inProductionSince} im Produktivbetrieb`,
 		topLanguages: (count: number) =>
 			`Eine Sprachfamilie trägt das Produkt — Top ${count} nach erfassten Stunden`,

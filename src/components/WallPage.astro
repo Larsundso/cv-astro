@@ -663,9 +663,66 @@ const JOIN_STACK = {
 		text-decoration-thickness: 2.5px;
 	}
 
+	/* ---- the head on a narrow wall: same objects, less air ---------- */
+	/* A THIRD OF THE PHONE'S FIRST SCREEN WAS CHROME CARRYING NO CANDIDATE
+	   FACT. Measured at 390 × 844, root 16, identical in both locales: this
+	   block ran 277.3px — 32.8 % of the viewport — and the first fact about
+	   the man, his own name, arrived at y 348, i.e. 41.2 % of the one screen
+	   that decides whether the other 25 get read. The desktop wall pays 165px
+	   of 900 (18.3 %) for the same five links and the same language chit, so
+	   the phone was paying more than twice the toll on the surface where
+	   space is scarcest, and those 348px displaced exactly the two lines that
+	   name a technology and state the ask.
+	   WHAT IS NOT DONE HERE, and it was proposed: dropping the five-link
+	   directory on phone entirely, on the grounds that the rail carries the
+	   same five destinations. It buys 102px and it costs more than that.
+	   The rail's names are `clip-path`-hidden at rest — only the CURRENT
+	   district prints — so five labelled controls would be traded for five
+	   identical 2.5 × 12px dashes; and the swap only works if the rail is
+	   revealed from scroll 0, which lays a 72px opaque shelf across the
+	   bottom of the hero. Measured against the reordered identity card, that
+	   shelf covers y 772–844, which is the credential's first printed line.
+	   Net +30px of usable first screen, minus the only labelled navigation
+	   the phone has. It was not worth it, and the reorder in Hero.astro
+	   cleared the acceptance target without it.
+	   WHAT IS DONE IS THE AIR, and every value below is a baseline multiple
+	   so the rhythm survives a reader's own type size: the sheet sits one
+	   baseline off the viewport's top edge instead of two, the name-plate
+	   takes --lh-1 (its League Gothic caps measure 21.1px at this width, so a
+	   24px line box holds them with room — verified on the render at 390 and
+	   at 1023, where the setting is tightest at 23.5px), the thread's squiggle
+	   keeps half a baseline either side, the index's links take 1.25
+	   baselines of padding, and the language chit hangs off the sheet on the
+	   flex row-gap alone.
+	   MEASURED AFTER: 277.3 → 239.3px (28.3 % of the viewport), the name at
+	   y 308 (36.5 %), and the gap between the chit's bottom edge and the
+	   board's top edge is unchanged at 23.0px — which is what the hero's
+	   entrance thread hangs its 17px bend clearance on, so that stays intact.
+	   THE INDEX'S TARGETS STAY OVER 44px. 1.25 baselines is 10px a side
+	   against a 24.9px line box: 44.9px measured at root 16, and the box only
+	   grows from there, since both terms scale with the reader's type. 44 is
+	   SC 2.5.5's floor and this wall meets it everywhere else; it is not
+	   spent here to buy 8px. */
 	@media (max-width: 63.9375rem) {
 		.wall-head {
 			justify-content: center;
+			padding-block-start: var(--baseline);
+		}
+
+		.wall-head__title {
+			line-height: var(--lh-1);
+		}
+
+		.wall-head__rule {
+			margin-block: calc(var(--baseline) * 0.5);
+		}
+
+		.wall-head nav a {
+			padding-block: calc(var(--baseline) * 1.25);
+		}
+
+		.wall-head :global(.wall-head__tab) {
+			margin-block-start: 0;
 		}
 	}
 
@@ -2252,8 +2309,23 @@ const JOIN_STACK = {
 			   liability before. It does not, because the first viewport is
 			   the one image that decides what this site is, and a shelf
 			   across the hero is 72px of that image spent on a control the
-			   reader has not yet needed. 200 is the first scroll. */
-			rail.dataset.visible = String(window.scrollY > 200);
+			   reader has not yet needed. 200 is the first scroll.
+			   200 → 170 BECAUSE THE DIRECTORY NOW LEAVES 30px EARLIER. The
+			   number is not a taste; it is the nav's own bottom edge plus the
+			   8px this comment already banked, and the head was compressed
+			   this cycle (see the narrow `.wall-head` block: 277.3 → 239.3px
+			   at 390 × 844, root 16). The nav's last pixel moved with it, from
+			   document y 192 to 162. Left at 200 the handover would have
+			   opened a 30px band with the directory gone and the strip not yet
+			   there — small, and exactly the class of gap the 480 → 200 change
+			   above was made to close.
+			   MEASURED AT ROOT 16, and it is a root-16 statement: at root 24
+			   on a narrow wall the nav's bottom sits at 307, so the strip
+			   arrives while the directory is still fully on screen. That was
+			   already true at 200 (nav bottom 257 before the compression), so
+			   nothing regresses — but do not read the 8px handover as holding
+			   at every type size, because it does not. */
+			rail.dataset.visible = String(window.scrollY > 170);
 
 			/* NO TICK WAS CURRENT FOR THE FIRST 2,463px. The rule was "the
 			   last graduation the index has passed", and the index has

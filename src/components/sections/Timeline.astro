@@ -516,9 +516,24 @@ const links = layout.map(({ side }, i) => {
 																	<li>
 																		<a class="rf-link" href={item.href} rel="noopener">{item.name}</a>
 																		<span class="rf-clients__stack"> — {item.stack}</span>
-																		{"also" in item && item.also && (
+																		{/* TWELVE OF THE TWENTY-FIVE WERE NAMES, NOT LINKS. The close says
+																		    "the work can be opened rather than taken on trust", and an
+																		    adversarial screener verified it is TRUE — all 25 return HTTP 200
+																		    — but only thirteen carried an href, and the twelve fair domains
+																		    are not guessable: pferdbodensee.de not pferd-bodensee.de,
+																		    tuningworldbodensee.com not tuningworld-bodensee.de,
+																		    fairnamic.com not .de. It took four rounds of probing and a web
+																		    search to close a set twelve hrefs would have closed, and its
+																		    verdict was the expensive one: "the sentence promises openability
+																		    for twenty-five and hands over thirteen" — a true claim losing
+																		    credibility because the reader had to do the work.
+																		    `alsoLinks` is preferred and `also` kept as the fallback, so the
+																		    twelve names can never silently vanish if the data shape moves. */}
+																		{"alsoLinks" in item && item.alsoLinks ? (
+																			<span class="rf-clients__also">{" ("}{item.alsoLinks.map((f, i) => (<>{i > 0 && ", "}<a class="rf-link" href={f.href} rel="noopener">{f.label}</a></>))}{")"}</span>
+																) : "also" in item && item.also ? (
 																			<span class="rf-clients__also"> ({item.also})</span>
-																		)}
+																) : null}
 																	</li>
 																))}
 															</ul>

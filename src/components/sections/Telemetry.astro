@@ -163,9 +163,24 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 			   in the section were the first two the eye met, and the reading
 			   order started with a 663px sideways throw. A footnote belongs
 			   under the figures it answers for, and stepping back toward the
-			   left rail here hands the eye to the next act's marquee. */
+			   left rail here hands the eye to the next act's marquee.
+
+			   IT IS ALSO A FOOTNOTE, SO IT IS PRINTED ON THE FOOTNOTE'S
+			   STOCK. The wall held no half-tone: 94.7 % of pixels between
+			   L* 65 and 100, and 2.8 % across the whole L* 35–65 register
+			   where a picture keeps its structure. `--stock-kraft` (L* 58.04,
+			   shaded corner 56.42) is the mid-tone cut for exactly this
+			   artifact class, and a source card is the clearest case on the
+			   wall — it answers for the figures, it is not one of them.
+			   The ink budget, measured against the SHADED corner rather than
+			   the token: --ink 4.90:1, --ink-soft 4.60:1. This card sets only
+			   --ink — a heading and provenance lines, no soft register, no
+			   link and no HandNote — so nothing on it has to be re-coloured.
+			   NO PRIDE INK MAY BE PINNED TO THIS STOCK (amber 1.97:1,
+			   magenta 2.43:1): the annotation on this run lives on the chart
+			   sheets, which stay on paper. */
 		}
-		<PinCard as="div" variant="typed" rotate={1} class="telemetry__prov">
+		<PinCard as="div" variant="typed" rotate={1} class="telemetry__prov pin-card--kraft">
 			<h3 class="telemetry__prov-title">{tf.sourceHeading}</h3>
 			{provenance.map((line) => <p class="telemetry__prov-line">{line}</p>)}
 		</PinCard>
@@ -256,6 +271,21 @@ const { charts, habit, provenance, trackingStart } = await getCharts(locale);
 		font-size: var(--step-0);
 		line-height: var(--lh-0);
 		font-weight: 700;
+	}
+
+	/* THERE IS NO RULE TO SIT ON, SO THERE IS NOTHING TO LIFT ONTO. The
+	   -32px above exists for one reason: a typed card prints a header rule
+	   at 40px and this title rides it. `.pin-card--kraft` restates
+	   `background-image` as the kraft lamp alone, so on this stock no header
+	   rule is drawn — and PinCard now drops the typed card's 48px top
+	   reserve to 24px to match. Left as it was, -32px against a 24px
+	   reserve puts the title's box at -8px, i.e. outside the card's padding
+	   box and over its own top edge. The two changes are one decision:
+	   whichever of them is reverted, the other has to go with it. */
+	.telemetry :global(.telemetry__prov.pin-card--kraft) .telemetry__prov-title {
+		/* `margin-top` because the rule above sets the `margin` shorthand:
+		   same property, so this is a plain specificity comparison. */
+		margin-top: 0;
 	}
 
 	/* THE SOURCE LINE CARRIES A URL, AND A URL IS ONE UNBREAKABLE WORD.

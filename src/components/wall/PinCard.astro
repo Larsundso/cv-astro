@@ -91,6 +91,27 @@ const Tag = as;
 			0 calc(var(--rule-phase) * -1);
 	}
 
+	/* A RESERVE FOR A RULE THAT KRAFT DOES NOT PRINT. `.pin-card--typed`
+	   pads 48px (--baseline * 6) at the top so type clears the header rule
+	   drawn at 40px (--baseline * 5) by the second background layer above.
+	   `.pin-card--kraft` in wall.css restates `background-image` as
+	   `var(--lamp-kraft)` alone — deliberately, so a typed card's blue
+	   ruling cannot print onto the mid-tone stock — which takes the header
+	   rule with it. The reserve then holds 48px of empty stock over a line
+	   that is not there, on every kraft record on the wall.
+	   24px is the card's own padding on the other three sides, so a typed
+	   kraft sheet is simply padded like every other sheet.
+	   (0,3,0) once scoped, against `.pin-card--typed`'s (0,2,0) — the same
+	   count the wall.css kraft rule uses to beat this component's
+	   background. If that rule ever stops winning, the ruling comes back and
+	   this padding has to go back with it: they are one decision. */
+	.pin-card--typed.pin-card--kraft {
+		/* `padding-top`, not `padding-block-start`: it is the same property
+		   the rule above sets, so the cascade is a plain specificity
+		   comparison with no logical-vs-physical mapping in it. */
+		padding-top: calc(var(--baseline) * 3);
+	}
+
 	/* every line inside a ruled card sits on the ruling: one setting, and
 	   margins that are whole multiples of the period so the phase holds all
 	   the way down the sheet instead of drifting */

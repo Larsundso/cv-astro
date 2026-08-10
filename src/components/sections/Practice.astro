@@ -145,27 +145,29 @@ const rules = houseRules.rules.map((rule) => {
 				   entire argument is "check me". The search URL that
 				   reproduces them ships with the copy. */
 			}
-			{/* KRAFT CANDIDATE, PENDING THE STOCK. The wall has no half-tone
-			    at all — 94.7 % of pixels sit between L* 65 and 100 and the
-			    L* 35–65 register holds 2.8 % — and a mid-tone stock is being
-			    cut for the subordinate artifacts: provenance and source
-			    cards, "Also pinned", channel slips. This card is one of
-			    them and is the likeliest carrier in this section, because it
-			    is the one here that sets no soft ink — its source line falls
-			    back to --ink. That is a necessary condition, not a
-			    sufficient one: against kraft at L* 58 the TOKENS measure
-			    --ink 4.73:1 and --ink-soft 2.96:1, and 4.73 is an upper
-			    bound computed against a flat fill. The stock will carry
-			    --lamp like every other sheet, and this wall has been burned
-			    three times by certifying a contrast against a token while a
-			    wash changed what actually painted. So: no class until the
-			    ink budget is measured on the RENDERED sheet, and the folded
-			    telemetry card in the record column cannot take the stock at
-			    all until `.pin-card--kraft` redefines --ink-soft the way the
-			    dark flyer rule already redefines it — its summaries are set
-			    in it. When both hold, this is a one-line change: add
-			    `pin-card--kraft` to the class below. */}
-			<PinCard as="article" variant="typed" rotate={-1} class="practice__github">
+			{/* KRAFT, APPLIED — the condition this slot was waiting on is met.
+			    The wall had no half-tone at all: 94.7 % of pixels sat between
+			    L* 65 and 100 and the whole L* 35–65 register, where a picture
+			    keeps its structure, held 2.8 %. Every sheet was the same
+			    value, so nothing on the board could be subordinate by its
+			    STOCK — only by pale ink. `--stock-kraft` now exists at
+			    L* 58.04 (shaded corner 56.42) and this card is one of the
+			    artifacts it was cut for: a record standing under the values
+			    flyer, not an argument.
+			    The ink budget was the blocker and it is cleared. Measured
+			    against the SHADED corner, not the token: --ink 4.90:1,
+			    --ink-soft 4.60:1. This card sets neither. Its source line
+			    reads var(--ink-muted, var(--ink)) and --ink-muted is declared
+			    nowhere in src/, so it falls back to --ink; the link under it
+			    takes --thread for its underline, which the kraft rule
+			    re-strikes to 3.24:1 on the shaded corner — over the 3:1 a
+			    RULE needs, under the 4.5:1 a WORD needs, and nothing here
+			    colours a word with it.
+			    NO PRIDE INK MAY BE PINNED TO THIS STOCK: amber measures
+			    1.97:1 on kraft and magenta 2.43:1. This card carries no
+			    HandNote, which is exactly why it can take the stock and the
+			    values flyer beside it never can. */}
+			<PinCard as="article" variant="typed" rotate={-1} class="practice__github pin-card--kraft">
 				<h3 class="practice__github-title">{githubStats.title}</h3>
 				{githubStats.lines.map((line) => <p>{line}</p>)}
 				<p class="practice__github-src">
@@ -220,13 +222,27 @@ const rules = houseRules.rules.map((rule) => {
 			{
 				/* the telemetry, folded: every figure kept, none of it in the
 				   way. The headings stay legible shut, so the card still says
-				   what it is holding — available rather than unavoidable. */
+				   what it is holding — available rather than unavoidable.
+				   ON KRAFT, AND THE ONE THING THAT BLOCKED IT IS GONE. This
+				   card's summaries are set in --ink-soft, and the wall's own
+				   --ink-soft (L* 27.98) measures 2.96:1 on kraft — under the
+				   4.5:1 a word needs and under the 3:1 a graphic needs. The
+				   kraft rule now re-strikes the token to oklch(24% 0.012 60),
+				   which is 4.60:1 against the sheet's SHADED corner, so every
+				   folded heading clears the floor. Nothing else here is
+				   coloured: the open state goes to --ink (4.90:1), and the
+				   card carries no HandNote, so no pride ink is pinned to a
+				   stock that gives the whole set 1.97 to 2.91:1.
+				   The record column now descends by STOCK — the printed
+				   argument and the typed record on paper, the telemetry that
+				   folds on kraft. That is the argument for owning a mid-tone:
+				   subordination stops needing pale ink to say it. */
 				folded.length > 0 && (
 					<PinCard
 						as="article"
 						variant="typed"
 						rotate={-1}
-						class="practice__card practice__fold-card"
+						class="practice__card practice__fold-card pin-card--kraft"
 					>
 						{folded.map((rec) => (
 							<details class="practice__fold">
@@ -347,13 +363,21 @@ const rules = houseRules.rules.map((rule) => {
 	   band. On a typed card the ruled-card rule outranks it and it stays
 	   Courier at the sheet's step — which is the point: one face, one band,
 	   per material. */
+	/* THE MIDDLE OF THE TRACKING LADDER, NOT ITS BOTTOM RUNG. Uppercase
+	   tracking must be monotone-DECREASING in size, and --track-display
+	   (0.04em) is the 14px rung. This heading is --step-1, i.e. 18px at 360
+	   and 20px at 1440 — the band --track-display-md (0.03em) was cut for,
+	   0.03em being the log interpolation of 14px:0.04 → 48px:0.006 at ~21px.
+	   Left at 0.04em it put TWO values on 20px: 0.03em on the wall's own nav
+	   items and 0.04em here, which is the inversion the token was added to
+	   close. */
 	.practice__block-title {
 		margin: 0 0 var(--baseline);
 		font-size: var(--step-1);
 		line-height: var(--lh-2);
 		font-weight: 700;
 		text-transform: uppercase;
-		letter-spacing: var(--track-display);
+		letter-spacing: var(--track-display-md);
 	}
 
 	/* on a ruled card the heading has to keep the sheet's own period: an
@@ -469,12 +493,18 @@ const rules = houseRules.rules.map((rule) => {
 		row-gap: calc(var(--baseline) * 4);
 	}
 
-	/* the shout: short, condensed, tracked the way caps under 32px need */
+	/* the shout: short, condensed, tracked the way caps under 32px need.
+	   THE OTHER HALF OF THE 20/24px DOUBLE. This is League Gothic at
+	   --step-2 — 21px at 360, 24px at 1440 — and at 0.04em it was the second
+	   value on 24px, against 0.03em on the wall's own title card. Same size,
+	   same face, two settings. --track-display-md holds the whole 18–28px
+	   band, so the ladder now runs 0.04 → 0.03 → 0.006em with one value per
+	   size instead of two ends and a gap in the middle. */
 	.practice__rule-head {
 		margin: 0;
 		font-size: var(--step-2);
 		line-height: var(--lh-2);
-		letter-spacing: var(--track-display);
+		letter-spacing: var(--track-display-md);
 		text-wrap: balance;
 	}
 

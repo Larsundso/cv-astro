@@ -254,7 +254,11 @@ export const hero = {
 		/* siehe wall.ts: das Ergebnis zuerst, die Stunden als Beleg darunter */
 		lines: [
 			`Seit ${ayako.inProductionSince} im Produktivbetrieb — über ${ayako.generations} Generationen und ${ayako.discordLibraries} Discord-Bibliotheken hinweg.`,
-			`${hm(telemetry.lifetime.total.seconds)} erfasste Programmierzeit dahinter, Stand ${SNAPSHOT_AS_OF}.`,
+			/* Siehe wall.ts: „dahinter" band die Gesamtsumme an ein einziges
+			   Produkt, wahrend die Projektkarte fur denselben Geltungsbereich
+			   2.800 h nennt — dieselbe Formulierung, zwei Zahlen im Verhaltnis
+			   1,94:1. */
+			`${hm(telemetry.lifetime.total.seconds)} erfasste Programmierzeit insgesamt, Stand ${SNAPSHOT_AS_OF} — davon ${hm(telemetry.lifetime.ayakoFamily.seconds)} auf diesem System.`,
 			`${n(telemetry.lifetime.activeDays.active)} von ${n(telemetry.lifetime.activeDays.elapsed)} Tagen aktiv — ${pc(telemetry.lifetime.activeDays.ratePercent)}, ${telemetry.trackingStart} bis ${telemetry.trackingEnd}.`
 		],
 		sourceNote: "WakaTime API",

@@ -333,10 +333,35 @@ export const ayako = {
 	discordLibraries: 3,
 	locales: 2,
 	v3: { featurePlugins: 30, testFiles: 73, commits: 730 },
-	/** License precision is binding copy law. */
+	/** License precision is binding copy law — and this line was WRONG, in
+	 *  the direction that flatters, on the flagship card, in both locales.
+	 *
+	 *  The wall printed `v3: open source (AGPL-3.0)`. Checked 2026-08-10
+	 *  against the public record it invites the reader to check: every Ayako
+	 *  v3 repository — Ayako, Service, Gateway, API, Database, Utility —
+	 *  carries `CC BY-NC 4.0` on line 1 of its LICENSE, and GitHub classifies
+	 *  all six NOASSERTION because it cannot match them to an OSI licence.
+	 *  There is no AGPL grant anywhere in the org.
+	 *
+	 *  An adversarial screener made this its rejection condition and was
+	 *  right to: "He built a site whose whole argument is 'don't take my word
+	 *  for it, here is the endpoint.' So I took him up on it — and the first
+	 *  legal fact I checked was wrong in his favour." A non-commercial clause
+	 *  fails the Open Source Definition, so `open source` was wrong twice
+	 *  over — the licence identifier AND the category.
+	 *
+	 *  It is the same error the previous cycle corrected on the GIFfer card,
+	 *  recurring here on the larger one, which is why it is written down
+	 *  rather than quietly amended: the rule is that a licence claim is a
+	 *  legal fact and gets checked against the repository, never against
+	 *  memory or intent.
+	 *
+	 *  IF THE INTENT IS AGPL FOR v3, the fix is in the repositories, not
+	 *  here — change the LICENSE files and this line follows. Until they say
+	 *  AGPL, this says what they say. */
 	license: {
 		v2: "source-available (CC BY-NC 4.0)",
-		v3: "open source (AGPL-3.0)"
+		v3: "source-available (CC BY-NC 4.0)"
 	},
 	/** The free-forever promise, quoted verbatim. A strength, stated plainly. */
 	freeForeverPromise: "A feature that I cannot provide for free will not be implemented."

@@ -590,7 +590,12 @@ export const projects: ProjectEntry[] = [
 			{ label: "GitHub: AyakoBot", href: "https://github.com/AyakoBot" },
 			{ label: "top.gg-Eintrag", href: ayako.topGgUrl }
 		],
-		license: `v2 ${ayako.license.v2} · v3 ${ayako.license.v3}`,
+		/* Siehe wall.ts: Die v3-Hälfte war falsch (die Repositories tragen
+		   CC BY-NC 4.0, nicht AGPL-3.0), und die Zeile nannte nur das Verbot.
+		   Vom Eigentümer bestätigt 2026-08-10: Die kommerzielle Einschränkung
+		   ist gewollt und gilt für beide Versionen. Jetzt steht zuerst die
+		   Erlaubnis — forken und selbst betreiben — und dann die eine Grenze. */
+		license: "CC BY-NC 4.0, v2 und v3 — forken und selbst betreiben: ja. Damit Geld verdienen: nein.",
 		/**
 		 * DEFEKT 4, UND AUF DIESER WAND WAR ER SCHLIMMER. Der größte Satz der
 		 * Seite war eine Absage — „A feature that I cannot provide for free

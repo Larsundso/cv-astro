@@ -518,7 +518,7 @@ export const githubStats = {
 		   Typen-Paket, NICHT „dieselbe Änderung am selben Tag“ (so stand es im
 		   Gutachten): 2024-08-14 und 2024-08-20, sechs Tage auseinander. Diese
 		   Formulierung bitte nicht zurückholen. */
-		"Die Grenze: Der jüngste der elf ist von 2024-11-25. Nach den Titeln sind zwei davon Tippfehler-Korrekturen in der Dokumentation und einer ein Dependency-Update. Der größte ergänzt eine Methode zum Widerrufen von OAuth2-Tokens — zwei Pull Requests, discord.js und das zugehörige Types-Paket."
+		`Die Grenze: Der jüngste der elf ist von ${github.mergedUpstream.newestMergedOn}. Nach den Titeln sind zwei davon Tippfehler-Korrekturen in der Dokumentation und einer ein Dependency-Update. Der größte ergänzt eine Methode zum Widerrufen von OAuth2-Tokens — zwei Pull Requests, discord.js und das zugehörige Types-Paket.`
 	],
 	/** Die Suche, die genau diese elf zurückgibt — nachlaufen statt glauben. */
 	search: {
@@ -674,7 +674,7 @@ export const projects: ProjectEntry[] = [
 	},
 	{
 		id: "vr-discord-vc-overlay",
-		name: "VR-Discord-VC-Overlay",
+		name: "SteamVR-Discord-Overlay",
 		role: "vr",
 		oneLiner:
 			"SteamVR-Overlay in C#/.NET 8, das den Discord-Voice-Status im Headset rendert — mit interaktivem Mute und Deafen.",
@@ -690,7 +690,7 @@ export const projects: ProjectEntry[] = [
 			`${n(4_059)} LOC in 15 Dateien.`
 		],
 		stack: ["C#/.NET 8", "SkiaSharp", "DirectX 11 (Vortice)", "OpenVR", "Kestrel", "WebSocket"],
-		links: []
+		links: [{ label: "das Repository", href: "https://github.com/Larsundso/SteamVR-Discord-Overlay" }]
 	},
 	{
 		id: "vrc-inviter",
@@ -700,7 +700,9 @@ export const projects: ProjectEntry[] = [
 		body: [
 			"Spec-first: Das Designdokument trägt das Datum 2026-04-16 — geschrieben vor der Implementierung. DPAPI-verschlüsselte Zugangsdaten, ein Web-Dashboard nur auf Loopback, SQLite-Persistenz."
 		],
-		facts: [`${n(4_481)} LOC in 55 Dateien · xUnit-Suite mit 7 Modulen.`],
+		facts: [`${n(4_481)} LOC in 55 Dateien · xUnit-Suite mit 7 Modulen.`,
+			"Kein öffentliches Repository — dieses hier lässt sich nicht nachprüfen."
+		],
 		stack: ["C#/.NET 8", "Svelte 5", "SQLite", "xUnit", "Kestrel"],
 		links: []
 	},
@@ -713,7 +715,9 @@ export const projects: ProjectEntry[] = [
 		body: [
 			"Der Discord-IPC-RPC-Client — inklusive OAuth-Handshake und Frame-Protokoll — ist von Hand geschrieben, nicht aus einer Bibliothek übernommen."
 		],
-		facts: [`${n(2_436)} LOC in 36 Dateien · vitest-Suite mit undici MockAgent.`],
+		facts: [`${n(2_436)} LOC in 36 Dateien · vitest-Suite mit undici MockAgent.`,
+			"Kein öffentliches Repository — dieses hier lässt sich nicht nachprüfen."
+		],
 		stack: ["TypeScript", "Node.js", "vitest"],
 		links: []
 	},
@@ -726,7 +730,9 @@ export const projects: ProjectEntry[] = [
 		body: [
 			"Sprache wird lokal mit Faster-Whisper erkannt und über OSC an die VRChat-Chatbox geleitet; das Overlay rendert Dashboard-, HUD- und Handgelenks-Ansichten im Headset."
 		],
-		facts: [`${n(32_427)} LOC in 121 Dateien · 15 Backend-Service-Module · 19 Testdateien.`],
+		facts: [`${n(32_427)} LOC in 121 Dateien · 15 Backend-Service-Module · 19 Testdateien.`,
+			"Kein öffentliches Repository — dieses hier lässt sich nicht nachprüfen."
+		],
 		stack: ["Python", "FastAPI", "Faster-Whisper", "Electron", "React", "OpenVR", "WebSocket", "OSC"],
 		links: []
 	},
@@ -748,7 +754,7 @@ export const projects: ProjectEntry[] = [
 			`${n(3_264)} LOC striktes TypeScript in 75 Dateien.`
 		],
 		stack: ["TypeScript", "ffmpeg", "youtube-dl-exec", "SWC", "Docker"],
-		links: [],
+		links: [{ label: "das Repository", href: "https://github.com/Larsundso/GIFfer" }],
 		license: "CC BY-NC 4.0"
 	}
 ];

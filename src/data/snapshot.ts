@@ -270,6 +270,20 @@ export const github = {
 	mergedUpstream: {
 		count: 11,
 		checkedOn: "2026-08-05" as IsoDate,
+		/** THE LIMIT, AS A FIGURE RATHER THAN A SENTENCE. This file bans two
+		 *  numbers a few lines up for being "a real number attached to the
+		 *  wrong denominator" that "fails the first check a sceptic can run" —
+		 *  and an adversarial screener applied exactly that test here. The
+		 *  claim reproduces (total_count 11, eight foreign repos), but the
+		 *  newest of the eleven merged twenty months before the page's own
+		 *  date, and the wall stated no bound. Its verdict: the only place on
+		 *  the wall where the stated convention "the limit: where does this
+		 *  claim stop?" was not applied, and the only place it would have
+		 *  hurt. The copy now carries the bound, and it reads the date from
+		 *  here rather than hand-typing it, per this file's own rule.
+		 *  Re-derived from the GitHub search API 2026-08-10: merge dates run
+		 *  2022-10-27 to 2024-11-25. */
+		newestMergedOn: "2024-11-25" as IsoDate,
 		repositories: [
 			{ repo: "discordeno/discordeno", merged: 3 },
 			{ repo: "discordeno/cache-proxy", merged: 2 },

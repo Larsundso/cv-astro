@@ -927,13 +927,17 @@ html:lang(de) {
   rotate: calc(var(--tilt, 0) * 1.2deg);
 }
 
+/* Only the TRAVEL is gated. The end state lives beside the tilt it depends
+   on, below — see the note there. This is the same law PinButton.astro:76
+   states for the CTA: a vestibular visitor is asking for no travel, not for
+   no feedback. The card measured a computed delta of exactly zero on hover
+   AND on focus-within with the OS flag set, which is the third instance of
+   this defect in one stylesheet. Tokens, not the 150ms/ease-out that were
+   hard-coded here: those 56 declarations were the most common motion on the
+   wall and the only ones outside the system that names them. */
 @media (prefers-reduced-motion: no-preference) {
   .pinned {
-    transition: rotate 150ms ease-out;
-  }
-
-  .pinned:where(:hover, :focus-within) {
-    rotate: calc(var(--tilt, 0) * 0.35deg);
+    transition: rotate var(--t-settle) var(--e-out);
   }
 }
 
@@ -1064,5 +1068,20 @@ html:lang(de) {
 @media (max-width: 63.9375rem) {
   .pinned {
     rotate: none;
+  }
+}
+
+/* The settle, paired with the tilt that gives it something to settle FROM.
+   It used to sit up beside the transition, written `.pinned:where(...)` —
+   specificity (0,1,0), because :where() contributes nothing — so the
+   `rotate: none` rule directly above, also (0,1,0) and later in the file,
+   beat it on order. Below 64rem the hover was dead and 56 elements carried
+   a transition-duration for a property that could no longer change.
+   Keeping the rule in the same branch as its premise is what stops the two
+   drifting apart again. */
+@media (min-width: 64rem) {
+  .pinned:hover,
+  .pinned:focus-within {
+    rotate: calc(var(--tilt, 0) * 0.35deg);
   }
 }

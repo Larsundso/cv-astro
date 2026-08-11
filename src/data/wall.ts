@@ -663,7 +663,7 @@ export const chartStrings = {
 		endpoint: (url: string) => `Check it yourself — public, no key required: ${url}`,
 		/** What that endpoint settles, and the one thing it cannot. */
 		checkable: (o: { reconstructed: string; shortfall: string; checkedOn: string }) =>
-			`It confirms the language shares to within a hundredth of a point, and the small differences are drift: this page is dated, the endpoint is live. It cannot confirm the total: coding activity is private on that profile, so the API withholds the total and the only reconstruction left — adding up the per-language rows — comes to ${o.reconstructed}, ${o.shortfall} short, because the API reports no manual time against the “Other” row. That gap is the bucket, not a number in my favour, and it is the one figure here you cannot check today. Re-checked unauthenticated on ${o.checkedOn}.`,
+			`It confirms the language shares to within a hundredth of a point, and the small differences are drift: this page is dated, the endpoint is live. It cannot confirm the total: coding activity is private on that profile, so the API withholds the total and the only reconstruction left — adding up the per-language rows — comes to ${o.reconstructed}, ${o.shortfall} short, because the API reports no manual time against the “Other” row. That gap is the bucket, not a number in my favour. The total is still recoverable from the same endpoint, by a second method: take a language row, add its ai_coding_seconds and manual_coding_seconds, and divide by its percent. Use the largest row — percent is rounded to two decimals, so small rows are noisy. On 2026-08-11 TypeScript gave 5,460.0 h and the median across the sixteen rows above 0.5 % gave 5,458.2 h, against the 5,432 h stamped here on 2026-08-03 — about 3.3 h per day of drift, which is the rate this wall publishes. the “Other” row is the lone outlier at 1,189.0 h, for the reason above. Re-checked unauthenticated on ${o.checkedOn}.`,
 		/** A dated snapshot drifts from a live pull; say so before a reader
 		 *  finds the difference and reads it as staleness. */
 		drift: (live: string, printed: string, checkedOn: string) =>
@@ -1751,7 +1751,7 @@ export const contact = {
 		title: "Right now",
 		lines: [
 			"Open to TypeScript/Node product work — backend or full-stack. Tell me about it.",
-			"Full-stack developer at Raleo Digital GmbH since 2025. Not urgently looking.",
+			"Full-stack developer at Raleo Digital GmbH since 07/2025. Not urgently looking.",
 			"Remote, or on site in the Bodensee-Oberschwaben region.",
 			"I answer every mail to this address."
 		]
@@ -1801,7 +1801,16 @@ export const employment: EmploymentEntry[] = [
 		id: "raleo",
 		company: "Raleo Digital GmbH",
 		role: "Full-stack developer",
-		start: "2025",
+		/* MONTH PRECISION, LIKE EVERY OTHER DATE ON THE WALL. This rendered
+		   as "since 2025" forty pixels under a stamp reading 07/2025 and
+		   forty above a body reading "Since July 2025" — three forms of one
+		   fact, visible without scrolling past each other, on a page whose
+		   credibility is arithmetic. The Columbus letterhead above it prints
+		   2022-09, so the wall gave month precision to the old job and year
+		   precision to the current one, which is exactly the adjacency a
+		   German screener probes. No new figure: 07/2025 was already printed
+		   three times. */
+		start: "2025-07",
 		end: null,
 		note: "raleo.de — online marketplace for heating, heat pumps, and photovoltaics. Fully remote.",
 		logo: "/raleo-initials.svg",

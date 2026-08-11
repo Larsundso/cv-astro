@@ -456,7 +456,7 @@ export const clientWork = {
 	   Vergangenheit und Gegenwart und lässt sich als „entscheidet bis heute“
 	   lesen — derselbe Fehler wie beim historischen Präsens auf der
 	   Ausbildungskarte, nur andersherum. */
-	lead: "Drei Jahre, in denen jemand anderes entschied, woran ich arbeitete. 25 Websites im Produktivbetrieb sind dabei entstanden, in einem Stack, den ich vorher nicht benutzt hatte. Alles andere an dieser Wand habe ich mir selbst zugeschnitten; das hier sind die drei Jahre mit gegengezeichnetem Papier dahinter.",
+	lead: "Drei Jahre, in denen jemand anderes entschieden hat, woran ich gearbeitet habe. 25 Websites im Produktivbetrieb sind dabei entstanden, in einem Stack, den ich vorher nicht benutzt hatte. Alles andere an dieser Wand habe ich mir selbst zugeschnitten; das hier sind die drei Jahre mit gegengezeichnetem Papier dahinter.",
 	tagNote: "Aufgeteilt so, wie ich es festgehalten habe: was ich entwickelt habe, und was ich nur gewartet habe.",
 	groups: [
 		{
@@ -512,7 +512,7 @@ export const clientWork = {
 	/* Das Versprechen der Nachprüfbarkeit trägt jetzt sein Prüfdatum, und die
 	   Aufteilung wird ausgezählt statt angedeutet: 16 entwickelt, 9 nur
 	   gewartet, 25 insgesamt. Wer die Liste selbst zählt, kommt auf dasselbe. */
-	close: "Alle sind bis heute online, die Arbeit lässt sich also öffnen statt glauben. Alle 25 geprüft 2026-08-10. 16 der 25 habe ich entwickelt, 9 nur gewartet. Vor dem 2022-09-01 habe ich kein PHP, kein Typo3 und kein CraftCMS geschrieben — und heute schreibe ich keins davon."
+	close: "Alle sind bis heute online — die Arbeit lässt sich also nachsehen, nicht bloß glauben. Alle 25 geprüft 2026-08-10. 16 der 25 habe ich entwickelt, 9 nur gewartet. Vor dem 2022-09-01 habe ich kein PHP, kein Typo3 und kein CraftCMS geschrieben — und heute schreibe ich keins davon."
 } as const;
 
 export const githubStats = {
@@ -960,7 +960,7 @@ export const contact = {
 			   ist die zweite der beiden Zeilen, die sagen, was er sucht, und
 			   damit der Satz, den ein Recruiter nach Stichwort abgleicht. */
 			"Offen für Produktentwicklung mit TypeScript/Node — Backend oder Full-Stack. Erzähl mir davon.",
-			"Seit 2025 Full-Stack-Entwickler bei der Raleo Digital GmbH. Kein dringender Wechselwunsch.",
+			"Seit 07/2025 Full-Stack-Entwickler bei der Raleo Digital GmbH. Kein dringender Wechselwunsch.",
 			"Remote, oder vor Ort in der Region Bodensee-Oberschwaben.",
 			"Ich beantworte jede Mail an diese Adresse."
 		]
@@ -1010,7 +1010,16 @@ export const employment: EmploymentEntry[] = [
 		id: "raleo",
 		company: "Raleo Digital GmbH",
 		role: "Full-Stack-Entwickler",
-		start: "2025",
+		/* MONTH PRECISION, LIKE EVERY OTHER DATE ON THE WALL. This rendered
+		   as "since 2025" forty pixels under a stamp reading 07/2025 and
+		   forty above a body reading "Since July 2025" — three forms of one
+		   fact, visible without scrolling past each other, on a page whose
+		   credibility is arithmetic. The Columbus letterhead above it prints
+		   2022-09, so the wall gave month precision to the old job and year
+		   precision to the current one, which is exactly the adjacency a
+		   German screener probes. No new figure: 07/2025 was already printed
+		   three times. */
+		start: "2025-07",
 		end: null,
 		note: "raleo.de — Online-Marktplatz für Heizungen, Wärmepumpen und Photovoltaik. Vollständig remote.",
 		logo: "/raleo-initials.svg",
@@ -1371,7 +1380,7 @@ export const chartStrings = {
 		endpoint: (url: string) => `Prüf es selbst — öffentlich, ohne Schlüssel: ${url}`,
 		/** Was dieser Endpunkt belegt — und das eine, was er nicht belegt. */
 		checkable: (o: { reconstructed: string; shortfall: string; checkedOn: string }) =>
-			`Er bestätigt die Sprachanteile bis auf Hundertstel genau; die kleinen Abweichungen sind Drift: Diese Seite ist datiert, der Endpunkt ist live. Den Gesamtwert bestätigt er nicht: Die Programmieraktivität steht auf diesem Profil auf privat, die API hält den Gesamtwert also zurück, und die einzige verbleibende Rekonstruktion — die Sprachzeilen aufaddieren — kommt auf ${o.reconstructed} und damit ${o.shortfall} zu wenig, weil die API für die Zeile „Other“ keine manuelle Zeit ausweist. Diese Lücke ist der Sammelposten, keine Zahl zu meinen Gunsten — und der eine Wert hier, den du heute nicht nachprüfen kannst. Nachgeprüft ohne Anmeldung, ${o.checkedOn}.`,
+			`Er bestätigt die Sprachanteile bis auf Hundertstel genau; die kleinen Abweichungen sind Drift: Diese Seite ist datiert, der Endpunkt ist live. Den Gesamtwert bestätigt er nicht: Die Programmieraktivität steht auf diesem Profil auf privat, die API hält den Gesamtwert also zurück, und die einzige verbleibende Rekonstruktion — die Sprachzeilen aufaddieren — kommt auf ${o.reconstructed} und damit ${o.shortfall} zu wenig, weil die API für die Zeile „Other“ keine manuelle Zeit ausweist. Diese Lücke ist der Sammelposten, keine Zahl zu meinen Gunsten. Der Gesamtwert lässt sich trotzdem aus demselben Endpunkt zurückrechnen, auf einem zweiten Weg: Nimm eine Sprachzeile, addiere ai_coding_seconds und manual_coding_seconds und teile durch ihren percent. Nimm die größte Zeile — percent ist auf zwei Nachkommastellen gerundet, kleine Zeilen rauschen. Am 2026-08-11 ergab TypeScript 5.460,0 h und der Median über die sechzehn Zeilen oberhalb von 0,5 % ergab 5.458,2 h, gegen die hier zum 2026-08-03 gestempelten 5.432 h — rund 3,3 h Drift pro Tag, also genau die Rate, die diese Wand ausweist. die Zeile „Other“ ist der einzige Ausreißer mit 1.189,0 h, aus dem oben genannten Grund. Nachgeprüft ohne Anmeldung, ${o.checkedOn}.`,
 		/** Ein datierter Snapshot driftet gegen einen Live-Abruf; sag es,
 		 *  bevor jemand den Unterschied findet und ihn für Nachlässigkeit
 		 *  hält. */

@@ -977,6 +977,29 @@ export const timeline: TimelineEntry[] = [
 		],
 		annotation: { text: "one file, no plan, no users", ink: "green" }
 	},
+	/* THE FIFTEEN MONTHS.
+	   Owner-supplied 2026-08-11, and published at the depth HE chose, which
+	   is not the deepest one available. The reason is stated as a health
+	   reason; the condition is not named. Asthma is special-category data
+	   under GDPR Art. 9 — a German employer may not ask for it, and a public
+	   page cannot withdraw it once indexed — so the wall gives the decision
+	   and stops. Do not "complete" this line in a later pass.
+	   It exists because the arithmetic was already on the page: the
+	   vocational school ends 2020-02, the apprenticeship starts 2022-09, and
+	   anyone who subtracts finds thirty months. Fifteen are a cashier job
+	   still waiting on its employer's legal name; these are the other
+	   fifteen. Leaving them for the reader to fill in is the one thing this
+	   wall is built not to do. */
+	{
+		id: "pause-2020",
+		dateLabel: "03/2020",
+		sort: "2020-03",
+		title: "Fifteen months out",
+		body: [
+			"March 2020 to May 2021: no school and no work. I was in a risk group and waited for a vaccine. That was the whole reason, and I would make the same call again.",
+			"Ayako had been running since the December before, and it did not stop."
+		]
+	},
 	{
 		id: "angel-bots-era",
 		dateLabel: "2021–2022",
@@ -1864,7 +1887,16 @@ export const education: EducationEntry[] = [
 	{
 		id: "tg",
 		institution: "Technisches Gymnasium Ravensburg",
-		detail: "Technical upper-secondary school.",
+		/* The nine months after this entry are the wall's first gap, and the
+		   owner's instruction on 2026-08-11 was to state it plainly rather
+		   than let a reader subtract 2018-10 from 2019-08 and fill it in
+		   himself. The admission goes HERE, on the record line it belongs to,
+		   because the schooling card is built mechanically from these entries
+		   in chronological order — a floating "gap" row would sort after a
+		   card that already covers 2019 and read as a correction rather than
+		   a fact. */
+		detail:
+			"Technical upper-secondary school. I left after three months, and the nine months that follow are empty — no school, no work, nothing to point at.",
 		start: "2018-08",
 		end: "2018-10",
 		logo: "/GSR.webp"

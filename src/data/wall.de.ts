@@ -329,6 +329,20 @@ export const timeline: TimelineEntry[] = [
 		],
 		annotation: { text: "eine Datei, kein Plan, keine Nutzer", ink: "green" }
 	},
+	/* DIE FÜNFZEHN MONATE. Siehe den Kommentar im englischen Original.
+	   Der Grund steht als gesundheitlicher Grund da, die Diagnose nicht —
+	   das ist die Tiefe, die der Eigentümer gewählt hat, und Art. 9 DSGVO
+	   ist der Grund, warum sie nicht nachträglich vertieft wird. */
+	{
+		id: "pause-2020",
+		dateLabel: "03/2020",
+		sort: "2020-03",
+		title: "Fünfzehn Monate Pause",
+		body: [
+			"März 2020 bis Mai 2021: keine Schule, keine Arbeit. Ich gehörte zu einer Risikogruppe und habe auf einen Impfstoff gewartet. Das war der ganze Grund, und ich würde wieder so entscheiden.",
+			"Ayako lief seit dem Dezember davor, und sie lief weiter."
+		]
+	},
 	{
 		id: "angel-bots-era",
 		dateLabel: "2021–2022",
@@ -1071,6 +1085,13 @@ export const education: EducationEntry[] = [
 	{
 		id: "tg",
 		institution: "Technisches Gymnasium Ravensburg",
+		/* Der deutsche Spiegel hatte für diesen Eintrag gar kein `detail` —
+		   getWall castet wall.de durch `unknown`, tsc sieht ein fehlendes
+		   Feld also nicht. Die Lücke steht hier genauso offen wie im
+		   Englischen; ein Zugeständnis, das nur in einer Sprache steht, ist
+		   kein Zugeständnis. */
+		detail:
+			"Technisches Gymnasium. Nach drei Monaten abgebrochen; die neun Monate danach sind leer — keine Schule, keine Arbeit, nichts zum Vorzeigen.",
 		start: "2018-08",
 		end: "2018-10",
 		logo: "/GSR.webp"

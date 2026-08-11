@@ -27,6 +27,22 @@ const inLanguage = locale === "de" ? "de-DE" : "en-US";
    crops of their own hero, absolute-URL'd because crawlers do not resolve
    relative paths. The alt text describes what is IN the card and repeats no
    figure the page does not already publish. */
+/* THESE TWO FILES ARE HAND-CROPPED FROM THE HERO AND NOTHING REGENERATES
+   THEM. Any change to `hero.intro` invalidates them, silently — a stale
+   share card breaks no build, fails no test, and appears in no frame, which
+   is exactly how this one went three weeks and eleven commits out of date.
+   Caught by measuring the crop against the live card: the file carried seven
+   lines where the page carried eleven, and the four it was missing were the
+   employer's dates, the TypeScript share, "Open to TypeScript/Node product
+   work" and the merged-upstream claim. So the unit that travels ahead of the
+   click said what he IS and never that he is AVAILABLE, and omitted the only
+   third-party-attested claim on the wall — the two things the cycle had just
+   spent its effort promoting.
+   Regenerate with `scratchpad/og.mjs` (EN) and `og-de.mjs` (DE): 1440x900,
+   reducedMotion reduce so the hand-set signature paints rather than the
+   Lottie's first frame, rail hidden, clip {0,0,1440,756} at
+   deviceScaleFactor 1200/1440 so the output is exactly 1200x630 with no
+   resampling step. */
 const ogImage = new URL(locale === "de" ? "/og.de.png" : "/og.png", "https://lars-dev.org").toString();
 const ogImageAlt =
 	locale === "de"

@@ -1110,6 +1110,14 @@ export const education: EducationEntry[] = [
 	{
 		id: "bfe",
 		institution: "Einjährige Berufsfachschule für Elektrotechnik",
+		/* „Einjährige“ steht im eingetragenen Namen der Schule und lässt sich
+		   nicht wegredigieren — daneben standen sieben Monate. Die Karte
+		   nannte sich also einjährig und druckte sieben, in beiden Sprachen.
+		   Aufgelöst: nicht abgeschlossen, so wenig wie die Schule davor. Das
+		   nimmt zugleich einen Abschluss zurück, den niemand ausgestellt hat:
+		   Institution plus Zeitraum ohne Ergebnis liest sich als bestanden. */
+		detail:
+			"Einjährig angelegt, nach sieben von zwölf Monaten abgebrochen. Weder diese Schule noch das Technische Gymnasium davor habe ich beendet — das Erste, was ich abgeschlossen habe, war die Ausbildung.",
 		start: "2019-08",
 		end: "2020-02",
 		logo: "/GSR.webp"

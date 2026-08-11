@@ -1920,7 +1920,18 @@ export const education: EducationEntry[] = [
 	{
 		id: "bfe",
 		institution: "Einjährige Berufsfachschule für Elektrotechnik",
-		detail: "One-year full-time vocational school, electrical engineering.",
+		/* THE CONTRADICTION THIS LINE EXISTED TO CREATE, CLOSED.
+		   "Einjährige" is in the school's registered name and cannot be
+		   edited away, while the dates beside it ended after seven months —
+		   so the card called itself one-year and printed seven, in both
+		   locales, and a reader who noticed had no way to resolve it except
+		   against the wall's credibility. The owner supplied the resolution
+		   on 2026-08-11: it was not completed, and neither was the school
+		   before it. Stating that is not only candour, it removes an implied
+		   qualification: an institution and a date span with no outcome
+		   printed beside them reads as a course finished. */
+		detail:
+			"One-year full-time vocational school, electrical engineering. I left after seven of the twelve months. Neither this nor the technical Gymnasium before it was finished — the first thing I completed was the apprenticeship.",
 		start: "2019-08",
 		end: "2020-02",
 		logo: "/GSR.webp"
@@ -1937,7 +1948,7 @@ export const education: EducationEntry[] = [
 		   card that already covers 2019 and read as a correction rather than
 		   a fact. */
 		detail:
-			"Technical upper-secondary school. I left after three months, and the nine months that follow are empty — no school, no work, nothing to point at.",
+			"Technical upper-secondary school. I left after three months without finishing it, and the nine months that follow are empty — no school, no work, nothing to point at.",
 		start: "2018-08",
 		end: "2018-10",
 		logo: "/GSR.webp"

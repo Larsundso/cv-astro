@@ -1707,9 +1707,29 @@ const JOIN_STACK = {
 		   now reveals on both axes and the desktop reveal is the shared one.
 		   Padding loses its inline half so the name starts on the 12px
 		   gutter, where the wall's own text edge is. */
+		/* THE THREE DECLARATIONS THAT WERE MISSING, AND THE COMMENTS ABOVE
+		   CLAIMED THEY WERE HERE. This rule overrode background, shadow and
+		   padding and never unset the base rule's `width: 1px; height: 1px;
+		   clip-path: inset(50%)`, so below 1376px the current district's name
+		   measured 1x8px and printed in ZERO of 31 phone frames — while
+		   `aria-current` was set correctly throughout. Assistive technology
+		   was told where the reader stood and sighted readers were not, which
+		   is the exact inversion this reveal was written to end.
+		   Two disciplines disagreed about what had shipped; a third measured
+		   it across eleven widths and settled it. The destination geometry
+		   was already designed, positioned and documented in the top row —
+		   only the reveal was absent.
+		   NOTE the band this does NOT fix: 1024-1375px still has no sign at
+		   all, because the desktop chit is gated at 86rem for a measured
+		   reason (1,173px2 of overlap on body text at 1024, 187 at 1200, 0 at
+		   1440). That band needs its own home for the name and is a separate
+		   decision, deliberately not bundled here. */
 		.rail__tick:hover .rail__label,
 		.rail__tick:focus-visible .rail__label,
 		.rail__tick[aria-current="true"] .rail__label {
+			width: auto;
+			height: auto;
+			clip-path: none;
 			background: none;
 			box-shadow: none;
 			padding: calc(var(--baseline) * 0.5) 0;

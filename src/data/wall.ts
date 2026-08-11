@@ -1000,6 +1000,23 @@ export const timeline: TimelineEntry[] = [
 			"Ayako had been running since the December before, and it did not stop."
 		]
 	},
+	/* The other fifteen months. This row closes the last stretch of what the
+	   wall used to leave as thirty blank ones, and it is written to be kept
+	   rather than apologised for: the duties are quoted from the
+	   Arbeitszeugnis, and the last of them — training new staff in — is a
+	   trust signal a till job is not assumed to carry. No age is asserted
+	   anywhere in it; the wall has no birth date to substantiate one. */
+	{
+		id: "esso-2021",
+		dateLabel: "06/2021",
+		sort: "2021-06",
+		title: "Fifteen months on the till",
+		body: [
+			"Cashier at an Esso station, June 2021 to August 2022, continuous up to the day the apprenticeship started. Not a development job, and on the wall for the same reason the gap above it is: leaving it out would leave a hole where fifteen months of work actually were.",
+			"The Arbeitszeugnis lists advising customers and running sales conversations, keeping the goods on the shelves, working the scanner tills and balancing the cash at the end of a shift, presenting and pricing stock — and training new staff in.",
+			"That last one is the part I would keep. The new people were handed to me."
+		]
+	},
 	{
 		id: "angel-bots-era",
 		dateLabel: "2021–2022",
@@ -1848,6 +1865,30 @@ export const employment: EmploymentEntry[] = [
 		end: "2025",
 		note: `Ravensburg. Three years employed in the IHK dual system; ${ihk.weeklyReports} countersigned weekly training records; final exam cycle ${ihk.apprenticeship.examCycle}.`,
 		logo: "/CI.webp"
+	},
+	/* THE COMPANY FIELD IS THE CAREFUL PART.
+	   The Arbeitszeugnis reads "Esso-Station" plus the operator's name: a
+	   German forecourt is a franchise, so the brand is not the Arbeitgeber.
+	   The operator's name is deliberately NOT printed — a franchise GmbH is
+	   findable in the Handelsregister with its address, and that pins a town.
+	   The wall's standing rule is region level only. "Esso-Station" is what
+	   the certificate itself constructs and names no legal person falsely.
+	   NO LOCATION on this entry either, for the same reason: Columbus can
+	   carry "Ravensburg" because a company has a public registered seat; a
+	   single petrol station is a home address. */
+	{
+		id: "esso",
+		company: "Esso-Station",
+		role: "Cashier",
+		start: "2021-06",
+		end: "2022-08",
+		note: "Retail forecourt. Fifteen months, continuous up to the day the apprenticeship started.",
+		logo: "/esso-station-initials.svg",
+		/* Asset EXISTS (public/esso-station-initials.svg) — a hand-drawn "E"
+		   matching raleo-initials.svg stroke for stroke, deliberately not the
+		   Esso brand mark: that is a registered trademark, and the employer
+		   on the Zeugnis is a franchise operator rather than the brand. No
+		   logoNote, because nothing is outstanding. */
 	}
 ];
 

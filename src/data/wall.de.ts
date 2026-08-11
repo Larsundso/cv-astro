@@ -343,6 +343,21 @@ export const timeline: TimelineEntry[] = [
 			"Ayako lief seit dem Dezember davor, und sie lief weiter."
 		]
 	},
+	/* Die anderen fünfzehn Monate. Im Deutschen steht die Tätigkeitsliste
+	   praktisch wortgleich zum Arbeitszeugnis — der Beleg IST hier der
+	   Wortlaut, und übersetzen hieße ihn schwächen. Kein Alter, nirgends:
+	   die Wand hat kein Geburtsdatum, mit dem sie eines belegen könnte. */
+	{
+		id: "esso-2021",
+		dateLabel: "06/2021",
+		sort: "2021-06",
+		title: "Fünfzehn Monate an der Kasse",
+		body: [
+			"Kassierer an einer Esso-Station, Juni 2021 bis August 2022, durchgehend bis zum Tag des Ausbildungsbeginns. Keine Entwicklerstelle — und aus demselben Grund auf der Wand wie die Lücke darüber: ohne sie klaffte dort ein Loch, in dem fünfzehn Monate Arbeit stecken.",
+			"Das Arbeitszeugnis nennt das Beraten von Kunden, das Führen von Verkaufsgesprächen, das Sicherstellen des Warenangebots, das Bedienen von Scannerkassen, Kassenabrechnungen, das Präsentieren und Auszeichnen von Waren sowie das Einlernen und Anleiten von neuen Mitarbeitern.",
+			"Das Letzte davon würde ich behalten. Die Neuen wurden mir übergeben."
+		]
+	},
 	{
 		id: "angel-bots-era",
 		dateLabel: "2021–2022",
@@ -1051,6 +1066,23 @@ export const employment: EmploymentEntry[] = [
 		end: "2025",
 		note: `Ravensburg. Drei Jahre angestellt im dualen IHK-System; ${ihk.weeklyReports} gegengezeichnete wöchentliche Ausbildungsnachweise; Abschlussprüfung ${ihk.apprenticeship.examCycle}.`,
 		logo: "/CI.webp"
+	},
+	/* Siehe den Kommentar im englischen Original: Das Arbeitszeugnis nennt
+	   „Esso-Station“ plus den Namen des Betreibers. Der Betreibername steht
+	   hier bewusst NICHT — eine Franchise-GmbH ist im Handelsregister samt
+	   Anschrift auffindbar, und das legt den Wohnort offen. Ebenso kein Ort
+	   in der Notiz. */
+	{
+		id: "esso",
+		company: "Esso-Station",
+		role: "Kassierer",
+		start: "2021-06",
+		end: "2022-08",
+		note: "Tankstelle mit Shop. Fünfzehn Monate, durchgehend bis zum Tag des Ausbildungsbeginns.",
+		logo: "/esso-station-initials.svg",
+		/* Asset vorhanden (public/esso-station-initials.svg) — ein „E“ im
+		   selben Strich wie raleo-initials.svg, bewusst nicht die Wortmarke
+		   von Esso. Kein logoNote, weil nichts offen ist. */
 	}
 ];
 

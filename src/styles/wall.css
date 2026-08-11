@@ -997,3 +997,43 @@ html:lang(de) {
     column-gap: calc(var(--baseline) * 2);
   }
 }
+
+/* THE STRINGS THAT STILL OVERRUN A 320px COLUMN AT LARGE TEXT. Measured at
+   root 24 on a 320px viewport: "Fachinformatiker für Anwendungsentwicklung"
+   overruns by 26px under 1.4.12 text-spacing overrides, and the stack lines
+   and provenance datelines overrun without them. These are unbreakable by
+   construction — one long German compound, or a ` · `-joined technology list
+   with no space the breaker will take — so the only honest remedy is to let
+   the browser break inside a word rather than let `overflow-x: clip` delete
+   the line silently. `anywhere`, not `break-word`: `break-word` does not
+   affect the intrinsic min-content size, so a flex or grid track sized from
+   content stays too wide and the run still overflows. */
+.stack,
+.rf-headdates,
+.practice__github-src,
+.hero-claim {
+  overflow-wrap: anywhere;
+}
+
+/* THE LAST-RESORT BREAK, AND WHY IT DOES NOT UNDO `.proper`.
+   At root 32 on a 320px viewport a single German compound is wider than the
+   column: "Fachinformatiker" is sixteen characters at ~19px each — about
+   304px before any padding. No amount of gutter tuning fits it, so the only
+   choices are to break inside the word or to lose the line, and
+   `overflow-x: clip` makes losing it SILENT. Measured before this rule, at
+   320/root 32: "Fachinformatiker für Anwendungsentwicklung" overran by
+   253px and "Columbus Interactive GmbH" by 200px.
+   `anywhere` rather than `break-word` because only `anywhere` reduces the
+   intrinsic min-content size, so a track sized from its content also
+   narrows; `break-word` leaves the box too wide and the run still overflows.
+   It does NOT undo `.proper`. That class exists to stop the German
+   hyphenation dictionary breaking a legal name mid-word and printing
+   "Columbus In-/teractive GmbH" — a wrong company name — at ordinary sizes,
+   and it still does, because `overflow-wrap` only acts when the word cannot
+   fit at all. A name broken without a hyphen at 200 % zoom is a name the
+   reader can still read; a name deleted is not. */
+@media (max-width: 63.9375rem) {
+  .pin-card :is(p, li, h1, h2, h3, h4, dd, dt, span, a) {
+    overflow-wrap: anywhere;
+  }
+}

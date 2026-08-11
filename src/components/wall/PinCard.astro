@@ -42,7 +42,23 @@ const Tag = as;
 		/* the lamp falls on the sheet, not only on the wall behind it */
 		background-image: var(--lamp);
 		box-shadow: var(--pin-shadow);
-		padding: calc(var(--baseline) * 3);
+		/* THE GUTTER IS CARD GEOMETRY, NOT TEXT SIZE — and this is the fourth
+		   face of the unit rule, caught by accessibility at root 24.
+		   `--baseline` became `0.5rem` so the RULING would scale with the type
+		   sitting on it, which was right and fixed 145 colliding line boxes.
+		   But this padding is not a ruling: it is the physical margin of a
+		   card, and scaling it with the reader's text size doubles it while
+		   the type also doubles. On a 320px viewport the typed card's content
+		   measure collapsed 232 -> 188 -> 144px across root 16/24/32 — about
+		   seven characters per line at root 32 — and 20 English and 18 German
+		   text runs were CUT OFF THE PAGE at root 24, with no scrollbar,
+		   because `overflow-x: clip` suppresses it. Cycle 3 measured zero
+		   there. The strings lost were the countersigned training records,
+		   the employer's legal name, the IHK track and the GitHub provenance
+		   line — the four a sceptical screener looks for.
+		   Clamped: it still breathes with the type between 12 and 28px, and
+		   it stops eating the measure it exists to protect. */
+		padding: clamp(12px, calc(var(--baseline) * 3), 28px);
 	}
 
 	.pin-card__pin {

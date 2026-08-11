@@ -813,7 +813,27 @@ export const hero = {
 		   discovers the difference later feels handled.
 		   wall.de.ts is NOT glossed and must not be: a German reader needs
 		   none, and that asymmetry is correct bilingual practice. */
-		"Fachinformatiker für Anwendungsentwicklung (IHK) — the German state-recognised vocational qualification in application development — and full-stack developer at Raleo Digital GmbH, remote.",
+				/* THE ONLY BOLD LINE WITHOUT A DURATION WAS THE ONE DESCRIBING HIS JOB.
+		   Measured across both locales and both viewports: every other line in
+		   the identity card's bold band carries a span — the bot's 6 years
+		   8 months, the 12/2019 to 2026-08-03 range — and the paid post
+		   carried none. So a screener anchoring on the first viewport had one
+		   professional date to work from, "qualified 2025", and booked the
+		   band from it. The paid tenure did not render until 32.8 % depth.
+		   Five hiring judges reached the same conclusion by different routes;
+		   HR named the mechanism.
+		   Both figures were already on the page — snapshot.ts:347 gives
+		   2022-09-01 and the employer card gives July 2025 — so nothing here
+		   is new, only surfaced.
+		   "Employed in software development since 09/2022" is deliberately
+		   NOT "in commercial software development", and not a years-of-
+		   experience claim. He was employed and shipping client work from that
+		   date, which is factual; whether an Ausbildung counts as
+		   professional experience is a judgement a German screener makes for
+		   themselves, and the very next line — "Qualified 2025, after three
+		   years of in-company training" — hands them what they need to make
+		   it. The wall states the span and declines to price it. */
+		"Fachinformatiker für Anwendungsentwicklung (IHK) — the German state-recognised vocational qualification in application development — and full-stack developer at Raleo Digital GmbH since 07/2025, remote. Employed in software development since 09/2022.",
 		`I run a Discord bot with ${users} users on ${servers} servers — solo, in production since ${ayako.inProductionSince}.`,
 		/* NO SENTENCE ON THIS PAGE MADE LARS THE SUBJECT OF A DURATION, and
 		   that is why the apprenticeship letterhead kept winning the seniority
@@ -999,7 +1019,12 @@ export const timeline: TimelineEntry[] = [
 	},
 	{
 		id: "raleo-2025",
-		dateLabel: "2025",
+		/* MM/YYYY LIKE EVERY OTHER STAMP. This one read "2025" while 12/2019,
+		   09/2022 and 05/2025 sit on the cards around it — and it is the one
+		   date a German screener interrogates, because a bare year on the
+		   current post reads as hiding an adjacency to the apprenticeship's
+		   end. The month was already published in the card body. */
+		dateLabel: "07/2025",
 		sort: "2025-06",
 		title: "Raleo Digital GmbH",
 		/* THE CARD FOUR HIRING JUDGES INDEPENDENTLY NAMED AS THE PROBLEM.

@@ -192,7 +192,13 @@ export const hero = {
 	 *  eine Frage der RENDER-Reihenfolge und gehört Hero.astro; hier bleibt
 	 *  es beim Anhängen. */
 	intro: [
-		"Fachinformatiker für Anwendungsentwicklung (IHK) und Full-Stack-Entwickler bei der Raleo Digital GmbH, remote.",
+				/* Siehe wall.ts: Als einzige Zeile im fetten Band trug ausgerechnet
+		   die zum Job keine Zeitspanne, also rechnete ein Screener vom
+		   Abschlussjahr aus. Beide Daten standen bereits auf der Seite.
+		   "angestellt" statt "Berufserfahrung": eine Ausbildung als
+		   Berufserfahrung zu verkaufen, entscheidet der Lesende selbst — die
+		   nächste Zeile nennt sie ausdrücklich. */
+		"Fachinformatiker für Anwendungsentwicklung (IHK) und seit 07/2025 Full-Stack-Entwickler bei der Raleo Digital GmbH, remote. Angestellt in der Softwareentwicklung seit 09/2022.",
 		`Ich betreibe einen Discord-Bot mit ${users} Nutzern auf ${servers} Servern — allein, seit ${ayako.inProductionSince} im Produktivbetrieb.`,
 		/* Siehe wall.ts: kein Satz dieser Seite machte Lars zum Subjekt einer
 		   Dauer. „Das sind …“ ist kein Bindewort, sondern eine anaphorische
@@ -378,7 +384,12 @@ export const timeline: TimelineEntry[] = [
 	},
 	{
 		id: "raleo-2025",
-		dateLabel: "2025",
+		/* MM/YYYY LIKE EVERY OTHER STAMP. This one read "2025" while 12/2019,
+		   09/2022 and 05/2025 sit on the cards around it — and it is the one
+		   date a German screener interrogates, because a bare year on the
+		   current post reads as hiding an adjacency to the apprenticeship's
+		   end. The month was already published in the card body. */
+		dateLabel: "07/2025",
 		sort: "2025-06",
 		title: "Raleo Digital GmbH",
 		/* Siehe wall.ts: die Karte, die vier Hiring-Gutachter unabhängig

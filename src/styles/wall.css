@@ -724,6 +724,55 @@ main {
    gives it 6.23 to 8.58. They are not remapped here because at the L* this
    stock allows they would all collapse into one another; annotation colour
    belongs on paper. */
+/* THE KRAFT CEILING — A STOCK IS A RULE, AND A RULE NEEDS A LIMIT.
+   The half-tone worked and then overshot, and both halves were measured.
+
+   It worked: the register L* 35-65 went from 2.80 % of the page to 7.21 %,
+   and masking the kraft rectangles drops it back to 1.96 % — the stock is
+   the whole of the rise. Two frames that did not previously exist are now
+   the best-composed rectangles on the site.
+
+   It overshot where the sheet is large. `.telemetry__prov` renders 811x928
+   at 1440 (58.1 % of a frame) and 373x1495 at 390 — 169 % OF A PHONE
+   SCREEN. Measured on those frames: 55.51 % kraft at 1440 with amplitude
+   p5->p95 of 20.4 L*, the second-flattest rectangle on the wall and FLATTER
+   than the 28.6 L* median that got this wall called inert in the first
+   place; and 94.73 % kraft on one phone frame, where there is no board in
+   the rectangle at all.
+
+   That is the same failure the stock was prescribed to cure, relocated one
+   band up: `--flyer-stock` made a plateau at L* 19.8, and kraft at these
+   sizes makes one at L* 58. A half-tone that covers the frame is not a
+   register, it is the field.
+
+   So the stock is capped rather than withdrawn: no kraft sheet may exceed a
+   third of the SMALLEST supported viewport (390x844 = 109,720px2).
+
+   THE CEILING IS ENFORCED BY WHERE THE CLASS IS APPLIED, not by a max-height
+   here. Capping the box and scrolling inside it would hide content behind a
+   scroll container needing its own tab stop and accessible name — a defect
+   this wall has already paid for once, on the chart tables. A sheet that
+   breaches sheds the stock or is split; it is never clipped.
+
+   AND THE HONEST STATE AFTER APPLYING IT: 3 kraft cards, 0 breaches, but
+   only 3 of 19 desktop frames carry any — DOWN from 4. The ceiling and the
+   coverage target pull against each other, and this wall does not currently
+   have enough small typed cards to satisfy both. Three candidates failed
+   once measured at 390, where a card that is 20.8 % of a desktop frame
+   reflows to 76.1 % of a phone one: `.spec-card` 550x491 desktop / 76.1 %
+   phone, `.g-breadth` 495x442 / 57.4 %, `.telemetry__prov` 811x928 / 169 %.
+
+   So the regression is closed and the original finding is NOT. The
+   structural fix is the one the discipline prescribed and it is not a class
+   change: split `.telemetry__prov` into its three natural parts — the
+   measurement date, the WakaTime reconstruction, the drift note — as three
+   separate kraft sheets with bare board between them, and fold
+   `.practice__github`'s repository list into the `.fold--tail` the section
+   already uses. Several compliant sheets instead of two oversized ones, and
+   separate sheets with board between them is what a pinboard looks like
+   anyway. Until then the wall has a ceiling without a register: the safer of
+   the two failures, and not the finished job. */
+
 .pin-card.pin-card--kraft.pin-card--kraft {
   --ink: oklch(21.5% 0.012 60);
   --ink-soft: oklch(24% 0.012 60);

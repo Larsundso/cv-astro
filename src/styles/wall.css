@@ -982,13 +982,14 @@ html:lang(de) {
   width: 100%;
   max-width: 78rem;
   margin-inline: auto;
-  padding-inline: calc(var(--baseline) * 3);
+  padding-inline: 24px;
 }
 
 .wall-grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: calc(var(--baseline) * 3);
+  column-row-gap: calc(var(--baseline) * 3);
+  column-gap: 24px;
   row-gap: calc(var(--baseline) * 8);
 }
 
@@ -1035,5 +1036,33 @@ html:lang(de) {
 @media (max-width: 63.9375rem) {
   .pin-card :is(p, li, h1, h2, h3, h4, dd, dt, span, a) {
     overflow-wrap: anywhere;
+  }
+}
+
+
+/* THE TILT IS A CONSTANT THAT DOES NOT KNOW WHAT IT IS ROTATING, and three
+   disciplines converged on it independently this cycle.
+   A rotated box's horizontal spread is height x sin(theta), so 1.2deg tuned
+   on a short card becomes a layout defect on a long one — and card height is
+   unbounded, because it is content divided by measure. Measured at 390px:
+   +44px on a 2,104px card (right edge 388 on a 390 viewport — tuned exactly
+   to the default with 2px to spare), +119.6px at root 24, and +357.5px on a
+   17,072px card at root 32, putting its right edge at 520.7 on a 390px
+   viewport. Predicted h x sin(1.2deg) matches the measurement to 0.1px, so
+   this is arithmetic rather than an accident.
+   `overflow-x: clip` then deletes what hangs off, with no scrollbar. So the
+   tilt was a decoration that silently ate text at large type.
+   Bounded by width rather than by height because a block-size container
+   query needs `container-type: size`, which forces layout containment on
+   every card and is a far larger change than the defect warrants. Below
+   64rem is where tall cards actually occur: the same content in a narrower
+   measure is what makes them tall in the first place.
+   The tilt survives where a reader can see it IS a tilt. DESIGN.md:202 says
+   "rotation is layout" and stops before pricing it; the bill is the sine
+   term, and a rule that fixes theta without bounding height has an unpriced
+   term in it. */
+@media (max-width: 63.9375rem) {
+  .pinned {
+    rotate: none;
   }
 }

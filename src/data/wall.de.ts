@@ -397,7 +397,12 @@ export const timeline: TimelineEntry[] = [
 			   Vergangenheitsform, sonst unverändert: Datum, Betrieb, Niveau und
 			   Berufsbezeichnung stehen wie zuvor. */
 			`${ihk.apprenticeship.start}: Ich habe drei Jahre Ausbildung zum ${ihk.profession} (IHK, DQR-Niveau 4) gemacht, angestellt bei der ${ihk.trainingCompany}.`,
-			`${ihk.weeklyReports} gegengezeichnete wöchentliche Ausbildungsnachweise, Nr. 0–71 — jeder einzelne von jemand anderem gelesen und unterschrieben. Berufsschule: ${ihk.vocationalSchool}. Abschlussprüfung: ${ihk.apprenticeship.examCycle}.`
+			`${ihk.weeklyReports} gegengezeichnete wöchentliche Ausbildungsnachweise, Nr. 0–71 — jeder einzelne von jemand anderem gelesen und unterschrieben. Berufsschule: ${ihk.vocationalSchool}. Abschlussprüfung: ${ihk.apprenticeship.examCycle}.`,
+			/* Mittelpunktform mit Absicht — daran erkennt isRecordLine
+			   Datensatzmaterial statt Fließtext, und eine Zeugnisangabe IST
+			   Datensatzmaterial. Stufe UND GER-Niveau, weil eine deutsche
+			   Personalabteilung „Stufe III“ liest und alle anderen „B2“. */
+			"KMK-Fremdsprachenzertifikat · Englisch · Stufe III (GER B2) · Elektronikschule Tettnang · bestanden 2025"
 		]
 	},
 	{
@@ -1102,6 +1107,10 @@ export const education: EducationEntry[] = [
 	{
 		id: "est",
 		institution: "Elektronikschule Tettnang",
+		/* DIESES `detail` WIRD NICHT GERENDERT — siehe den Kommentar im
+		   englischen Original: `est` steht in MERGED_EDUCATION_IDS und fällt
+		   damit aus der Schulkarte, der einzigen Stelle, die `detail` druckt.
+		   Was hier steht, erscheint nirgends. */
 		detail: "Berufsschule der Ausbildung.",
 		start: "2022-09",
 		end: "2025-07",

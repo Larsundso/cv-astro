@@ -1043,7 +1043,17 @@ export const timeline: TimelineEntry[] = [
 			   Ravensburg", so the proposed wording would have printed the town
 			   twice on the card that evidences the apprenticeship. */
 			`${ihk.apprenticeship.start}: I joined ${ihk.trainingCompany} for three years, training as ${ihk.profession} (IHK, ${ihk.track}).`,
-			`${ihk.weeklyReports} countersigned weekly training records, Nr. 0–71 — every one of them read and signed by someone else. Vocational school: ${ihk.vocationalSchool} (${ihk.vocationalSchoolEn}). Final exam cycle: ${ihk.apprenticeship.examCycle}.`
+			`${ihk.weeklyReports} countersigned weekly training records, Nr. 0–71 — every one of them read and signed by someone else. Vocational school: ${ihk.vocationalSchool} (${ihk.vocationalSchoolEn}). Final exam cycle: ${ihk.apprenticeship.examCycle}.`,
+			/* Middot form deliberately: that is what makes isRecordLine treat
+			   this as typed record material rather than essay, and a credential
+			   citation IS record material. The Stufe carries its CEFR level
+			   because the two are not interchangeable to the same reader — a
+			   German HR department reads "Stufe III", everyone else reads "B2"
+			   — and the mapping (I=A2, II=B1, III=B2, IV=C1) is fixed by the
+			   KMK framework, not by this page. B2 is what the certificate
+			   says. This site being written in two languages is not evidence
+			   of a level and does not get to round it up. */
+			"KMK-Fremdsprachenzertifikat · English · Stufe III (CEFR B2) · Elektronikschule Tettnang · passed 2025"
 		]
 	},
 	{
@@ -1912,6 +1922,13 @@ export const education: EducationEntry[] = [
 	{
 		id: "est",
 		institution: "Elektronikschule Tettnang",
+		/* THIS `detail` IS NOT RENDERED. `est` is in MERGED_EDUCATION_IDS
+		   (Timeline.astro:110), so it is filtered out of the schooling card —
+		   and the schooling card is the ONLY place `detail` is printed
+		   (Timeline.astro:591). The KMK certificate was written here first
+		   and never reached the HTML; it now lives on the apprenticeship row,
+		   which is where this school’s facts actually surface. Anything added
+		   here is dead copy. */
 		detail: "The apprenticeship’s vocational school (Berufsschule).",
 		start: "2022-09",
 		end: "2025-07",

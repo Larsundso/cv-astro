@@ -2340,12 +2340,27 @@ const JOIN_STACK = {
 			   there — small, and exactly the class of gap the 480 → 200 change
 			   above was made to close.
 			   MEASURED AT ROOT 16, and it is a root-16 statement: at root 24
-			   on a narrow wall the nav's bottom sits at 307, so the strip
+			   on a narrow wall the nav's bottom sits at 305, so the strip
 			   arrives while the directory is still fully on screen. That was
 			   already true at 200 (nav bottom 257 before the compression), so
-			   nothing regresses — but do not read the 8px handover as holding
-			   at every type size, because it does not. */
-			rail.dataset.visible = String(window.scrollY > 170);
+			   nothing regresses — but do not read the handover as holding at
+			   every type size, because it does not.
+
+			   170 WAS WRONG, AND THE COMMENT ABOVE READ ITS OWN SIGN
+			   BACKWARDS. It banked "8px" of handover from the arithmetic
+			   162 - 170, which is MINUS eight: the nav's last pixel is eight
+			   pixels ABOVE the fold when the strip arrives, and being above
+			   the fold is being gone, not being present. The head then
+			   compressed three pixels further than the comment recorded, so
+			   the real figure was -12. Bisected on the live flag (band.mjs,
+			   390 x 844): nav bottom at document y 159, the rail turning on
+			   at 171, in BOTH locales — twelve pixels at the DEFAULT text
+			   size with the directory gone and the strip not yet there,
+			   which is the one thing the 480 -> 200 -> 170 sequence existed
+			   to prevent. 150 flips at 151 and leaves 8px of genuine
+			   overlap. It costs 20px of hero and buys the handover the
+			   comment always claimed. */
+			rail.dataset.visible = String(window.scrollY > 150);
 
 			/* NO TICK WAS CURRENT FOR THE FIRST 2,463px. The rule was "the
 			   last graduation the index has passed", and the index has

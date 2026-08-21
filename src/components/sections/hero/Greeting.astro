@@ -306,12 +306,29 @@ const drift = (i: number) => {
 		   suppresses the scrollbar. The name silently truncated to "Lars Boes"
 		   at a documented browser setting: the wall's own thesis is this man,
 		   named, signed, and it misstated the name with no signal at all.
-		   `min(..., 20cqi)` re-imposes the container as the outer bound, so
-		   the floor can never outgrow the paper regardless of the root. The
-		   rule this belongs to: THE UNIT MUST MATCH WHAT THE CONSTRAINT IS
-		   ABOUT. Fitting inside a card is a container constraint, so it is
-		   expressed in container units and nothing else. */
-		--sig-size: min(clamp(2.625rem, 17cqi, 5.625rem), 20cqi);
+		   The rule this belongs to: THE UNIT MUST MATCH WHAT THE CONSTRAINT
+		   IS ABOUT. Fitting inside a card is a container constraint, so it is
+		   expressed in container units and nothing else.
+
+		   THE DECLARATION DID NOT KEEP THAT RULE, and the comment above it
+		   claimed it did. `clamp(2.625rem, 17cqi, 5.625rem)` carries a rem
+		   FLOOR that rises with the root, and `20cqi` was an outer bound
+		   nobody measured — so two non-container terms outranked the one
+		   container term that was calibrated. The name stopped truncating
+		   and started WRAPPING instead: "Lars" over "Boese", which is not a
+		   signature at all. Measured (fit.mjs, both viewports, roots 16-32):
+		   the name's natural width is a stable 5.65x its font-size, so the
+		   largest size that fits is 100/5.65 = 17.6cqi. At 390 the rem floor
+		   took root 20 (52.4px against 46.1 available) and the 20cqi cap took
+		   24 and 32; at 320 the cap governs at EVERY root, so the wall's own
+		   name wrapped at the DEFAULT text size and no probe had looked.
+		   17cqi is the measured bound with ~3 % headroom. The 5.625rem cap
+		   stays: it can only ever make the name smaller, so it cannot
+		   overflow. Nothing changes at 390/root 16 — that cell was already
+		   governed by 17cqi and still renders 47.26px.
+		   CALIBRATED TO THIS STRING. 5.65x is a property of "Lars Boese";
+		   a longer signature needs the ratio re-measured, not assumed. */
+		--sig-size: min(17cqi, 5.625rem);
 	}
 
 	/* The salutation is the quiet half of the card: the same pen, a step

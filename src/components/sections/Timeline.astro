@@ -757,7 +757,19 @@ const links = layout.map(({ side }, i) => {
 		position: relative;
 		z-index: 1;
 		width: fit-content;
-		margin-left: calc(var(--baseline) * 5);
+		/* BOTH HALVES OF THIS PAIR OVERRAN AT LARGE TEXT, and they compounded.
+		   The indent is five baselines, and --baseline is 0.5rem, so it is
+		   40px at root 16 and 80px at root 32 — 80 of the 272px a 320px
+		   viewport has to give, before the flyer asks for anything. Then
+		   `fit-content` sizes to the heading rather than to what is left, so
+		   the wrapper measured 336px wide with its right edge at 440 inside a
+		   parent whose right edge is 296, and "Werdegang" — set at 72px —
+		   ran 67px off the page. Capped, the indent is unchanged at root 16
+		   and stops climbing above it; max-inline-size makes `fit-content`
+		   mean "as wide as the content OR the room available, whichever is
+		   smaller", which is what it was always assumed to mean here. */
+		max-inline-size: 100%;
+		margin-left: min(calc(var(--baseline) * 5), 40px);
 	}
 
 	/* the flyer h2 is PinCard's --step-5; nothing to re-declare here */

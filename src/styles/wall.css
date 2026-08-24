@@ -997,9 +997,28 @@ html:lang(de) {
   row-gap: calc(var(--baseline) * 8);
 }
 
+/* THE GAP THAT ATE THE PAGE.
+   This rule exists to NARROW the gutter on small screens — 24px down to two
+   baselines. But `--baseline` is 0.5rem, so the "reduction" is 16px at root
+   16 and 32px at root 32, i.e. it becomes an ENLARGEMENT at exactly the text
+   size where there is least room. With 12 columns there are 11 gaps, and at
+   root 32 on a 320px viewport that is 11 x 32 = 352px of gutter inside a
+   272px content box. The grid was wider than the page before a single word
+   was laid into it, and the tracks proved it: computed columns came out at
+   8px each at root 16, 0.65625px at root 24 and 0px at root 32.
+   That cost 102 lost text runs in English and 123 in German — every one of
+   them silently, because `overflow-x: clip` hides both the scrollbar and the
+   scrollWidth delta. Diagnosis went through four wrong hypotheses first
+   (grid-item min-width, card min-width, heading breaking, stamp nowrap);
+   none moved the count by more than two, because none of them was the box
+   that was too wide. Capping the gap moved it from 102 to 4.
+   THE UNIT RULE, AGAIN: a gutter is device room, so it is priced in px and
+   capped there. The min() keeps root 16 exactly as it was — 16px — and
+   stops the value climbing with a setting that does not give the page any
+   more width to spend. */
 @media (max-width: 48rem) {
   .wall-grid {
-    column-gap: calc(var(--baseline) * 2);
+    column-gap: min(calc(var(--baseline) * 2), 16px);
   }
 }
 

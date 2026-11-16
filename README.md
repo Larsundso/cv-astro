@@ -1,26 +1,42 @@
 # lars-dev.org
 
-Source of [lars-dev.org](https://lars-dev.org) — the portfolio and CV of Lars Böse (Larsundso).
+Source of [lars-dev.org](https://lars-dev.org), the portfolio and CV of Lars Böse (Larsundso).
 
-The site is designed as **Der Rote Faden**: a pinboard wall of typed index cards, polaroids, and handwritten annotations on cork, stitched chronologically by one crimson thread from December 2019 to the latest commit. Every figure on the wall carries its unit and an as-of date.
+One prerendered page set as a printed atlas. Two parts of it are drawn with three.js: a globe in the
+hero that shows the gateway events of the Discord bot Ayako by type and approximate origin, and a
+relief chart further down that shows the hours WakaTime has tracked as islands, one per language or
+project.
 
 ## Stack
 
-- [Astro 5](https://astro.build) — static output, all sections prerendered
-- Svelte 5 — a single `client:visible` island (the VR wireframe sketch, three.js quarantined in its own lazy chunk)
-- UnoCSS — utilities bound to the CSS custom properties in `src/styles/wall.css`
-- Deployed on Cloudflare
+- [SvelteKit 3](https://svelte.dev/docs/kit) with `adapter-static`: the whole site is prerendered to `dist/`
+- Svelte 5 in runes mode
+- UnoCSS
+- three.js, loaded lazily for the globe and the hours chart; without WebGL2 the globe falls back to a still image and the chart to its table
 
 ## Data
 
-Headline telemetry is fetched from the WakaTime API at build time when `WAKA_KEY` is set (see `.env.example`). Without it, the build renders the checked-in snapshot in `src/data/snapshot.ts`, dated 2026-08-03 and labeled as such on the page. Site copy lives in `src/data/wall.ts`; a re-pull updates every figure through one file.
+Every visible string lives in `src/lib/content.ts`. Two scripts run before each build and refresh the
+figures. Each keeps the last good file when a read fails, so the build never depends on the network.
+
+- `scripts/stats.mjs` reads Ayako's public statistics into `src/lib/stats.json` and the globe's
+  snapshot into `static/globe-snapshot.json`.
+- `scripts/waka.mjs` reads the tracked hours into `src/lib/hours.json`. It needs `WAKA_TOKEN`, a
+  WakaTime OAuth access token with the scope `read_stats` (see `.env.example`). WakaTime's API keys
+  no longer read anything. A language or a project is written to the file only with more than 10
+  hours, and the names listed in `STRUCK` are never written.
+
+The globe's live stream comes from `https://api.ayakobot.com/bot` and answers only to lars-dev.org,
+so a local build shows the snapshot. Set the environment variable `GLOBE_API` at build time to point
+the globe at another base.
 
 ## Commands
 
 ```sh
 pnpm install
 pnpm dev      # dev server
-pnpm build    # static build to dist/
+pnpm check    # svelte-check
+pnpm build    # refresh the data, then build to dist/
 pnpm preview  # serve the build locally
 ```
 

@@ -1,25 +1,7 @@
 {
- "extends": "astro/tsconfigs/strict",
- "include": [".astro/types.d.ts", "**/*"],
- "compilerOptions": {
-  "target": "ESNext",
-  "jsx": "preserve",
-  "lib": ["DOM", "ESNext"],
-  "baseUrl": ".",
-  "module": "ESNext",
-  "moduleResolution": "bundler",
-  "paths": {
-   "~/*": ["src/*"]
-  },
-  "resolveJsonModule": true,
-  "allowJs": true,
-  "strict": true,
-  "strictNullChecks": true,
-  "noUnusedLocals": true,
-  "esModuleInterop": true,
-  "forceConsistentCasingInFileNames": true,
-  "isolatedModules": true,
-  "skipLibCheck": true
- },
- "exclude": ["dist", "node_modules"]
+	"extends": "$app/tsconfig",
+	"compilerOptions": {
+		"strict": true
+	},
+	"include": ["src", "vite.config.ts"]
 }

@@ -16,9 +16,8 @@
 	let liveRate = $state<number | null>(null);
 	// real events are arriving: every streak drawn now is one of them
 	let streaming = $state(false);
-	// the event the ring took last, in Discord's own name; it stays 1.4 s so it can be read
+	// the event the ring took last, in Discord's own name; every event gets its turn
 	let last = $state('');
-	let lastAt = 0;
 	// The second view: the globe opens into one dot for each server.
 	const c = g.census;
 	const STATS = 'https://api.ayakobot.com/v1/bot/stats';
@@ -120,13 +119,8 @@
 					const band = bandOf(dot);
 					if (band >= 0) heard[band]++;
 				}
-				const at = performance.now();
-				if (at - lastAt > 1400) {
-					lastAt = at;
-					// another kind than the one shown gets the turn, so the rare ones are seen too
-					const names = ev.map(([type]) => nameOf(type));
-					last = names.find((n) => n !== last) ?? names[0];
-				}
+				// a batch lands every 250 ms; its events take turns across that gap, so the label runs at the stream's pace
+				ev.forEach(([type], i) => setTimeout(() => (last = nameOf(type)), (i * 250) / ev.length));
 			},
 			rate: (r) => (liveRate = r),
 			roster: (r) => {

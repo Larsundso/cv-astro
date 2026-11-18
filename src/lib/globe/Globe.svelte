@@ -241,7 +241,7 @@
 			{#if liveRate !== null}
 				<span class="on">{g.live}</span>
 				<strong>{fmt(liveRate)}</strong>
-				{g.unit}, {g.liveSpan}.
+				{g.unit}.
 			{:else if !data.placeholder && data.rate !== null}
 				<strong>{fmt(data.rate)}</strong>
 				{g.unit}, {g.measured}
@@ -295,7 +295,6 @@
 					</tbody>
 				</table>
 			{/if}
-			<p>{c.fleetLead} {c.satellites.join(', ')}.</p>
 		{:else}
 			<p>
 				{streaming ? g.eachLive : g.eachStill}

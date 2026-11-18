@@ -138,7 +138,7 @@ export const work = {
 			head: { text: 'Freelance developer', date: '2024-03 to today' },
 			facts: [
 				{
-					text: 'Paid Discord bots and websites for clients, alongside employment. Clients stay unnamed. Two pieces carry names: Ayako Custom-Clients, bespoke bots for specific Discord communities, and Marvel-Overlay, an AI-assisted stream overlay for Marvel Rivals.'
+					text: 'Paid Discord bots and websites for clients, alongside employment.'
 				}
 			] as Fact[]
 		},
@@ -146,7 +146,7 @@ export const work = {
 			head: { text: 'Apprentice application developer, Columbus Interactive GmbH, Ravensburg', date: '2022-09 to 2025-07' },
 			facts: [
 				{ text: 'A three-year IHK apprenticeship in a stack I was handed: CraftCMS, Typo3 and PHP, all new to me.' },
-				{ text: `I worked on ${nSites} production websites there. Each name below opens the site, and all ${nSites} answered when checked.`, date: sitesChecked }
+				{ text: `I worked on ${nSites} production websites there. Each name below opens the site.` }
 			] as Fact[],
 			sites: {
 				groups: [
@@ -157,7 +157,7 @@ export const work = {
 		}
 	] as Job[],
 	before: {
-		summary: 'Before 2022-09: school, two unfinished starts, two gaps and a till',
+		summary: 'Before 2022-09',
 		rows: [
 			{ when: '2010-04 to 2018-07', text: 'BZ St. Konrad Ravensburg, ending with the Mittlere Reife (intermediate school-leaving certificate).' },
 			{ when: '2018-08 to 2018-10', text: 'Technisches Gymnasium Ravensburg (technical upper-secondary school). I left after three months.' },
@@ -187,8 +187,8 @@ export const projects = {
 		facts: [
 			{ text: `${members} members on ${servers} servers, and ${fmt(stats.userInstalls)} user installs`, date: statsDay },
 			{ text: 'Four generations, v1.4, v1.5, v2 and v3, and five Discord libraries: discord.js, Eris, Discordeno, Oceanic.js, now @discordjs/core.' },
-			{ text: '2,325 of 2,330 Ayako-v2 commits are mine. The other 5 are dependabot’s.', date: '2026-08-10' },
-			{ text: 'Free since 2019, with no paid tier. v2 and v3 are source-available under CC BY-NC 4.0. Every outage since 2019, fixed by me.' }
+			{ text: '2,325 of 2,330 Ayako-v2 commits are mine. The other 5 are by dependabot.', date: '2026-08-10' },
+			{ text: 'Free since 2019, with no paid tier. v2 and v3 are source-available under CC BY-NC 4.0.' }
 		] as Fact[],
 		links: [
 			{ label: 'Ayako-v2 on GitHub', href: gh('AyakoBot/Ayako-v2') },
@@ -204,7 +204,6 @@ export const projects = {
 		unit: 'gateway events per second reach Ayako',
 		measured: 'measured',
 		live: 'Live',
-		liveSpan: 'counted over the last 10 seconds',
 		placeholderN: '<N>',
 		placeholderDate: '<date>',
 		placeholderAside: 'placeholder until the first measurement',
@@ -220,7 +219,7 @@ export const projects = {
 			{ ink: 'other', text: 'any other event' }
 		],
 		// the ring round the globe (scene.ts): every event once more, as a mark on the track of its kind
-		ring: 'On the ring every event leaves one more mark, in the field named for its kind, as its streak lands.',
+		ring: 'On the ring every event leaves one more mark.',
 		// the ring's nine fields, in the order of LANES (lanes.ts); "Channels" takes threads too, "Servers" roles, invites and whatever fits no other field
 		fields: ['Messages', 'Members', 'Typing', 'Moderation', 'Reactions', 'Voice', 'Channels', 'Servers', 'Commands'],
 		ringLast: 'Last:',
@@ -234,7 +233,7 @@ export const projects = {
 			fleet: 'across the fleet',
 			read: 'read',
 			live: 'live',
-			each: 'The same dots, laid out by size with the largest in the middle. A dot lights up when its server gets an event. Which dot is which server is shuffled daily.',
+			each: 'The same dots, laid out by size with the largest in the middle. A dot lights up when its server gets an event.',
 			simulated: 'The four sizes are simulated until the real ones are published.',
 			// printed with the roster's own figures and the page's own count: "The 54 largest servers hold 80% of all members and sent 52% of the server events since you opened this page."
 			hold: { lead: 'The', servers: 'largest servers hold', of: 'of all members', sent: 'and sent', events: 'of the server events since you opened this page.' },
@@ -263,9 +262,6 @@ export const projects = {
 				ago: 's ago',
 				none: 'No event since you opened this page.'
 			},
-			fleetLead: 'The fleet is Ayako and twelve satellite bots:',
-			// the satellites' own names, from the Gateway's bot descriptions (owner, 2026-11-14: all 13, named)
-			satellites: ['Ticketing', 'Economy', 'Custom Roles', 'Confessions', 'Welcome', 'Info', 'AFK', 'Reminders', 'Bump Reminders', 'Giveaways', 'Verification', 'RP']
 		},
 		turn: 'Turn to',
 		views: [
